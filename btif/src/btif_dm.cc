@@ -531,7 +531,7 @@ static bool check_cached_remote_name(tBTA_DM_SEARCH* p_search_data,
   if (btif_storage_get_remote_device_property(
           &p_search_data->inq_res.bd_addr, &prop_name) == BT_STATUS_SUCCESS) {
     if (p_remote_name && p_remote_name_len) {
-      strcpy((char*)p_remote_name, (char*)bdname.name);
+      strlcpy((char*)p_remote_name, (char*)bdname.name, sizeof(bdname.name));
       *p_remote_name_len = strlen((char*)p_remote_name);
     }
     return true;
@@ -2820,9 +2820,8 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
   switch (prop->type) {
     case BT_PROPERTY_BDNAME: {
       bt_bdname_t* bd_name = (bt_bdname_t*)prop->val;
-      strncpy((char*)bd_name->name, (char*)btif_get_default_local_name(),
-              sizeof(bd_name->name) - 1);
-      bd_name->name[sizeof(bd_name->name) - 1] = 0;
+      strlcpy((char*)bd_name->name, (char*)btif_get_default_local_name(),
+              sizeof(bt_bdname_t));
       prop->len = strlen((char*)bd_name->name);
     } break;
 
@@ -3124,35 +3123,35 @@ bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg) {
   const char* recv = stack_config_get_interface()->get_pts_smp_options();
   char* pch;
   char* endptr;
+  char* saveptr;
 
-  strncpy(conf, recv, 64);
-  conf[63] = 0;  // null terminate
+  strlcpy(conf, recv, sizeof(conf));
 
-  pch = strtok(conf, ",");
+  pch = strtok_r(conf, ",", &saveptr);
   if (pch != NULL)
     p_cfg->ble_auth_req = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  pch = strtok(NULL, ",");
+  pch = strtok_r(NULL, ",", &saveptr);
   if (pch != NULL)
     p_cfg->ble_io_cap = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  pch = strtok(NULL, ",");
+  pch = strtok_r(NULL, ",", &saveptr);
   if (pch != NULL)
     p_cfg->ble_init_key = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  pch = strtok(NULL, ",");
+  pch = strtok_r(NULL, ",", &saveptr);
   if (pch != NULL)
     p_cfg->ble_resp_key = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  pch = strtok(NULL, ",");
+  pch = strtok_r(NULL, ",", &saveptr);
   if (pch != NULL)
     p_cfg->ble_max_key_size = (uint8_t)strtoul(pch, &endptr, 16);
   else
@@ -3633,15 +3632,14 @@ void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 
 static char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
-    int max_len = sizeof(btif_default_local_name) - 1;
+    int max_len = sizeof(btif_default_local_name);
     if (BTM_DEF_LOCAL_NAME[0] != '\0') {
-      strncpy(btif_default_local_name, BTM_DEF_LOCAL_NAME, max_len);
+      strlcpy(btif_default_local_name, BTM_DEF_LOCAL_NAME, max_len);
     } else {
       char prop_model[PROPERTY_VALUE_MAX];
       osi_property_get(PROPERTY_PRODUCT_MODEL, prop_model, "");
-      strncpy(btif_default_local_name, prop_model, max_len);
+      strlcpy(btif_default_local_name, prop_model, max_len);
     }
-    btif_default_local_name[max_len] = '\0';
   }
   return btif_default_local_name;
 }

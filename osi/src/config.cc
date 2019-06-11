@@ -451,7 +451,7 @@ static bool config_parse(FILE* fp, config_t* config) {
   char section[1024] = { '\0' };
   char comment[1024] = { '\0' };
   bool skip_entries = false;
-  strcpy(section, CONFIG_DEFAULT_SECTION);
+  strlcpy(section, CONFIG_DEFAULT_SECTION, sizeof(section));
 
   while (fgets(line, sizeof(line), fp)) {
     char* line_ptr = trim(line);
@@ -484,8 +484,7 @@ static bool config_parse(FILE* fp, config_t* config) {
         skip_entries = true;
         continue;
       }
-      strncpy(section, line_ptr + 1, len - 2);
-      section[len - 2] = '\0';
+      strlcpy(section, line_ptr + 1, sizeof(section));
       skip_entries = false;
     } else {
       char *split = strchr(line_ptr, '=');

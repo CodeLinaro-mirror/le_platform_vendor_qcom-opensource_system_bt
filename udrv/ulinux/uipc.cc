@@ -152,7 +152,7 @@ static inline int create_server_socket(const char* name) {
 #else
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_LOCAL;
-  strncpy(addr.sun_path, name, sizeof(addr.sun_path)-1);
+  strlcpy(addr.sun_path, name, sizeof(addr.sun_path));
   unlink(name);
 
   if(bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1)

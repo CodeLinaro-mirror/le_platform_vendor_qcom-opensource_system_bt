@@ -47,6 +47,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
+#include "osi/include/compat.h"
 
 #include "audio_a2dp_hw.h"
 
@@ -243,7 +244,7 @@ static int skt_connect(const char* path, size_t buffer_sz) {
 #else
     memset(&remote, 0, sizeof(remote));
     remote.sun_family = AF_LOCAL;
-    strncpy(remote.sun_path, path, sizeof(remote.sun_path)-1);
+    strlcpy(remote.sun_path, path, sizeof(remote.sun_path));
     if(connect(skt_fd, (struct sockaddr*)&remote, sizeof(remote)) < 0)
 #endif
   {
