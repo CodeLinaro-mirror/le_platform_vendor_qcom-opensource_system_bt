@@ -543,7 +543,8 @@ void bta_dm_disable(UNUSED_ATTR tBTA_DM_MSG* p_data) {
   if (soc_type == BT_SOC_SMD) {
     uint8_t param[5] = {0x10,0x02,0x00,0x00,0x01};
     BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE,5,param,NULL);
-  } else if (soc_type == BT_SOC_CHEROKEE || soc_type == BT_SOC_HASTINGS) {
+  } else if (soc_type == BT_SOC_CHEROKEE || soc_type == BT_SOC_HASTINGS
+		  || soc_type == BT_SOC_MOSELLE) {
     uint8_t param_cherokee[2] = {0x14, 0x00};
     BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE, 2, param_cherokee, NULL);
   }

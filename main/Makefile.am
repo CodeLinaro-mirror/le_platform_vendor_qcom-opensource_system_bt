@@ -145,7 +145,7 @@ AM_CFLAGS += -DUSING_STATIC_LINK
 AM_CPPFLAGS += -DUSING_STATIC_LINK
 endif
 
-common_LDFLAGS = -ldl -lrt -lresolv -lz -ldiag -lbtnv -lqmiservices -lqmi_cci \
+common_LDFLAGS = -ldl -lrt -lresolv -lz -ldiag -lbtnv @QMIFW_LIBS@ -lqmi_cci \
                  -Wl,--whole-archive,--no-whole-archive \
                  -Wl,--whole-archive,../bta/.libs/libbtbta.a,--no-whole-archive -Wl,--whole-archive,../btif/.libs/libbtif.a,--no-whole-archive \
                  -Wl,--whole-archive,../stack/.libs/libbtstack.a,--no-whole-archive \

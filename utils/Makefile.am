@@ -43,6 +43,11 @@ AM_CFLAGS += -DBT_SOC_TYPE_HASTINGS
 AM_CPPFLAGS += -DBT_SOC_TYPE_HASTINGS
 endif
 
+if MDM_MOSELLE
+AM_CFLAGS += -DBT_SOC_TYPE_MOSELLE
+AM_CPPFLAGS += -DBT_SOC_TYPE_MOSELLE
+endif
+
 cpp_sources = \
         src/bt_utils.cc
 

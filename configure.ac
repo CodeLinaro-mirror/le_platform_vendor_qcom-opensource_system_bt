@@ -42,6 +42,10 @@ PKG_CHECK_MODULES([LIBCHROME], [libchrome])
 AC_SUBST([LIBCHROME_CFLAGS])
 AC_SUBST([LIBCHROME_LIBS])
 
+PKG_CHECK_MODULES([QMIFW], [qmi-framework])
+AC_SUBST([QMIFW_CFLAGS])	AC_SUBST([QMIFW_CFLAGS])
+AC_SUBST([QMIFW_LIBS])	AC_SUBST([QMIFW_LIBS])
+
 AC_ARG_WITH([hardware_include],
                   AC_HELP_STRING([--with-hardware-include=@<:@dir@:>@],
                                  [Specify the location of the hardware headers]),
@@ -89,6 +93,7 @@ AM_CONDITIONAL([MDM_ROME], [test "x$TARGET" = "xmdm9607" -o "x$TARGET" = "xmdm96
 AM_CONDITIONAL([MDM_PRONTO], [test "x$TARGET" = "xapq8009" -o "x$TARGET" = "xapq8017" -o "x$TARGET" = "xapq8053" -o "x$TARGET" = "xapq8016"])
 AM_CONDITIONAL([MDM_CHEROKEE], [test "x$TARGET" = "xapq8098" -o "x$TARGET" = "xsdmsteppe"])
 AM_CONDITIONAL([MDM_HASTINGS], [test "x$TARGET" = "xqrb5165" -o "x$TARGET" = "xsxr2130"])
+AM_CONDITIONAL([MDM_MOSELLE], [test "x$TARGET" = "xneo"])
 AM_CONDITIONAL([BT_AUDIO_HAL_INTEGRATION], [test "x$TARGET" = "xapq8009" -o "x$TARGET" = "xapq8017" -o "x$TARGET" = "xapq8053" -o "x$TARGET" = "xapq8098" -o "x$TARGET" = "xsdmsteppe" -o "x$TARGET" = "xqrb5165"])
 # BTC support
 # make below flag to true to enable the BTC
