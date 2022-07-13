@@ -112,6 +112,9 @@ void send_soc_log_command(bool value) {
   } else if (soc_type == BT_SOC_MOSELLE) {
     LOG_INFO(LOG_TAG, "%s for BT_SOC_MOSELLE", __func__);
     BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE, 2, param_cherokee, NULL);
+  }else if (soc_type == BT_SOC_HAMILTON) {
+    LOG_INFO(LOG_TAG, "%s for BT_SOC_HAMILTON", __func__);
+    BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE, 2, param_cherokee, NULL);
   }
 }
 #ifndef QLOGKIT_USERDEBUG
@@ -312,7 +315,8 @@ static future_t* start_up(void) {
 
   // read scrambling support from controller incase of cherokee
   if (soc_type == BT_SOC_CHEROKEE || soc_type == BT_SOC_HASTINGS
-		  || soc_type == BT_SOC_MOSELLE) {
+                  || soc_type == BT_SOC_MOSELLE
+                  || soc_type == BT_SOC_HAMILTON){
     response =
           AWAIT_COMMAND(packet_factory->make_read_scrambling_supported_freqs());
     if(response) {

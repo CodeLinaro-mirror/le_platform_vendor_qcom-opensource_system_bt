@@ -71,7 +71,8 @@ static soc_type_node soc_type_entries[] = {
                            { BT_SOC_CHEROKEE , (char *)"cherokee" },
                            { BT_SOC_NAPIER , (char *) "napier" },
                            { BT_SOC_HASTINGS , (char *)"hastings" },
-			   { BT_SOC_MOSELLE , (char *)"moselle" },
+                           { BT_SOC_MOSELLE , (char *)"moselle" },
+                           { BT_SOC_HAMILTON, (char *)"hamilton" },
                            { BT_SOC_RESERVED , (char *)"" }
                                        };
 
@@ -285,6 +286,8 @@ static void init_soc_type() {
     soc_type = BT_SOC_HASTINGS;
 #elif defined(BT_SOC_TYPE_MOSELLE)
     soc_type = BT_SOC_MOSELLE;
+#elif defined(BT_SOC_TYPE_HAMILTON)
+    soc_type = BT_SOC_HAMILTON;
 #endif
 }
 
