@@ -245,7 +245,8 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
                 ->supports_enhanced_setup_synchronous_connection() &&
             (osi_property_get("vendor.bluetooth.soc", value, "qcombtsoc") &&
             (strcmp(value, "cherokee") == 0 || strcmp(value, "hastings") == 0
-	                                    || strcmp(value, "moselle"))))) {
+                                            || strcmp(value, "moselle")
+                                            || strcmp(value, "hamilton"))))) {
 #if (BLUETOOTH_QTI_SW == FALSE) /* This change is not needed.*/
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_CVSD);
 #endif
@@ -717,7 +718,8 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
               ->supports_enhanced_setup_synchronous_connection() &&
           (osi_property_get("vendor.bluetooth.soc", value, "qcombtsoc") &&
            (strcmp(value, "cherokee") == 0  || strcmp(value, "hastings") == 0
-	                                    || strcmp(value, "moselle"))))) {
+                                            || strcmp(value, "moselle")
+                                            || strcmp(value, "hamilton"))))) {
 #if (BLUETOOTH_QTI_SW == FALSE) /* These changes are not needed*/
       if (esco_codec == BTA_AG_CODEC_MSBC)
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_TRANS);

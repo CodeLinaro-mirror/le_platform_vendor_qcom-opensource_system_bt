@@ -188,7 +188,8 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
         ((osi_property_get("qcom.bluetooth.soc", value, "qcombtsoc") ||
          osi_property_get("vendor.bluetooth.soc", value, "qcombtsoc"))&&
          (strcmp(value, "cherokee") == 0 || strcmp(value, "hastings") == 0
-	                                 || strcmp(value, "moselle") == 0))) {
+                                         || strcmp(value, "moselle") == 0
+                                         || strcmp(value, "hamilton") == 0))) {
       /* Use the saved SCO routing */
       p_setup->input_data_path = p_setup->output_data_path =
           btm_cb.sco_cb.sco_route;
@@ -443,7 +444,8 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
          ((osi_property_get("qcom.bluetooth.soc", value, "qcombtsoc") ||
          osi_property_get("vendor.bluetooth.soc", value, "qcombtsoc"))&&
          (strcmp(value, "cherokee") == 0 || strcmp(value, "hastings") == 0
-	                                 || strcmp(value, "moselle") == 0))) {
+                                         || strcmp(value, "moselle") == 0
+                                         || strcmp(value, "hamilton") == 0))) {
       /* Use the saved SCO routing */
       p_setup->input_data_path = p_setup->output_data_path =
           btm_cb.sco_cb.sco_route;
