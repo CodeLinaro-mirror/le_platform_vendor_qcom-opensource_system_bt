@@ -637,6 +637,17 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
                    p_protect_info[2]);
   A2DP_DumpCodecInfo(p_codec_info);
 
+  char pts_value[PROPERTY_VALUE_MAX] = {'\0'};
+  property_get("vendor.bt.pts.certification", pts_value, "false");
+  if (!(strcmp(pts_value,"true"))) {
+      /* To Fetch proper status code */
+      status = A2DP_IsPeerCodecValid(p_codec_info);
+      if (status != A2DP_SUCCESS) {
+            bta_av_ci_setconfig(hndl, status, category, 0, NULL, FALSE,
+            avdt_handle);
+            return;
+      }
+  }
   /* Retrieve the peer info */
   p_peer = bta_av_co_get_peer(hndl);
   if (p_peer == NULL) {

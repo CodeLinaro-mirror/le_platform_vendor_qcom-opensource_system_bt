@@ -2356,10 +2356,20 @@ void bta_av_getcap_results(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
 void bta_av_setconfig_rej(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV_REJECT reject;
   uint8_t avdt_handle = p_data->ci_setconfig.avdt_handle;
+  uint8_t error;
 
   bta_av_adjust_seps_idx(p_scb, avdt_handle);
   APPL_TRACE_DEBUG("%s: sep_idx: %d", __func__, p_scb->sep_idx);
-  AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, AVDT_ERR_UNSUP_CFG, 0);
+
+  char value[PROPERTY_VALUE_MAX] = {'\0'};
+  property_get("vendor.bt.pts.certification", value, "false");
+  if (!(strcmp(value,"true"))) {
+      error = p_data->ci_setconfig.err_code;
+  } else {
+      error = AVDT_ERR_UNSUP_CFG;
+  }
+
+  AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, error, 0);
 
   APPL_TRACE_DEBUG("%s peer_address: %s, handle: %d", __func__, p_scb->peer_addr.ToString().c_str(), p_scb->hndl);
   //reject.bd_addr = p_data->str_msg.bd_addr;

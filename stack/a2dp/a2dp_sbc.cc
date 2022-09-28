@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #define LOG_TAG "a2dp_sbc"
-
+#include "osi/include/properties.h"
 #include "bt_target.h"
 
 #include "a2dp_sbc.h"
@@ -208,7 +208,8 @@ static tA2DP_STATUS A2DP_ParseInfoSbc(tA2DP_SBC_CIE* p_ie,
 
   if (A2DP_BitsSet(p_ie->samp_freq) != A2DP_SET_ONE_BIT)
     return A2DP_BAD_SAMP_FREQ;
-  if (A2DP_BitsSet(p_ie->ch_mode) != A2DP_SET_ONE_BIT) return A2DP_BAD_CH_MODE;
+  if (A2DP_BitsSet(p_ie->ch_mode) != A2DP_SET_ONE_BIT)
+    return A2DP_BAD_CH_MODE;
   if (A2DP_BitsSet(p_ie->block_len) != A2DP_SET_ONE_BIT)
     return A2DP_BAD_BLOCK_LEN;
   if (A2DP_BitsSet(p_ie->num_subbands) != A2DP_SET_ONE_BIT)
@@ -324,6 +325,11 @@ void A2DP_InitDefaultCodecSbc(uint8_t* p_codec_info) {
                         p_codec_info) != A2DP_SUCCESS) {
     LOG_ERROR(LOG_TAG, "%s: A2DP_BuildInfoSbc failed", __func__);
   }
+}
+
+uint8_t A2DP_IsPeerCodecValidSbc(const uint8_t* p_codec_info) {
+  return A2DP_CodecInfoMatchesCapabilitySbc(&a2dp_sbc_caps, p_codec_info,
+                                             false);
 }
 
 // Checks whether A2DP SBC codec configuration matches with a device's codec

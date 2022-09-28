@@ -277,6 +277,23 @@ uint8_t A2dpCodecConfig::getAudioBitsPerSample() {
   return 0;
 }
 
+uint8_t A2DP_IsPeerCodecValid(const uint8_t* p_codec_info) {
+  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
+  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+  switch (codec_type) {
+    case A2DP_MEDIA_CT_SBC:
+      return A2DP_IsPeerCodecValidSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsPeerCodecValidAac(p_codec_info);
+    case A2DP_MEDIA_CT_NON_A2DP:
+      return A2DP_BAD_CODEC_TYPE;
+    default:
+      break;
+  }
+    return A2DP_NS_CODEC_TYPE;
+}
+
 bool A2dpCodecConfig::isCodecConfigEmpty(
     const btav_a2dp_codec_config_t& codec_config) {
   return (
