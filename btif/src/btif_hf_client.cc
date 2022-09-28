@@ -74,7 +74,7 @@
 #if (BTIF_HF_CLIENT_WBS_INCLUDED == TRUE)
 #ifndef BTIF_HF_CLIENT_FEATURES
 #define BTIF_HF_CLIENT_FEATURES                                                \
-  (BTA_HF_CLIENT_FEAT_ECNR |                          \
+  (BTA_HF_CLIENT_FEAT_ECNR |  BTA_HF_CLIENT_FEAT_3WAY |  \
    BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VOL | \
    BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_CODEC | \
    BTA_HF_CLIENT_FEAT_S4)
@@ -82,7 +82,7 @@
 #else
 #ifndef BTIF_HF_CLIENT_FEATURES
 #define BTIF_HF_CLIENT_FEATURES                                                \
-  (BTA_HF_CLIENT_FEAT_ECNR |                         \
+  (BTA_HF_CLIENT_FEAT_ECNR | BTA_HF_CLIENT_FEAT_3WAY |     \
    BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VOL | \
    BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_S4)
 #endif
