@@ -343,6 +343,9 @@ typedef struct {
    */
   bt_status_t (*set_active_device)(RawAddress* active_device_addr);
 
+  /* Configure the wbs */
+  bt_status_t (*configure_wbs)(RawAddress* bd_addr, bthf_wbs_config_t config);
+
 } bthf_interface_t;
 
 __END_DECLS
