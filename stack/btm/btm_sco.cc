@@ -1546,7 +1546,7 @@ tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
          ((osi_property_get("qcom.bluetooth.soc", value, "qcombtsoc") ||
          osi_property_get("vendor.bluetooth.soc", value, "qcombtsoc")) &&
          (strcmp(value, "cherokee") == 0 || strcmp(value, "hastings") == 0
-	                                 || strcmp(value, "moselle") == 0))) {
+	  || strcmp(value, "moselle") == 0 || strcmp(value, "hamilton") == 0))) {
       /* Use the saved SCO routing */
       p_setup->input_data_path = p_setup->output_data_path =
           btm_cb.sco_cb.sco_route;
