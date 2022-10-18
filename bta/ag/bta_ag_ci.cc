@@ -57,8 +57,7 @@ void bta_ag_ci_rx_write(uint16_t handle, char* p_data, uint16_t len) {
     p_buf->hdr.layer_specific = handle;
 
     p_data_area = (char*)(p_buf + 1); /* Point to data area after header */
-    strncpy(p_data_area, p_data, len);
-    p_data_area[len] = 0;
+    strlcpy(p_data_area, p_data, len + 1);
 
     bta_sys_sendmsg(p_buf);
 

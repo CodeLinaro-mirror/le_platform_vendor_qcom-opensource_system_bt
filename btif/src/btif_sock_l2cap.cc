@@ -303,7 +303,7 @@ static l2cap_socket* btsock_l2cap_alloc_l(const char* name,
   sock->server_psm_sent = false;
   sock->app_uid = -1;
 
-  if (name) strncpy(sock->name, name, sizeof(sock->name) - 1);
+  if (name) strlcpy(sock->name, name, sizeof(sock->name));
   if (addr) sock->addr = *addr;
 
   sock->first_packet = NULL;

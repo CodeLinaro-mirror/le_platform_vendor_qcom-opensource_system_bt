@@ -304,7 +304,7 @@ void bta_ag_send_result(tBTA_AG_SCB* p_scb, size_t code,
   if (result->arg_type == BTA_AG_RES_FMT_INT) {
     p += utl_itoa((uint16_t)int_arg, p);
   } else if (result->arg_type == BTA_AG_RES_FMT_STR) {
-    strcpy(p, p_arg);
+    strlcpy(p, p_arg, sizeof(buf) - 2 - strlen(result->result_string) - 1);
     p += strlen(p_arg);
   }
 
@@ -735,7 +735,8 @@ static int bta_ag_find_hf_ind_by_id(tBTA_AG_HF_IND* p_hf_ind, int size,
  *
  ******************************************************************************/
 static bool bta_ag_parse_bind_set(tBTA_AG_SCB* p_scb, tBTA_AG_VAL val) {
-  char* p_token = strtok(val.str, ",");
+  char* saveptr;
+  char* p_token = strtok_r(val.str, ",", &saveptr);
   if (p_token == NULL) return false;
 
   while (p_token != NULL) {
@@ -749,7 +750,7 @@ static bool bta_ag_parse_bind_set(tBTA_AG_SCB* p_scb, tBTA_AG_VAL val) {
     p_scb->peer_hf_indicators[index].ind_id = rcv_ind_id;
     APPL_TRACE_DEBUG("%s peer_hf_ind[%d] = %d", __func__, index, rcv_ind_id);
 
-    p_token = strtok(NULL, ",");
+    p_token = strtok_r(NULL, ",", &saveptr);
   }
 
   return true;
@@ -843,10 +844,11 @@ static void bta_ag_bind_response(tBTA_AG_SCB* p_scb, uint8_t arg_type) {
  *
  ******************************************************************************/
 static bool bta_ag_parse_biev_response(tBTA_AG_SCB* p_scb, tBTA_AG_VAL* val) {
-  char* p_token = strtok(val->str, ",");
+  char* saveptr;
+  char* p_token = strtok_r(val->str, ",", &saveptr);
   uint16_t rcv_ind_id = atoi(p_token);
 
-  p_token = strtok(NULL, ",");
+  p_token = strtok_r(NULL, ",", &saveptr);
   uint16_t rcv_ind_val = atoi(p_token);
 
   APPL_TRACE_DEBUG("%s BIEV indicator id %d, value %d", __func__, rcv_ind_id,
