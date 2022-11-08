@@ -153,7 +153,11 @@ common_LDFLAGS = -ldl -lrt -lresolv -lz -ldiag -lbtnv @QMIFW_LIBS@ -lqmi_cci \
                  -Wl,--whole-archive,../osi/.libs/libbtosi.a,--no-whole-archive -Wl,--whole-archive,../device/.libs/libbtdevice.a,--no-whole-archive \
                  -Wl,--whole-archive,../types/.libs/libbttypes.a,--no-whole-archive \
                  -Wl,--whole-archive,../hci/.libs/libbthci.a,--no-whole-archive \
-                 -laudioutils -lchrome -llog -lcutils -lpthread
+                 -lchrome -llog -lcutils -lpthread
+
+if BT_AUDIO_HAL_INTEGRATION
+common_LDFLAGS += -laudioutils
+endif
 
 common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
 common_CPPFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
