@@ -986,9 +986,7 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
   tBTA_AV_EVT evt = 0;
   tBTA_AV av;
   BT_HDR* p_pkt = NULL;
-  tAVRC_MSG_VENDOR* p_vendor = &p_data->rc_msg.msg.vendor;
-  bool is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) ||
-                     p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
+
 #if (AVRC_METADATA_INCLUDED == TRUE)
   uint8_t ctype = 0;
   tAVRC_RESPONSE rc_rsp;
@@ -1000,6 +998,9 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
     APPL_TRACE_ERROR("Message from peer with no data in %s", __func__);
     return;
   }
+  tAVRC_MSG_VENDOR* p_vendor = &p_data->rc_msg.msg.vendor;
+  bool is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) ||
+                     p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
 
   APPL_TRACE_DEBUG("%s: opcode=%x, ctype=%x", __func__, p_data->rc_msg.opcode,
                    p_data->rc_msg.msg.hdr.ctype);
@@ -1326,7 +1327,7 @@ void bta_av_conn_chg(tBTA_AV_DATA* p_data) {
   bool chk_restore = false;
 
   /* Validate array index*/
-  if (index < BTA_AV_NUM_STRS) {
+  if (index >= 0 && index < BTA_AV_NUM_STRS) {
     p_scb = p_cb->p_scb[index];
   }
   mask = BTA_AV_HNDL_TO_MSK(index);

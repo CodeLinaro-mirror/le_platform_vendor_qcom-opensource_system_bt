@@ -263,7 +263,11 @@ void avdt_ccb_hdl_discover_cmd(tAVDT_CCB* p_ccb, tAVDT_CCB_EVT* p_data) {
   }
   AVDT_TRACE_WARNING("%s: effective number of endpoints: %d", __func__, effective_num_seps);
   /* send response */
-  avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCOVER_RSP_EVT, p_data);
+  if (p_ccb != NULL) {
+    avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCOVER_RSP_EVT, p_data);
+  } else {
+     APPL_TRACE_DEBUG("p_ccb is NULL");
+   }
 }
 
 /*******************************************************************************
