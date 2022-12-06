@@ -576,8 +576,10 @@ static bool btm_sec_set_security_level(CONNECTION_TYPE conn_type,
   if (is_originator) {
     p_srec->orig_mx_chan_id = mx_chan_id;
 #if BTM_SEC_SERVICE_NAME_LEN > 0
-    strlcpy((char*)p_srec->orig_service_name, p_name,
-            BTM_SEC_SERVICE_NAME_LEN + 1);
+    if (p_name != NULL){
+      strlcpy((char*)p_srec->orig_service_name, p_name,
+              BTM_SEC_SERVICE_NAME_LEN + 1);
+    }
 #endif
 /* clear out the old setting, just in case it exists */
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -622,8 +624,10 @@ static bool btm_sec_set_security_level(CONNECTION_TYPE conn_type,
   } else {
     p_srec->term_mx_chan_id = mx_chan_id;
 #if BTM_SEC_SERVICE_NAME_LEN > 0
-    strlcpy((char*)p_srec->term_service_name, p_name,
-            BTM_SEC_SERVICE_NAME_LEN + 1);
+    if (p_name != NULL) {
+      strlcpy((char*)p_srec->term_service_name, p_name,
+              BTM_SEC_SERVICE_NAME_LEN + 1);
+    }
 #endif
 /* clear out the old setting, just in case it exists */
 #if (L2CAP_UCD_INCLUDED == TRUE)
