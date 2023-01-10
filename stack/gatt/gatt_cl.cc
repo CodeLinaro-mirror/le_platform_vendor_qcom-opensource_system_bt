@@ -418,6 +418,7 @@ void gatt_process_read_info_rsp(UNUSED_ATTR tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
                                 uint8_t* p_data) {
   tGATT_DISC_RES result;
   uint8_t *p = p_data, uuid_len = 0, type;
+  result.handle = 0;
 
   if (len < GATT_INFO_RSP_MIN_LEN) {
     LOG(ERROR) << "invalid Info Response PDU received, discard.";

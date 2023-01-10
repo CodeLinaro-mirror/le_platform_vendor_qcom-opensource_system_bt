@@ -318,7 +318,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB* p_scb, tAVDT_SCB_EVT* p_data) {
         // remove padding here itself.
         p_data->p_pkt->len -= (pad_len);
 
-    if (p_scb->cs.p_sink_data_cback != NULL) {
+    if ((p_scb != NULL) && (p_scb->cs.p_sink_data_cback != NULL)) {
       /* report sequence number */
       p_data->p_pkt->layer_specific = seq;
       APPL_TRACE_LATENCY_AUDIO("AVDTP Recv Packet, seq number %d", seq);
