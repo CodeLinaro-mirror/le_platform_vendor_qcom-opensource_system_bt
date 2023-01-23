@@ -547,12 +547,12 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
 
   do {
     p_scb = bta_av_alloc_scb(registr.chnl);
-    cs.registration_id = p_scb->hdi;
-    if (p_scb == NULL) {
+    if(p_scb == NULL){
       APPL_TRACE_ERROR("failed to alloc SCB");
       break;
     }
 
+    cs.registration_id = p_scb->hdi;
     registr.hndl = p_scb->hndl;
     p_scb->app_id = registr.app_id;
 

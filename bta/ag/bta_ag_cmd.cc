@@ -846,6 +846,7 @@ static void bta_ag_bind_response(tBTA_AG_SCB* p_scb, uint8_t arg_type) {
 static bool bta_ag_parse_biev_response(tBTA_AG_SCB* p_scb, tBTA_AG_VAL* val) {
   char* saveptr;
   char* p_token = strtok_r(val->str, ",", &saveptr);
+  if(!p_token) return false;
   uint16_t rcv_ind_id = atoi(p_token);
 
   p_token = strtok_r(NULL, ",", &saveptr);

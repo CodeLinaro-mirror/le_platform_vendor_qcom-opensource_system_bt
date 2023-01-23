@@ -767,6 +767,11 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
           alarm_cancel(p_lcb->info_resp_timer);
         }
 
+        if (p + 4 > p_next_cmd) {
+          L2CAP_TRACE_WARNING("L2CAP - wrong info rsp params for info_type or result");
+          return;
+        }
+
         STREAM_TO_UINT16(info_type, p);
         STREAM_TO_UINT16(result, p);
 
@@ -775,7 +780,7 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         if ((info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE) &&
             (result == L2CAP_INFO_RESP_RESULT_SUCCESS)) {
           if (p + 4 > p_next_cmd) {
-            android_errorWriteLog(0x534e4554, "74202041");
+            L2CAP_TRACE_WARNING("L2CAP - wrong info rsp params for peer_ext_fea");
             return;
           }
           STREAM_TO_UINT32(p_lcb->peer_ext_fea, p);

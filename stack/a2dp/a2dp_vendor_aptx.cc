@@ -115,6 +115,8 @@ tA2DP_STATUS A2DP_BuildInfoAptx(uint8_t media_type,
   *p_result++ = (uint8_t)(p_ie->codecId & 0x00FF);
   *p_result++ = (uint8_t)((p_ie->codecId & 0xFF00) >> 8);
   *p_result++ = p_ie->sampleRate | p_ie->channelMode;
+  *p_result++ = p_ie->future1;
+  *p_result++ = p_ie->future2;
 
   return A2DP_SUCCESS;
 }
@@ -163,6 +165,8 @@ static tA2DP_STATUS A2DP_ParseInfoAptx(tA2DP_APTX_CIE* p_ie,
   p_ie->channelMode = *p_codec_info & 0x0F;
   p_ie->sampleRate = *p_codec_info & 0xF0;
   p_codec_info++;
+  p_ie->future1 = *(p_codec_info++);
+  p_ie->future2 = *(p_codec_info++);
 
   if (is_capability) return A2DP_SUCCESS;
 
