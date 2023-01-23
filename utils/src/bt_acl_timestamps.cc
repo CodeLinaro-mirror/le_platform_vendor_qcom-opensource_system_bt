@@ -49,6 +49,7 @@
 #include "osi/include/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
+#include "osi/include/properties.h"
 
 #define LOG_TAG "bt_acl_timestamps"
 
@@ -84,7 +85,7 @@ typedef struct {
 ******************************************************************************/
 static cid_info_t cid_info[MAX_CONNECTIONS];
 static packet_time_info_t packet_time_info[MAX_CONNECTIONS];
-
+static bool acl_timestamps_enabled = false;
 /*****************************************************************************
 **  Static functions
 ******************************************************************************/
@@ -174,7 +175,9 @@ void bt_acl_save_acl_timestamps(BT_HDR *packet)
     fixed_queue_t *pktQ = bt_acl_find_queue_by_handle(handle);
     if (pktQ != NULL) {
         time_stamp_t* pktItem = (time_stamp_t *)osi_malloc(sizeof(time_stamp_t));
-        //gettimeofday(&pktItem->timestamp, NULL);
+        if(acl_timestamps_enabled) {
+            gettimeofday(&pktItem->timestamp, NULL);
+        }
         pktItem->isA2dpPkt = false;
         uint16_t lcid = bt_acl_find_cid_by_handle(handle);
         if (lcid == hdr->lcid) {
@@ -237,6 +240,12 @@ void bt_acl_update_lcid(uint16_t handle, uint16_t local_cid, uint16_t remote_cid
  *******************************************************************************/
 void bt_acl_init_timestamps_by_handle(uint16_t handle)
 {
+    char value[PROPERTY_VALUE_MAX] = {'\0'};
+    osi_property_get("persist.bt.acl_timestamps", value, "false");
+    if(strcmp(value, "true") == 0) {
+        acl_timestamps_enabled = true;
+    }
+    LOG_VERBOSE(LOG_TAG, "%s acl_timestamps_enabled %d ", __func__, acl_timestamps_enabled);
     bt_acl_remove_timestamps_by_handle(handle);
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
         if (packet_time_info[i].handle == HCI_INVALID_HANDLE) {
@@ -343,17 +352,22 @@ void bt_acl_calc_timestamps_by_handle(uint16_t handle, uint8_t num)
         LOG_ERROR(LOG_TAG, "%s device is not found, handle :%d.", __func__, handle);
         return;
     }
-    //struct timeval curTime;
+    struct timeval curTime;
     RawAddress bd_addr;
 
     bd_addr = p_dev_rec->bd_addr;
 
-    //gettimeofday(&curTime, NULL);
+    if(acl_timestamps_enabled) {
+        gettimeofday(&curTime, NULL);
+    }
     if (!flush_occured) {
         for (int i = 0; i < num; i++) {
             time_stamp_t* pktItem = (time_stamp_t *)fixed_queue_dequeue(pktQ);
-            //time_delta = (curTime.tv_sec - pktItem->timestamp.tv_sec) * 1000000 + (curTime.tv_usec - pktItem->timestamp.tv_usec);
             LOG_VERBOSE(LOG_TAG, "%s handle:%d, A2DP: %d ", __func__, handle, pktItem->isA2dpPkt);
+            if(acl_timestamps_enabled) {
+                time_delta = (curTime.tv_sec - pktItem->timestamp.tv_sec) * 1000000 + (curTime.tv_usec - pktItem->timestamp.tv_usec);
+                LOG_VERBOSE(LOG_TAG, "%s Tx time_delta:%d  ", __func__, time_delta);
+            }
             if (pktItem->isA2dpPkt)
                 HAL_CBACK(bt_vendor_callbacks, a2dp_tx_complete_cb, &bd_addr, FALSE);
             osi_free(pktItem);
