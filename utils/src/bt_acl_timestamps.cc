@@ -174,7 +174,7 @@ void bt_acl_save_acl_timestamps(BT_HDR *packet)
     fixed_queue_t *pktQ = bt_acl_find_queue_by_handle(handle);
     if (pktQ != NULL) {
         time_stamp_t* pktItem = (time_stamp_t *)osi_malloc(sizeof(time_stamp_t));
-        gettimeofday(&pktItem->timestamp, NULL);
+        //gettimeofday(&pktItem->timestamp, NULL);
         pktItem->isA2dpPkt = false;
         uint16_t lcid = bt_acl_find_cid_by_handle(handle);
         if (lcid == hdr->lcid) {
