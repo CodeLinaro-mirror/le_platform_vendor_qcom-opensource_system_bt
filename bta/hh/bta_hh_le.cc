@@ -1878,9 +1878,9 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY* p_data) {
   memcpy(raw_data->data, p_buf, raw_data->len*sizeof(uint8_t));
   (* bta_hh_cb.p_cback)(BTA_HH_SEND_RAW_DATA_EVT, (tBTA_HH *)raw_data);
 
-  //bta_hh_co_data((uint8_t)p_dev_cb->hid_handle, p_buf, p_data->len,
-    //             p_dev_cb->mode, 0, /* no sub class*/
-      //           p_dev_cb->dscp_info.ctry_code, p_dev_cb->addr, app_id);
+  bta_hh_co_data((uint8_t)p_dev_cb->hid_handle, p_buf, p_data->len,
+                 p_dev_cb->mode, 0, /* no sub class*/
+                 p_dev_cb->dscp_info.ctry_code, p_dev_cb->addr, app_id);
 
   if (p_buf != p_data->value) osi_free(p_buf);
   osi_free(raw_data);
