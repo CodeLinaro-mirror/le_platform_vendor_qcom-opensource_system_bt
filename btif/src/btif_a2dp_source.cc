@@ -846,7 +846,7 @@ size_t btif_media_writebuf_vendor(bt_bdaddr_t *bd_addr, const void* buffer, size
     uint8_t rtp_offset = 0;
     if(buffer == NULL)
         return 0;
-    BTIF_TRACE_IMP("AV %s , data size = %d", __FUNCTION__,length);
+    BTIF_TRACE_VERBOSE("AV %s , data size = %d", __FUNCTION__,length);
 
     if(length > 0 && btif_a2dp_source_cb.tx_audio_queue != NULL) {
 
