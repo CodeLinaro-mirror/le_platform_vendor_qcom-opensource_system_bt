@@ -396,7 +396,8 @@ static void notify_start_failed(tBTA_AV_SCB* p_scb) {
   start.status = BTA_AV_FAIL;
   start.initiator = true;
   start.hndl = p_scb->hndl;
-
+  start.suspending = false;
+  start.role = 0xFF;
   tBTA_AV bta_av_data;
   bta_av_data.start = start;
   (*bta_av_cb.p_cback)(BTA_AV_START_EVT, &bta_av_data);
