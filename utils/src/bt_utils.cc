@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/resource.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 #include <mutex>
 
@@ -73,6 +74,7 @@ static soc_type_node soc_type_entries[] = {
                            { BT_SOC_HASTINGS , (char *)"hastings" },
                            { BT_SOC_MOSELLE , (char *)"moselle" },
                            { BT_SOC_HAMILTON, (char *)"hamilton" },
+                           { BT_SOC_TYPE_2, (char *)"hastingsprime" },
                            { BT_SOC_RESERVED , (char *)"" }
                                        };
 
@@ -253,8 +255,41 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
 ** Returns         void.
 **
 *******************************************************************************/
+static bt_soc_type get_soc_type_btpower(void) {
+	bt_soc_type ret = BT_SOC_RESERVED;
+	int fd_btdev;
+	char compatable_chipset_id[32] = {'\0'};
+
+	fd_btdev = open("/dev/btpower", O_RDWR | O_NONBLOCK);
+	if (fd_btdev < 0) {
+		ALOGE("%s: failed to open /dev/btpower error = (%s)", __func__, strerror(errno));
+		return ret;
+	}
+	ioctl(fd_btdev, 0xbfaf, compatable_chipset_id);
+	close(fd_btdev);
+	ALOGE("%s: compatible SOC ID \"%s\"", __func__, compatable_chipset_id);
+
+	if (strstr(compatable_chipset_id, "wcn3990")) {
+		ret = BT_SOC_CHEROKEE;
+	} else if (strstr(compatable_chipset_id, "qca6174")) {
+		ret = BT_SOC_ROME;
+	} else if (strstr(compatable_chipset_id, "qca6390")) {
+		ret = BT_SOC_HASTINGS;
+	} else if (strstr(compatable_chipset_id, "wcn6750")) {
+		ret = BT_SOC_MOSELLE;
+	} else if (strstr(compatable_chipset_id, "qca6490")) {
+		ret = BT_SOC_TYPE_2;
+	} else if (strstr(compatable_chipset_id, "kiwi") ||
+		   strstr(compatable_chipset_id, "wcn7850")) {
+		ret = BT_SOC_HAMILTON;
+	}
+	ALOGE("%s: SOC type(%d) BT_SOC_RESERVED(%d)", __func__, ret, BT_SOC_RESERVED);
+	return ret;
+}
+
 static void init_soc_type() {
   int ret = 0;
+  bt_soc_type btpower_soc_type;
   char bt_soc_type[PROPERTY_VALUE_MAX];
   LOG_INFO("bt_utils: %s", __func__);
   ALOGI("init_soc_type");
@@ -288,6 +323,10 @@ static void init_soc_type() {
     soc_type = BT_SOC_MOSELLE;
 #elif defined(BT_SOC_TYPE_HAMILTON)
     soc_type = BT_SOC_HAMILTON;
+#else
+    btpower_soc_type = get_soc_type_btpower();
+    if (btpower_soc_type != BT_SOC_RESERVED)
+        soc_type = btpower_soc_type;
 #endif
 }
 

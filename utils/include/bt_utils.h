@@ -61,6 +61,7 @@ typedef enum {
     BT_SOC_HASTINGS,
     BT_SOC_MOSELLE,
     BT_SOC_HAMILTON,
+    BT_SOC_TYPE_2,
     /* Add chipset type here */
     BT_SOC_RESERVED
 } bt_soc_type;

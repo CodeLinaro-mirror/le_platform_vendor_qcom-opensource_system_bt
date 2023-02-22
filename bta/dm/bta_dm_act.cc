@@ -545,6 +545,7 @@ void bta_dm_disable(UNUSED_ATTR tBTA_DM_MSG* p_data) {
     BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE,5,param,NULL);
   } else if (soc_type == BT_SOC_CHEROKEE || soc_type == BT_SOC_HASTINGS
                   || soc_type == BT_SOC_MOSELLE
+                  || soc_type == BT_SOC_TYPE_2
                   || soc_type == BT_SOC_HAMILTON) {
     uint8_t param_cherokee[2] = {0x14, 0x00};
     BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE, 2, param_cherokee, NULL);

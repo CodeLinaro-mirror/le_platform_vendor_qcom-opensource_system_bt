@@ -16,6 +16,7 @@
  *
  ******************************************************************************/
 
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <chrome/base/logging.h>
 #include <string.h>
