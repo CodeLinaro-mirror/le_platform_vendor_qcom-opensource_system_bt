@@ -95,6 +95,7 @@ btpan_conn_t* btpan_find_conn_handle(uint16_t handle);
 void btpan_set_flow_control(bool enable);
 int btpan_get_connected_count(void);
 int btpan_tap_open(void);
+int btpan_tap_open_role(int local_role);
 void create_tap_read_thread(int tap_fd);
 void destroy_tap_read_thread(void);
 int btpan_tap_close(int tap_fd);

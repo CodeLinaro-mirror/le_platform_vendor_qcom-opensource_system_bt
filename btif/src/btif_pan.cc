@@ -282,7 +282,7 @@ void destroy_tap_read_thread(void) {
   }
 }
 
-static int tap_if_up(const char* devname, const RawAddress* addr) {
+static int tap_if_up_role(const char* devname, const RawAddress* addr, int local_role) {
   struct ifreq ifr;
   int sk, err;
 
@@ -334,6 +334,10 @@ static int tap_if_up(const char* devname, const RawAddress* addr) {
 #ifdef ANDROID
   ifr.ifr_flags |= IFF_UP;
 #endif
+  if (local_role == PAN_ROLE_CLIENT) {
+    ifr.ifr_flags |= IFF_UP;
+    BTIF_TRACE_IMP("%s: IFF_UP for PAN_ROLE_CLIENT", __func__);
+  }
   ifr.ifr_flags |= IFF_MULTICAST;
 
   err = ioctl(sk, SIOCSIFFLAGS, (caddr_t)&ifr);
@@ -347,6 +351,10 @@ static int tap_if_up(const char* devname, const RawAddress* addr) {
   close(sk);
   BTIF_TRACE_DEBUG("network interface: %s is up", devname);
   return 0;
+}
+
+static int tap_if_up(const char* devname, const RawAddress* addr) {
+  return tap_if_up_role(devname, addr, PAN_ROLE_INACTIVE);
 }
 
 static int tap_if_down(const char* devname) {
@@ -378,7 +386,7 @@ void btpan_set_flow_control(bool enable) {
   }
 }
 
-int btpan_tap_open() {
+int btpan_tap_open_role(int local_role) {
   struct ifreq ifr;
   int fd, err;
 #ifdef ANDROID
@@ -407,7 +415,7 @@ int btpan_tap_open() {
     close(fd);
     return err;
   }
-  if (tap_if_up(TAP_IF_NAME, controller_get_interface()->get_address()) == 0) {
+  if (tap_if_up_role(TAP_IF_NAME, controller_get_interface()->get_address(), local_role) == 0) {
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
     return fd;
@@ -415,6 +423,10 @@ int btpan_tap_open() {
   BTIF_TRACE_ERROR("can not bring up tap interface:%s", TAP_IF_NAME);
   close(fd);
   return INVALID_FD;
+}
+
+int btpan_tap_open() {
+  return btpan_tap_open_role(PAN_ROLE_INACTIVE);
 }
 
 int btpan_tap_send(int tap_fd, const RawAddress& src, const RawAddress& dst,
@@ -482,7 +494,11 @@ static void btpan_open_conn(btpan_conn_t* conn, tBTA_PAN* p_data) {
     btpan_cb.open_count++;
     conn->handle = p_data->open.handle;
     if (btpan_cb.tap_fd < 0) {
+#ifdef OWRT_BUILD
+      btpan_cb.tap_fd = btpan_tap_open_role(conn->local_role);
+#else
       btpan_cb.tap_fd = btpan_tap_open();
+#endif
       if (btpan_cb.tap_fd >= 0) create_tap_read_thread(btpan_cb.tap_fd);
     }
 
