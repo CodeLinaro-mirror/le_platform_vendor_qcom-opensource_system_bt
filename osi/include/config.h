@@ -49,7 +49,7 @@ config_t* config_new_clone(const config_t* src);
 // Frees resources associated with the config file. No further operations may
 // be performed on the |config| object after calling this function. |config|
 // may be NULL.
-void config_free(config_t* config);
+void bt_config_free(config_t* config);
 
 // Returns true if the config file contains a section named |section|. If
 // the section has no key/value pairs in it, this function will return false.

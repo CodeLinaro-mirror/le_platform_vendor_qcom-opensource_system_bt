@@ -4,6 +4,8 @@
 
 #include "osi/include/config.h"
 
+#define config_free bt_config_free
+
 static const char CONFIG_FILE[] = "/data/local/tmp/config_test.conf";
 static const char CONFIG_FILE_CONTENT[] =
     "                                                                                    \n\

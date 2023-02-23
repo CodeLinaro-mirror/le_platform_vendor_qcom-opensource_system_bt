@@ -44,6 +44,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
+#define config_free bt_config_free
 #define BT_CONFIG_SOURCE_TAG_NUM 1010001
 
 #define INFO_SECTION "Info"
