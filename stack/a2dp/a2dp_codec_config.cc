@@ -1636,6 +1636,8 @@ uint8_t A2DP_IsCodecLicensed (uint16_t codec_id)
             APPL_TRACE_DEBUG(" %s Error, retrying ",__func__);
             usleep(50*1000);
             ret = verify_haven_license(codec_id);
+        } else {
+           break;
         }
     }
 
