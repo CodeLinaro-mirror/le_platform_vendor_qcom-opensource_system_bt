@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_osi_config"
 
 #include "osi/include/config.h"
 
@@ -36,6 +35,13 @@
 #include "osi/include/log.h"
 #include "osi/include/compat.h"
 #include "log/log.h"
+
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "bt_osi_config "
+
+#define config_free bt_config_free
 
 typedef struct {
   char* key;
@@ -127,7 +133,8 @@ config_t* config_new_clone(const config_t* src) {
   return ret;
 }
 
-void config_free(config_t* config) {
+void bt_config_free(config_t* config) {
+  LOG_INFO(LOG_TAG, "enter %s : config=%p", __func__, config);
   if (!config) return;
 
   list_free(config->sections);
@@ -484,6 +491,7 @@ static bool config_parse(FILE* fp, config_t* config) {
         skip_entries = true;
         continue;
       }
+      line_ptr[len - 1] = '\0';
       strlcpy(section, line_ptr + 1, sizeof(section));
       skip_entries = false;
     } else {

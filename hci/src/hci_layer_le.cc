@@ -141,6 +141,11 @@ void hci_close() {
     if(!hidl_daemon_status)
       LOG_ERROR(LOG_TAG, "%s: HIDL daemon is dead", __func__);
 
+    if (lib_handle) {
+      dlclose(lib_handle);
+      ALOGI("%s: dlclose(%p)", __func__, lib_handle);
+      lib_handle = nullptr;
+    }
     btHci = nullptr;
   }
 }
@@ -232,6 +237,7 @@ void vnd_interface_open(void)
   }
 
   lib_handle = dlopen(TRANSPORT_LIBRARY_NAME, RTLD_LAZY);
+  ALOGI("%s: dlopen(%p)", __func__, lib_handle);
 
   if (!lib_handle) {
     LOG_ERROR(LOG_TAG, "%s unable to open %s: %s", __func__, TRANSPORT_LIBRARY_NAME, dlerror());
