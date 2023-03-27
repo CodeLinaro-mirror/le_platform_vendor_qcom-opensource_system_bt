@@ -25,6 +25,8 @@
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 
+#define config_free bt_config_free
+
 const char* TRACE_CONFIG_ENABLED_KEY = "TraceConf";
 const char* PTS_SECURE_ONLY_MODE = "PTS_SecurePairOnly";
 const char* PTS_LE_CONN_UPDATED_DISABLED = "PTS_DisableConnUpdates";

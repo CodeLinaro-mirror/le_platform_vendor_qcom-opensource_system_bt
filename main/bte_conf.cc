@@ -28,6 +28,8 @@
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 
+#define config_free bt_config_free
+
 // Parses the specified Device ID configuration file and registers the
 // Device ID records with SDP.
 void bte_load_did_conf(const char* p_path) {
