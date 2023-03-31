@@ -15,6 +15,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /*******************************************************************************
@@ -54,6 +58,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+using base::Bind;
 using bluetooth::Uuid;
 
 /*******************************************************************************
@@ -80,6 +85,9 @@ using bluetooth::Uuid;
 #define BTIF_STORAGE_KEY_ADAPTER_NAME "Name"
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "ScanMode"
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "DiscoveryTimeout"
+#define BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT "ClientSupportedFeaturesChar"
+#define BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH "GattClientDatabaseHash"
+#define BTIF_STORAGE_KEY_SVC_CHG_CCCD "ServiceChangedCCCD"
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -181,12 +189,12 @@ static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
     addrstr = remote_bd_addr->ToString();
     bdstr = addrstr.c_str();
   }
-  BTIF_TRACE_DEBUG("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type,
-                   prop->len);
+  BTIF_TRACE_DEBUG("%s: in, bd addr:%s, prop type:%d, len:%d", __func__,
+                    bdstr, prop->type, prop->len);
   char value[1024];
   if (prop->len <= 0 || prop->len > (int)sizeof(value) - 1) {
-    BTIF_TRACE_ERROR("property type:%d, len:%d is invalid", prop->type,
-                     prop->len);
+    BTIF_TRACE_ERROR("%s: property type:%d, len:%d is invalid", __func__,
+                    prop->type, prop->len);
     return false;
   }
   switch (prop->type) {
@@ -273,11 +281,11 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
     addrstr = remote_bd_addr->ToString();
     bdstr = addrstr.c_str();
   }
-  BTIF_TRACE_DEBUG("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type,
-                   prop->len);
+  BTIF_TRACE_DEBUG("%s: in, bd addr:%s, prop type:%d, len:%d", __func__,
+                    bdstr, prop->type, prop->len);
   if (prop->len <= 0) {
-    BTIF_TRACE_ERROR("property type:%d, len:%d is invalid", prop->type,
-                     prop->len);
+    BTIF_TRACE_ERROR("%s: property type:%d, len:%d is invalid", __func__,
+                    prop->type, prop->len);
     return false;
   }
   int ret = false;
@@ -797,6 +805,11 @@ bt_status_t btif_storage_remove_bonded_device(
     ret &= btif_config_remove(bdstr, "PinLength");
   if (btif_config_exist(bdstr, "LinkKey"))
     ret &= btif_config_remove(bdstr, "LinkKey");
+  if (btif_config_exist(bdstr, BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT))
+    ret &= btif_config_remove(bdstr, BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT);
+  if (btif_config_exist(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH))
+    ret &= btif_config_remove(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH);
+
   /* write bonded info immediately */
   btif_config_flush();
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
@@ -814,7 +827,7 @@ bt_status_t btif_storage_remove_bonded_device(
 *******************************************************************************/
 bt_status_t btif_storage_is_device_bonded(RawAddress *remote_bd_addr) {
 
-  
+
   char bdstr[18] = {'\0'};
   snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
                                   remote_bd_addr->address[0],
@@ -1497,3 +1510,130 @@ bool btif_storage_get_stored_remote_name(const RawAddress& bd_addr,
   return (btif_storage_get_remote_device_property(&bd_addr, &property) ==
           BT_STATUS_SUCCESS);
 }
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_get_cl_supp_feat
+ *
+ * Description      BTIF storage API - Get client supported features characteristic
+ *                  value for a remote bda from btif storage.
+ *
+ *
+ * Returns          value of the characteristic
+ *
+ ******************************************************************************/
+uint8_t btif_storage_get_cl_supp_feat(const RawAddress& bda) {
+  std::string bda_str = bda.ToString();
+  int value = 0;
+
+  btif_config_get_int(bda_str.c_str(), BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT, &value);
+  return value;
+}
+
+void btif_storage_set_cl_supp_feat(const RawAddress& bda, uint8_t value) {
+  do_in_jni_thread(
+      FROM_HERE, Bind(
+                     [](const RawAddress& bda, uint8_t value) {
+                       std::string bda_str = bda.ToString();
+                       btif_config_set_int(
+                           bda_str.c_str(), BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT, value);
+                       btif_config_save();
+                     },
+                     bda, value));
+}
+
+/** Remove client supported features */
+void btif_storage_remove_gatt_cl_supp_feat(const RawAddress& bd_addr) {
+  do_in_jni_thread(
+      FROM_HERE, Bind(
+                     [](const RawAddress& bd_addr) {
+                       auto bdstr = bd_addr.ToString();
+                       if (btif_config_exist(
+                               bdstr.c_str(), BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT)) {
+                         btif_config_remove(
+                               bdstr.c_str(), BTIF_STORAGE_KEY_CLIENT_SUPP_FEAT);
+                         btif_config_save();
+                       }
+                     },
+                     bd_addr));
+}
+
+/** Store last server database hash for remote client */
+void btif_storage_set_gatt_cl_db_hash(const RawAddress& bd_addr, Octet16 hash) {
+  do_in_jni_thread(FROM_HERE, Bind(
+                                  [](const RawAddress& bd_addr, Octet16 hash) {
+                                    auto bdstr = bd_addr.ToString();
+                                    btif_config_set_bin(
+                                        bdstr.c_str(),
+                                        BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH,
+                                        hash.data(), hash.size());
+                                    btif_config_save();
+                                  },
+                                  bd_addr, hash));
+}
+
+/** Get last server database hash for remote client */
+Octet16 btif_storage_get_gatt_cl_db_hash(const RawAddress& bd_addr) {
+  auto bdstr = bd_addr.ToString();
+
+  Octet16 hash;
+  size_t size = hash.size();
+  btif_config_get_bin(bdstr.c_str(), BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH, hash.data(),
+                      &size);
+
+  return hash;
+}
+
+/** Remove las server database hash for remote client */
+void btif_storage_remove_gatt_cl_db_hash(const RawAddress& bd_addr) {
+  do_in_jni_thread(FROM_HERE,
+                   Bind(
+                       [](const RawAddress& bd_addr) {
+                         auto bdstr = bd_addr.ToString();
+                         if (btif_config_exist(
+                                 bdstr.c_str(), BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH)) {
+                           btif_config_remove(
+                                 bdstr.c_str(), BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH);
+                           btif_config_save();
+                         }
+                       },
+                       bd_addr));
+}
+
+/** Store service changed CCCD value for remote client */
+void btif_storage_set_svc_chg_cccd(const RawAddress& bd_addr, uint8_t cccd) {
+  do_in_jni_thread(FROM_HERE, Bind(
+                                  [](const RawAddress& bd_addr, uint8_t cccd) {
+                                    auto bdstr = bd_addr.ToString();
+                                    btif_config_set_int(
+                                        bdstr.c_str(), BTIF_STORAGE_KEY_SVC_CHG_CCCD, cccd);
+                                    btif_config_save();
+                                  },
+                                  bd_addr, cccd));
+}
+
+/** Get service changed CCCD value for remote client */
+uint8_t btif_storage_get_svc_chg_cccd(const RawAddress& bda) {
+  std::string bda_str = bda.ToString();
+  int cccd = 0;
+
+  btif_config_get_int(bda_str.c_str(), BTIF_STORAGE_KEY_SVC_CHG_CCCD, &cccd);
+  return cccd;
+}
+
+/** Remove service changed CCCD value for remote client */
+void btif_storage_remove_svc_chg_cccd(const RawAddress& bd_addr) {
+  do_in_jni_thread(
+      FROM_HERE, Bind(
+                     [](const RawAddress& bd_addr) {
+                       auto bdstr = bd_addr.ToString();
+                       if (btif_config_exist(
+                               bdstr.c_str(), BTIF_STORAGE_KEY_SVC_CHG_CCCD)) {
+                         btif_config_remove(
+                               bdstr.c_str(), BTIF_STORAGE_KEY_SVC_CHG_CCCD);
+                         btif_config_save();
+                       }
+                     },
+                     bd_addr));
+}
+

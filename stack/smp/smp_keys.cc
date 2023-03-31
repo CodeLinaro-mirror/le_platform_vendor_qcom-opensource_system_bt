@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -28,7 +32,7 @@
 #endif
 #include <base/bind.h>
 #include <string.h>
-#include "aes.h"
+#include "stack/crypto_toolbox/aes.h"
 #include "bt_utils.h"
 #include "btm_ble_api.h"
 #include "btm_ble_int.h"

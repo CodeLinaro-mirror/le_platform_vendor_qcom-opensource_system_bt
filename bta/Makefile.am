@@ -76,12 +76,15 @@ cpp_sources = \
         gatt/bta_gattc_act.cc \
         gatt/bta_gattc_api.cc \
         gatt/bta_gattc_cache.cc \
+        gatt/bta_gattc_db_storage.cc \
         gatt/bta_gattc_main.cc \
         gatt/bta_gattc_utils.cc \
         gatt/bta_gatts_act.cc \
         gatt/bta_gatts_api.cc \
         gatt/bta_gatts_main.cc \
         gatt/bta_gatts_utils.cc \
+        gatt/database.cc \
+        gatt/database_builder.cc \
         hf_client/bta_hf_client_act.cc \
         hf_client/bta_hf_client_api.cc \
         hf_client/bta_hf_client_at.cc \

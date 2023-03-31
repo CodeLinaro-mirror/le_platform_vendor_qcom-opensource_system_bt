@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -61,6 +65,8 @@
 
 /* Attribute Profile Attribute UUID */
 #define GATT_UUID_GATT_SRV_CHGD 0x2A05
+#define GATT_UUID_GATT_CL_SUPP_FEATURES 0x2B29
+#define GATT_UUID_GATT_SR_SUPP_FEATURES 0x2B3A
 /* Attribute Protocol Test */
 
 /* Link Loss Service */
@@ -126,5 +132,8 @@
 /* Scan Parameter charatceristics */
 #define GATT_UUID_SCAN_INT_WINDOW 0x2A4F
 #define GATT_UUID_SCAN_REFRESH 0x2A31
+
+/* Database Hash characteristic */
+#define GATT_UUID_DATABASE_HASH 0x2B2A
 
 #endif

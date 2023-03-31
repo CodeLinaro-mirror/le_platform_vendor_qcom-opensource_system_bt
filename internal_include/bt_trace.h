@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #pragma once
@@ -1003,3 +1007,39 @@ void vnd_LogMsg (uint32_t trace_set_mask, const char *fmt_str, ...);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+#include <iomanip>
+#include <sstream>
+#include <type_traits>
+#include <array>
+#include <base/logging.h>
+
+/* Prints integral parameter x as hex string, with '0' fill */
+template <typename T>
+std::string loghex(T x) {
+  static_assert(std::is_integral<T>::value,
+                "loghex parameter must be integral.");
+  std::stringstream tmp;
+  tmp << std::showbase << std::internal << std::hex << std::setfill('0')
+      << std::setw((sizeof(T) * 2) + 2) << +x;
+  return tmp.str();
+}
+
+/* Prints integral array as hex string, with '0' fill */
+template <typename T, size_t N>
+std::string loghex(std::array<T, N> array) {
+  static_assert(std::is_integral<T>::value,
+                "type stored in array must be integral.");
+  std::stringstream tmp;
+  for (const auto& x : array) {
+    tmp << std::internal << std::hex << std::setfill('0')
+        << std::setw((sizeof(uint8_t) * 2) + 2) << +x;
+  }
+  return tmp.str();
+}
+
+
+#endif
+

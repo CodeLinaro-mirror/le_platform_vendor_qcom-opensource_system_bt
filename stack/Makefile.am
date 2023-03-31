@@ -21,6 +21,7 @@ AM_CPPFLAGS = \
         -I$(srcdir)/l2cap \
         -I$(srcdir)/avdt \
         -I$(srcdir)/gatt \
+        -I$(srcdir)/crypto_toolbox \
         -I$(srcdir)/gap \
         -I$(srcdir)/pan \
         -I$(srcdir)/bnep \
@@ -122,6 +123,9 @@ cpp_sources:= \
        ./btu/btu_hcif.cc \
        ./btu/btu_init.cc \
        ./btu/btu_task.cc \
+       ./crypto_toolbox/aes.cc \
+       ./crypto_toolbox/aes_cmac.cc \
+       ./crypto_toolbox/crypto_toolbox.cc \
        ./gap/gap_ble.cc \
        ./gap/gap_conn.cc\
        ./gatt/att_protocol.cc \
@@ -132,6 +136,7 @@ cpp_sources:= \
        ./gatt/gatt_db.cc \
        ./gatt/gatt_main.cc \
        ./gatt/gatt_sr.cc \
+       ./gatt/gatt_sr_hash.cc \
        ./gatt/gatt_utils.cc \
        ./hcic/hciblecmds.cc \
        ./hcic/hcicmds.cc \
@@ -173,7 +178,6 @@ cpp_sources:= \
        ./sdp/sdp_main.cc \
        ./sdp/sdp_server.cc \
        ./sdp/sdp_utils.cc \
-       ./smp/aes.cc \
        ./smp/p_256_curvepara.cc \
        ./smp/p_256_ecc_pp.cc \
        ./smp/p_256_multprecision.cc \
