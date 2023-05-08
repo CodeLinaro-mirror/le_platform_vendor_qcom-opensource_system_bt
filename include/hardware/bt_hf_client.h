@@ -17,7 +17,13 @@
 #ifndef ANDROID_INCLUDE_BT_HF_CLIENT_H
 #define ANDROID_INCLUDE_BT_HF_CLIENT_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 typedef enum {
   BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED = 0,
@@ -386,6 +392,12 @@ typedef struct {
                              int val2, const char* arg);
 } bthf_client_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_HF_CLIENT_H */

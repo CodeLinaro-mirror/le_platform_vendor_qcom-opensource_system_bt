@@ -22,7 +22,13 @@
 
 #include "bt_gatt_types.h"
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /** GATT value type used in response to remote read requests */
 typedef struct {
@@ -179,6 +185,12 @@ typedef struct {
 
 } btgatt_server_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_GATT_CLIENT_H */

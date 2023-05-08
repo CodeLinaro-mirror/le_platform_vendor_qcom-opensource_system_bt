@@ -19,7 +19,13 @@
 
 #include <stdint.h>
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 typedef enum {
   BTHD_REPORT_TYPE_OTHER = 0,
@@ -123,6 +129,12 @@ typedef struct {
 
 } bthd_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_HD_H */
