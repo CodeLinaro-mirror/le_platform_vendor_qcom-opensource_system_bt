@@ -21,7 +21,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#ifndef USE_MUSL
 #include <sys/cdefs.h>
+#endif
 #include <sys/types.h>
 
 /** Struct types */

@@ -20,7 +20,13 @@
 
 #define SDP_OPP_SUPPORTED_FORMATS_MAX_LENGTH 15
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /**
  * These events are handled by the state machine
@@ -153,4 +159,10 @@ typedef struct {
   bt_status_t (*remove_sdp_record)(int sdp_handle);
 } btsdp_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif

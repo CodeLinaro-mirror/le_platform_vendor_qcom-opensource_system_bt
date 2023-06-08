@@ -16,7 +16,13 @@
 #ifndef ANDROID_INCLUDE_BT_SOCKET_H
 #define ANDROID_INCLUDE_BT_SOCKET_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 #define BTSOCK_FLAG_ENCRYPT 1
 #define BTSOCK_FLAG_AUTH (1 << 1)
@@ -86,5 +92,11 @@ typedef struct {
 
 } btsock_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 #endif

@@ -24,7 +24,13 @@
 
 #include <bluetooth/uuid.h>
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /**
  * Buffer sizes for maximum attribute length and maximum read/write
@@ -305,6 +311,12 @@ typedef struct {
 
 } btgatt_client_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_GATT_CLIENT_H */

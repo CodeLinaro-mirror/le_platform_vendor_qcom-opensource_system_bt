@@ -17,7 +17,13 @@
 #ifndef ANDROID_INCLUDE_BT_MCE_H
 #define ANDROID_INCLUDE_BT_MCE_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /** MAS instance description */
 typedef struct {
@@ -49,6 +55,12 @@ typedef struct {
   bt_status_t (*get_remote_mas_instances)(RawAddress* bd_addr);
 } btmce_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_MCE_H */

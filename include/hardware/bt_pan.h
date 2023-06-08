@@ -17,7 +17,13 @@
 #ifndef ANDROID_INCLUDE_BT_PAN_H
 #define ANDROID_INCLUDE_BT_PAN_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 #define BTPAN_ROLE_NONE 0
 #define BTPAN_ROLE_PANNAP 1
@@ -94,6 +100,12 @@ typedef struct {
 
 } btpan_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_PAN_H */
