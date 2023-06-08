@@ -23,7 +23,13 @@
 #include "bt_gatt_client.h"
 #include "bt_gatt_server.h"
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /** BT-GATT callbacks */
 typedef struct {
@@ -66,6 +72,12 @@ typedef struct {
   BleAdvertiserInterface* advertiser;
 } btgatt_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_GATT_H */

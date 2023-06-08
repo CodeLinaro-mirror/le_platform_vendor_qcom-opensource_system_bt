@@ -21,7 +21,13 @@
 
 #include <hardware/bluetooth.h>
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /* Bluetooth AV connection states */
 typedef enum {
@@ -370,6 +376,12 @@ typedef struct {
   bt_status_t (*suspend_req)(const RawAddress& bd_addr);
 } btav_sink_interface_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_AV_H */

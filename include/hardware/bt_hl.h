@@ -17,7 +17,13 @@
 #ifndef ANDROID_INCLUDE_BT_HL_H
 #define ANDROID_INCLUDE_BT_HL_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /* HL connection states */
 
@@ -117,6 +123,12 @@ typedef struct {
   void (*cleanup)(void);
 
 } bthl_interface_t;
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_HL_H */

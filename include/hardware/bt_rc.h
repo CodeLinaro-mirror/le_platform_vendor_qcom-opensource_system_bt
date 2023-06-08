@@ -17,7 +17,13 @@
 #ifndef ANDROID_INCLUDE_BT_RC_H
 #define ANDROID_INCLUDE_BT_RC_H
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /* Change this macro to use multiple RC */
 #define BT_RC_NUM_APP 6
@@ -731,6 +737,12 @@ typedef enum {
     BTRC_PLAYER_VAL_ON_SCAN = 0x02,
     BTRC_PLAYER_VAL_GRP_SCAN = 0x03,
 } btrc_player_scan_val_t;
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_RC_H */

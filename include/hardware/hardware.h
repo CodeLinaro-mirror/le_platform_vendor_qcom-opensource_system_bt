@@ -22,14 +22,23 @@
 #define ANDROID_INCLUDE_HARDWARE_HARDWARE_H
 
 #include <stdint.h>
+#ifndef USE_MUSL
 #include <sys/cdefs.h>
+#endif
 #ifdef ANDROID
 #ifndef _HW_DONT_INCLUDE_CORE_
 #include <cutils/native_handle.h>
 #include <system/graphics.h>
 #endif // _HW_DONT_INCLUDE_CORE_
 #endif
+
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /*
  * Value for the hw_module_t.tag field
@@ -245,6 +254,12 @@ int hw_get_module(const char *id, const struct hw_module_t **module);
 int hw_get_module_by_class(const char *class_id, const char *inst,
                            const struct hw_module_t **module);
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif  /* ANDROID_INCLUDE_HARDWARE_HARDWARE_H */

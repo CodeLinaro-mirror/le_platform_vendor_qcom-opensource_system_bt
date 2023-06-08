@@ -19,7 +19,13 @@
 
 #include <stdint.h>
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 #define BTHH_MAX_DSC_LEN 884
 
@@ -191,6 +197,12 @@ typedef struct {
   void (*cleanup)(void);
 
 } bthh_interface_t;
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_HH_H */

@@ -22,7 +22,13 @@
 
 #include <bluetooth/uuid.h>
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#else
 __BEGIN_DECLS
+#endif
 
 /**
  * GATT Service types
@@ -49,6 +55,12 @@ typedef enum {
   GATT_TRANSPORT_LE
 } btgatt_transport_t;
 
+#ifdef USE_MUSL
+#ifdef __cplusplus
+}
+#endif
+#else
 __END_DECLS
+#endif
 
 #endif /* ANDROID_INCLUDE_BT_GATT_TYPES_H */

@@ -19,7 +19,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#ifndef USE_MUSL
 #include <sys/cdefs.h>
+#endif
 #include <sys/types.h>
 #include <hardware/hardware.h>
 #include <bluetooth/uuid.h>
