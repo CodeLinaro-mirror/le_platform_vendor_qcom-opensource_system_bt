@@ -277,7 +277,7 @@ static l2cap_socket* btsock_l2cap_alloc_l(const char* name,
                                           const RawAddress* addr,
                                           char is_server, int flags) {
   unsigned security = 0;
-  int fds[2];
+  int fds[2] = {0};
   l2cap_socket* sock = (l2cap_socket*)osi_calloc(sizeof(*sock));
 
   if (flags & BTSOCK_FLAG_ENCRYPT)

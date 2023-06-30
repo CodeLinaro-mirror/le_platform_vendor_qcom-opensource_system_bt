@@ -112,6 +112,7 @@ static inline int create_thread(void* (*start_routine)(void*), void* arg,
   int min_pri = 0;
   int ret = -1;
   struct sched_param param;
+  memset(&param, 0x00, sizeof(param));
 
   ret = pthread_create(thread_id, &thread_attr, start_routine, arg);
   if (ret != 0) {

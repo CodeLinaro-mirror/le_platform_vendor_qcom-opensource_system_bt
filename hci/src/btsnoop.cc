@@ -352,6 +352,7 @@ static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
     }
 
     struct pollfd fds;
+    memset(&fds, 0x00, sizeof(fds));
     fds.fd = logfile_fd;
     fds.events = POLLOUT;
     iovec iov[] = {{&header, sizeof(btsnoop_header_t)},

@@ -128,7 +128,7 @@ static void* listen_fn_(UNUSED_ATTR void* context) {
   int enable = 1;
   int fd_max = -1;
   struct timeval socket_timeout;
-  int self_pipe_fds[2];
+  int self_pipe_fds[2] = {0};
 
   FD_ZERO(&sock_fds);
   FD_ZERO(&save_sock_fds);

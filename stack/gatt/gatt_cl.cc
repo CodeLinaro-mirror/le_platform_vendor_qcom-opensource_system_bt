@@ -725,6 +725,8 @@ void gatt_process_read_by_type_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
     memset(&result, 0, sizeof(tGATT_DISC_RES));
     memset(&record_value, 0, sizeof(tGATT_DISC_VALUE));
 
+    if (p_clcb->op_subtype >= GATT_DISC_MAX)
+		return;
     result.handle = handle;
     result.type =
         bluetooth::Uuid::From16Bit(disc_type_to_uuid[p_clcb->op_subtype]);
