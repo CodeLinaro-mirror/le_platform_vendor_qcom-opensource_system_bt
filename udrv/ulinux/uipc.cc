@@ -394,6 +394,7 @@ static int uipc_setup_server_locked(tUIPC_CH_ID ch_id, const char* name,
 static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id) {
   char buf[UIPC_FLUSH_BUFFER_SIZE];
   struct pollfd pfd;
+  memset(&pfd, 0x00, sizeof(pfd));
 
   pfd.events = POLLIN;
   pfd.fd = uipc_main.ch[ch_id].fd;
@@ -687,6 +688,7 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id, UNUSED_ATTR uint16_t* p_msg_evt,
   int n_read = 0;
   int fd = uipc_main.ch[ch_id].fd;
   struct pollfd pfd;
+  memset(&pfd, 0x00, sizeof(pfd));
 
   if (ch_id >= UIPC_CH_NUM) {
     BTIF_TRACE_ERROR("UIPC_Read : invalid ch id %d", ch_id);

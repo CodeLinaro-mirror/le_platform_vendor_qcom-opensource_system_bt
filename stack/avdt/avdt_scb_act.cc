@@ -1095,7 +1095,11 @@ void avdt_scb_hdl_delay_rpt_rsp(tAVDT_SCB* p_scb, tAVDT_SCB_EVT* p_data) {
       (p_scb->state == AVDT_SCB_CONF_ST) && (p_scb->role == AVDT_CONF_INT)) {
     tAVDT_EVT_HDR single;
     tAVDT_SCB_EVT avdt_scb_evt;
-
+    single.err_code = 0;
+    single.err_param = 0;
+    single.label = 0;
+    single.sig_id = 0;
+    single.ccb_idx = 0;
     single.seid = p_scb->peer_seid;
     avdt_scb_evt.msg.single = single;
     avdt_scb_event(p_scb, AVDT_SCB_API_OPEN_REQ_EVT, &avdt_scb_evt);
