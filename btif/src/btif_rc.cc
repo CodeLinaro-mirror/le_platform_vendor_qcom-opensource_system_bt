@@ -5035,6 +5035,12 @@ static void handle_app_attr_val_txt_response(
   }
   p_app_settings->ext_val_index++;
 
+  if (p_app_settings->ext_val_index >= AVRC_MAX_APP_ATTR_SIZE) {
+    BTIF_TRACE_ERROR("%s: ext_val_index is 0x%02x, overflow!",
+                     __func__, p_app_settings->ext_val_index);
+    return;
+  }
+
   if (p_app_settings->ext_val_index < p_app_settings->num_ext_attrs) {
     attr_index = p_app_settings->ext_val_index;
     for (xx = 0; xx < p_app_settings->ext_attrs[attr_index].num_val && xx < AVRC_MAX_APP_ATTR_SIZE; xx++) {

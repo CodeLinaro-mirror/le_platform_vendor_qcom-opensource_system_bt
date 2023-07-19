@@ -538,6 +538,7 @@ done:
   // actually expired.
   if (timer_set) {
     struct itimerspec time_to_expire;
+    memset(&time_to_expire, 0x00, sizeof(time_to_expire));
     timer_gettime(timer, &time_to_expire);
     if (time_to_expire.it_value.tv_sec == 0 &&
         time_to_expire.it_value.tv_nsec == 0) {

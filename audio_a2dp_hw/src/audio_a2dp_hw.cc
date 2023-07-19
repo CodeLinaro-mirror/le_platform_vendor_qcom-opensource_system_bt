@@ -422,7 +422,7 @@ static int a2dp_ctrl_send(struct a2dp_stream_common* common, const void* buffer,
 }
 
 static int a2dp_command(struct a2dp_stream_common* common, tA2DP_CTRL_CMD cmd) {
-  char ack;
+  char ack = '\0';
 
   DEBUG("A2DP COMMAND %s", audio_a2dp_hw_dump_ctrl_event(cmd));
 
@@ -472,8 +472,8 @@ static int check_a2dp_ready(struct a2dp_stream_common* common) {
 }
 
 static int a2dp_read_input_audio_config(struct a2dp_stream_common* common) {
-  tA2DP_SAMPLE_RATE sample_rate;
-  tA2DP_CHANNEL_COUNT channel_count;
+  tA2DP_SAMPLE_RATE sample_rate = 0;
+  tA2DP_CHANNEL_COUNT channel_count = 0;
 
   if (a2dp_command(common, A2DP_CTRL_GET_INPUT_AUDIO_CONFIG) < 0) {
     ERROR("get a2dp input audio config failed");
@@ -758,12 +758,12 @@ static int a2dp_get_presentation_position_cmd(struct a2dp_stream_common* common,
     return -1;
   }
 
-  uint32_t seconds;
+  uint32_t seconds = 0;
   if (a2dp_ctrl_receive(common, &seconds, sizeof(seconds)) < 0) {
     return -1;
   }
 
-  uint32_t nsec;
+  uint32_t nsec = 0;
   if (a2dp_ctrl_receive(common, &nsec, sizeof(nsec)) < 0) {
     return -1;
   }
@@ -1283,6 +1283,8 @@ static char* out_get_parameters(const struct audio_stream* stream,
 
   btav_a2dp_codec_config_t codec_config;
   btav_a2dp_codec_config_t codec_capability;
+  memset(&codec_config, 0x00, sizeof(codec_config));
+  memset(&codec_capability, 0x00, sizeof(codec_capability));
 
   struct a2dp_stream_out* out = (struct a2dp_stream_out*)stream;
 
