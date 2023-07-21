@@ -1061,9 +1061,9 @@ static tGATT_STATUS gatt_sr_write_cl_supp_feat(uint16_t conn_id,
               << ", conn_id=" << loghex(conn_id);
   }
 
-  if (stack_config_get_interface()->get_pts_save_db_hash()) {
+//  if (stack_config_get_interface()->get_pts_save_db_hash()) {
     gatt_save_cl_db_hash(tcb);
-  }
+//  }
 
   return GATT_SUCCESS;
 }
