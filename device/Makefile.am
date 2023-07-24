@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
         -I../internal_include \
         -I../stack/include
 
-AM_CPPFLAGS += @BLUETOOTHEXT_CFLAGS@ @LIBCHROME_CFLAGS@
+AM_CPPFLAGS += @LIBCHROME_CFLAGS@ @BLUETOOTHEXT_CFLAGS@
 
 cpp_sources = \
         src/controller.cc \
