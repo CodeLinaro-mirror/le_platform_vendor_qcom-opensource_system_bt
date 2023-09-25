@@ -432,6 +432,8 @@
 * MINOR_CLASS:0x0C - Loudspeaker
 *
 */
+#define BTA_DM_COD \
+	{ 0x00, 0x03, 0x00 }
 #ifndef BTA_DM_COD
 #define BTA_DM_COD \
   { 0x00, 0x04, 0x14 }
