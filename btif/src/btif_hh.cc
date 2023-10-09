@@ -1365,8 +1365,8 @@ void btif_hh_conn_parameter_update_impl(RawAddress addr, int min_interval,
  *
  ******************************************************************************/
 static bt_status_t conn_parameter_update(const RawAddress& bd_addr,
-                                              int min_interval, int max_interval,
-                                              int latency, int timeout,
+                                              uint16_t min_interval, uint16_t max_interval,
+                                              uint16_t latency, uint16_t timeout,
                                               uint16_t min_ce_len,
                                               uint16_t max_ce_len) {
   if (PARAM_INRANGE(min_interval, BTM_BLE_CONN_INT_MIN,

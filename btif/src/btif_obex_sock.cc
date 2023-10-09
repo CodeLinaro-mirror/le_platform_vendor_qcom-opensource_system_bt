@@ -53,7 +53,8 @@ static bt_status_t btsock_obex_listen(btsock_type_t type, const char* service_na
                                  const uint8_t* service_uuid, int channel, int* sock_fd,
                                  int flags, int app_uid) {
   LOG_DEBUG(LOG_TAG, "%s", __func__);
-  const Uuid* serv_uuid;
+  Uuid uuid_obj;
+  Uuid* serv_uuid = &uuid_obj;
   if ((flags & BTSOCK_FLAG_NO_SDP) == 0) {
     CHECK(sock_fd != NULL);
   }
@@ -86,7 +87,8 @@ static bt_status_t btsock_obex_connect(const bt_bdaddr_t_v1 *bd_addr, btsock_typ
   if (sock_fd == NULL || bd_addr == NULL)
     return status;
 
-  const Uuid* serv_uuid;
+  Uuid uuid_obj;
+  Uuid* serv_uuid = &uuid_obj;
   const RawAddress *bd_address = new RawAddress(bd_addr->address);
 
   if (uuid == NULL) {

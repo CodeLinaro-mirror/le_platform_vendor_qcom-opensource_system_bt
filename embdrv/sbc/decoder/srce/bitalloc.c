@@ -37,6 +37,7 @@ frame length and bitrate.
 @{
 */
 
+#include <stdbool.h>
 #include <oi_codec_sbc_private.h>
 #include "oi_utils.h"
 

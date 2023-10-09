@@ -549,9 +549,10 @@ void btif_gattc_conn_parameter_update_impl(RawAddress addr, int min_interval,
 
 bt_status_t btif_gattc_conn_parameter_update(const RawAddress& bd_addr,
                                              int min_interval, int max_interval,
-                                             int latency, int timeout,
-                                             uint16_t min_ce_len,
-                                             uint16_t max_ce_len) {
+                                             int latency, int timeout) {
+  uint16_t min_ce_len = 0;
+  uint16_t max_ce_len = 0;
+
   CHECK_BTGATT_INIT();
   if (PARAM_INRANGE(min_interval, BTM_BLE_CONN_INT_MIN,
                     BTM_BLE_CONN_INT_MAX) &&

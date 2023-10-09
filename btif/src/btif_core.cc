@@ -28,6 +28,7 @@
 
 #define LOG_TAG "bt_btif_core"
 
+#include <stdio.h>
 #include <base/at_exit.h>
 #include <base/bind.h>
 #include <base/run_loop.h>
@@ -409,7 +410,7 @@ static void btif_set_local_bdaddr()
   }
 
   // Generate new BDA if necessary
-  const char bdstr[18];
+  char bdstr[18];
   uint8_t local_addr[6];
 
   // No autogen BDA. Generate one now.

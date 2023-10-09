@@ -588,7 +588,7 @@ void add_mandatory_codec(std::vector<btav_a2dp_codec_config_t>* p_codec_config_l
     for(int codec_index = BTAV_A2DP_CODEC_INDEX_SOURCE_MAX-1; codec_index >= BTAV_A2DP_CODEC_INDEX_SOURCE_MIN; codec_index--){
       if ((codec_type_added[codec_index]) && (codec_index != BTAV_A2DP_CODEC_INDEX_SOURCE_SBC)) {
       /* Copy Mandatory codec parameters if particular codec is added by user */
-        codec_config[codec_index] = A2dpCodecConfig::createCodec(codec_index, codec_index + 1);
+        codec_config[codec_index] = A2dpCodecConfig::createCodec(static_cast<btav_a2dp_codec_index_t>(codec_index), static_cast<btav_a2dp_codec_priority_t>(codec_index + 1));
         if(codec_config[codec_index] != nullptr){
           btav_a2dp_codec_config_t nw = codec_config[codec_index]->getCodecLocalCapability();
           p_codec_config_list->push_back(nw);
@@ -598,7 +598,7 @@ void add_mandatory_codec(std::vector<btav_a2dp_codec_config_t>* p_codec_config_l
       }
       if(codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_SBC){
         /* Copy Mandatory SBC codec parameters */
-        codec_config[codec_index] = A2dpCodecConfig::createCodec(codec_index, codec_index + 1);
+        codec_config[codec_index] = A2dpCodecConfig::createCodec(static_cast<btav_a2dp_codec_index_t>(codec_index), static_cast<btav_a2dp_codec_priority_t>(codec_index + 1));
         p_codec_config_list->push_back(codec_config[codec_index]->getCodecLocalCapability());
         LOG_DEBUG(LOG_TAG," Added Mandatory SBC codec at index %d", ++num_codec_configs);
       }
