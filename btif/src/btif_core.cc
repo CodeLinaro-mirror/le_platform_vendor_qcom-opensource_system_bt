@@ -363,7 +363,7 @@ bt_status_t btif_init_bluetooth() {
 
   bte_main_boot_entry();
   // No need to set local address from here. Will be taken care in hidl
-  //btif_set_local_bdaddr();
+  btif_set_local_bdaddr();
 
   bt_jni_workqueue_thread = thread_new_sized(BT_JNI_WORKQUEUE_NAME, MAX_JNI_WORKQUEUE_COUNT);
   if (bt_jni_workqueue_thread == NULL) {
@@ -388,7 +388,7 @@ error_exit:;
 static void btif_set_local_bdaddr()
 {
   char val[PROPERTY_VALUE_MAX] = {0};
-  char bdaddr[PROPERTY_VALUE_MAX] = {0};
+//  char bdaddr[PROPERTY_VALUE_MAX] = {0};
   int val_size = 0;
   memset(val, 0, sizeof(val));
 
@@ -401,8 +401,8 @@ static void btif_set_local_bdaddr()
        BTIF_TRACE_ERROR("Failed to set random BDA in prop");
      return;
   }
-
-  else if (!osi_property_get(PERSIST_BDADDR_PROPERTY, bdaddr, NULL)
+#if 0
+  else if (osi_property_get(PERSIST_BDADDR_PROPERTY, bdaddr, NULL)
                        && RawAddress::IsValidAddress(bdaddr)) {
      LOG_INFO(LOG_TAG, "BD address from property");
      btif_config_set_str("Adapter", "Address", bdaddr);
@@ -434,6 +434,7 @@ static void btif_set_local_bdaddr()
   //save the bd address to config file
   btif_config_set_str("Adapter", "Address", bdstr);
 
+#endif
 }
 
 /*******************************************************************************
@@ -457,10 +458,10 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status) {
 
   char val[PROPERTY_VALUE_MAX] = "";
   int val_size = 0;
-  if ((btif_config_get_str("Adapter", "Address", val, &val_size) == 0) ||
+  if (!btif_config_get_str("Adapter", "Address", val, &val_size) ||
       strcmp(bdstr.c_str(), val)) {
     // This address is not present in the config file, save it there.
-    BTIF_TRACE_WARNING("%s: Saving the Adapter Address", __func__);
+    BTIF_TRACE_WARNING("%s: Saving the Adapter Address \"%s\"", __func__, bdstr.c_str());
     btif_config_set_str("Adapter", "Address", bdstr.c_str());
     btif_config_save();
 
