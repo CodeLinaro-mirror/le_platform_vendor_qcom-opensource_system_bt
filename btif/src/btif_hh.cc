@@ -1814,13 +1814,12 @@ static void cleanup(void) {
  *
  ******************************************************************************/
 
-static bt_status_t cleanup_vendor( void )
+static void cleanup_vendor( void )
 {
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
 
     bt_hh_vendor_callbacks = NULL;
 
-    return BT_STATUS_SUCCESS;
 }
 
 static const bthh_interface_t bthhInterface = {

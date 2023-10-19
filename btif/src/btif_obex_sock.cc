@@ -71,7 +71,7 @@ static bt_status_t btsock_obex_listen(btsock_type_t type, const char* service_na
      LOG_DEBUG(LOG_TAG, "UUID assigned", __func__);
   } else {
      LOG_DEBUG(LOG_TAG, "UUID is NULL", __func__);
-     serv_uuid = &uuid_empty;
+     serv_uuid = const_cast<Uuid*>(&uuid_empty);
      LOG_DEBUG(LOG_TAG, "UUID made empty", __func__);
   }
   status = sock_interface->listen(type, service_name, serv_uuid, channel,
@@ -93,7 +93,7 @@ static bt_status_t btsock_obex_connect(const bt_bdaddr_t_v1 *bd_addr, btsock_typ
 
   if (uuid == NULL) {
      LOG_DEBUG(LOG_TAG, "UUID is NULL", __func__);
-     serv_uuid = &uuid_empty;
+     serv_uuid = const_cast<Uuid*>(&uuid_empty);
      LOG_DEBUG(LOG_TAG, "UUID made empty", __func__);
   } else {
      LOG_DEBUG(LOG_TAG, "assigning uuid from the pointer", __func__);
