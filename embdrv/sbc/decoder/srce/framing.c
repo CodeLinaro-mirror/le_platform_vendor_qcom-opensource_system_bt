@@ -273,8 +273,8 @@ PRIVATE void shift_buffer(SBC_BUFFER_T* dest, SBC_BUFFER_T* src,
   n = wordCount / 4 / (sizeof(int32_t) / sizeof(*dest));
   OI_ASSERT((n * 4 * (sizeof(int32_t) / sizeof(*dest))) == wordCount);
 
-  d = (void*)(dest + wordCount);
-  s = (void*)(src + wordCount);
+  d = (int32_t*)(dest + wordCount);
+  s = (int32_t*)(src + wordCount);
 
   do {
     COPY4WORDS_BACK(d, s);

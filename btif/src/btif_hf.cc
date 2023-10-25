@@ -2358,10 +2358,9 @@ static bt_status_t bind_string_response_vendor(const char* res,
 ** Returns         bt_status_t
 **
 *******************************************************************************/
-static bt_status_t cleanup_vendor( void)
+static void cleanup_vendor( void)
 {
     bt_hf_vendor_callbacks = NULL;
-    return BT_STATUS_SUCCESS;
 }
 
 
