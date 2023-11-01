@@ -47,6 +47,12 @@
 #include "osi/include/thread.h"
 #include "osi/include/wakelock.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 using base::Bind;
 using base::CancelableClosure;
 using base::MessageLoop;

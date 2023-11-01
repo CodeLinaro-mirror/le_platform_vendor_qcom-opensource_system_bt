@@ -39,6 +39,12 @@
 #define EFD_SEMAPHORE (1 << 0)
 #endif
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct reactor_t {
   int epoll_fd;
   int event_fd;

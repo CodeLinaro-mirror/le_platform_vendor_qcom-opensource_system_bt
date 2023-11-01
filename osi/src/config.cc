@@ -41,6 +41,12 @@
 #endif
 #define LOG_TAG "bt_osi_config "
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define config_free bt_config_free
 
 typedef struct {

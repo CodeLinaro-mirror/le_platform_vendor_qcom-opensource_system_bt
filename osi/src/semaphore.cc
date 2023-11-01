@@ -32,6 +32,12 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #if !defined(EFD_SEMAPHORE)
 #define EFD_SEMAPHORE (1 << 0)
 #endif
