@@ -330,6 +330,7 @@ typedef struct {
   bool wait_for_authorization_complete;
   uint8_t cert_failure; /*failure case for certification */
   alarm_t* delayed_auth_timer_ent;
+  bool cert_disable_h7_support;
 } tSMP_CB;
 
 /* Server Action functions are of this type */

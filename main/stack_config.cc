@@ -38,6 +38,10 @@ const char* PTS_LE_SEC_REQUEST_DISABLED = "PTS_DisableSecRequest";
 const char* PTS_LE_FRESH_PAIRING_ENABLED = "PTS_EnableFreshPairing";
 const char* PTS_BREDR_AUTH_REQ = "PTS_BredrAuthReq";
 const char* PTS_BREDR_SECURECONNECTION_HOSTSUPPORT_DISABLE = "PTS_BredrSecConnHostSupportDisable";
+const char* PTS_LE_DISABLE_ENCRYP = "PTS_LeDisableEncryp";
+const char* PTS_SMP_DISABLE_H7_SUPPORT = "PTS_DisableH7Support";
+const char* PTS_L2CAP_LE_INSUFF_ENCRYP = "PTS_L2capLeInsuffEnc";
+const char* PTS_BREDR_INVALID_ENCRYPTION_KEYSIZE = "PTS_BredrInvalidEncryKeysize";
 
 static config_t* config;
 
@@ -145,6 +149,26 @@ static bool get_pts_bredr_secureconnection_host_support_disabled(void) {
                          PTS_BREDR_SECURECONNECTION_HOSTSUPPORT_DISABLE, false);
 }
 
+static bool get_pts_le_enc_disable(void) {
+  return config_get_int(config, CONFIG_DEFAULT_SECTION,
+                        PTS_LE_DISABLE_ENCRYP, false);
+}
+
+static bool get_pts_smp_disable_h7_support(void) {
+  return config_get_int(config, CONFIG_DEFAULT_SECTION,
+                        PTS_SMP_DISABLE_H7_SUPPORT, false);
+}
+
+static int get_pts_l2cap_le_insuff_enc_result(void) {
+  return config_get_int(config, CONFIG_DEFAULT_SECTION,
+                        PTS_L2CAP_LE_INSUFF_ENCRYP, 0);
+}
+
+static int get_pts_bredr_invalid_encryption_keysize(void) {
+  return config_get_int(config, CONFIG_DEFAULT_SECTION,
+                        PTS_BREDR_INVALID_ENCRYPTION_KEYSIZE, 0);
+}
+
 static config_t* get_all(void) { return config; }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -160,6 +184,10 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_le_fresh_pairing_enabled,
                                   get_pts_bredr_auth_req,
                                   get_pts_bredr_secureconnection_host_support_disabled,
+                                  get_pts_le_enc_disable,
+                                  get_pts_smp_disable_h7_support,
+                                  get_pts_l2cap_le_insuff_enc_result,
+                                  get_pts_bredr_invalid_encryption_keysize,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }
