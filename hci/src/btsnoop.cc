@@ -38,6 +38,7 @@
 #include "hci/include/btsnoop.h"
 #include "hci/include/btsnoop_mem.h"
 #include "hci_layer.h"
+#include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "osi/include/time.h"
@@ -60,7 +61,7 @@
 #ifdef ANDROID
 #define DEFAULT_BTSNOOP_PATH "/data/misc/bluetooth/logs/btsnoop_hci.log"
 #else
-#define DEFAULT_BTSNOOP_PATH "/data/misc/bluetooth/btsnoop_hci.log"
+#define DEFAULT_BTSNOOP_PATH "/etc/bluetooth/btsnoop_hci.log"
 #endif
 #define BTSNOOP_MAX_PACKETS_PROPERTY "persist.bluetooth.btsnoopsize"
 
@@ -198,15 +199,18 @@ static void delete_btsnoop_files() {
 }
 
 static bool is_btsnoop_enabled() {
-  char btsnoop_enabled[PROPERTY_VALUE_MAX] = {0};
-  osi_property_get(BTSNOOP_ENABLE_PROPERTY, btsnoop_enabled, "true");
-  bool ret = strncmp(btsnoop_enabled, "true", 4) == 0;
-  return ret;
+  //char btsnoop_enabled[PROPERTY_VALUE_MAX] = {0};
+  //osi_property_get(BTSNOOP_ENABLE_PROPERTY, btsnoop_enabled, "true");
+  //bool ret = strncmp(btsnoop_enabled, "true", 4) == 0;
+  return true;
 }
 
 static char* get_btsnoop_log_path(char* btsnoop_path) {
-  osi_property_get(BTSNOOP_PATH_PROPERTY, btsnoop_path, DEFAULT_BTSNOOP_PATH);
-  return btsnoop_path;
+  //osi_property_get(BTSNOOP_PATH_PROPERTY, btsnoop_path, DEFAULT_BTSNOOP_PATH);
+  int len = strlen(DEFAULT_BTSNOOP_PATH);
+  LOG_ERROR(LOG_TAG, "%s length of DEFAULT_BTSNOOP_PATH %d", __func__, len);
+  strlcpy(btsnoop_path, DEFAULT_BTSNOOP_PATH, len +1);
+  return DEFAULT_BTSNOOP_PATH;
 }
 
 static char* get_btsnoop_last_log_path(char* last_log_path,
@@ -220,6 +224,7 @@ static void open_next_snoop_file() {
   packet_counter = 0;
 
   std::lock_guard<std::mutex> lock(btSnoopFd_mutex);
+  LOG_ERROR(LOG_TAG, "%s snoop file open", __func__);
   if(sock_snoop_active)
     return;
 
@@ -232,7 +237,7 @@ static void open_next_snoop_file() {
   char last_log_path[PROPERTY_VALUE_MAX + sizeof(".last")];
   get_btsnoop_log_path(log_path);
   get_btsnoop_last_log_path(last_log_path, log_path);
-
+  LOG_ERROR(LOG_TAG, "%s snoop file open '%s", __func__, log_path);
   if (!rename(log_path, last_log_path) && errno != ENOENT)
     LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__,
               log_path, last_log_path, strerror(errno));
