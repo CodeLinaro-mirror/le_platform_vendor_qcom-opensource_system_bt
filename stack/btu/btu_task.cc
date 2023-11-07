@@ -105,8 +105,9 @@ void btu_message_loop_run(UNUSED_ATTR void* context) {
 }
 
 void btu_task_start_up(UNUSED_ATTR void* context) {
-  LOG(INFO) << "Bluetooth chip preload is complete";
-
+  //LOG(INFO) << "Bluetooth chip preload is complete";
+  LOG_ERROR( LOG_TAG, "Bluetooth chip preload is complete");
+ 
   /* Initialize the mandatory core stack control blocks
      (BTU, BTM, L2CAP, and SDP)
    */
@@ -126,7 +127,8 @@ void btu_task_start_up(UNUSED_ATTR void* context) {
 
   message_loop_thread_ = thread_new("btu message loop");
   if (!message_loop_thread_) {
-    LOG(FATAL) << __func__ << " unable to create btu message loop thread.";
+    //LOG(FATAL) << __func__ << " unable to create btu message loop thread.";
+	LOG_ERROR( LOG_TAG, "unable to create btu message loop thread.");
   }
 
   thread_set_rt_priority(message_loop_thread_, THREAD_RT_PRIORITY);

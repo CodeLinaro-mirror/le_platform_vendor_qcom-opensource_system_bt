@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+//#include <bits/sa_family_t.h>
 
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -56,6 +57,8 @@ using base::Thread;
 #define MGMT_EV_COMMAND_COMP 0x0001
 #define MGMT_EV_SIZE_MAX 1024
 #define MGMT_EV_POLL_TIMEOUT 3000 /* 3000ms */
+
+typedef unsigned short sa_family_t; 
 
 struct sockaddr_hci {
   sa_family_t hci_family;
@@ -114,9 +117,8 @@ void monitor_socket(int ctrl_fd, int fd) {
   ssize_t len = read(fd, buf, buf_size);
 
   while (len > 0) {
-    if (len == buf_size)
-      LOG(FATAL) << "This packet filled buffer, if it have continuation we "
-                    "don't know how to merge it, increase buffer size!";
+   // if (len == buf_size)
+     // LOG_ERROR( LOG_TAG, "This packet filled buffer, if it have continuation we don't know how to merge it, increase buffer size!");
 
     uint8_t type = buf[0];
 
@@ -146,7 +148,7 @@ void monitor_socket(int ctrl_fd, int fd) {
         hci_event_received(FROM_HERE, packet);
         break;
       default:
-        LOG(FATAL) << "Unexpected event type: " << +type;
+        LOG_ERROR( LOG_TAG, "Unexpected event type: %S", type);
         break;
     }
 
@@ -155,10 +157,10 @@ void monitor_socket(int ctrl_fd, int fd) {
     FD_SET(ctrl_fd, &fds);
     FD_SET(fd, &fds);
     int res = select(std::max(fd, ctrl_fd) + 1, &fds, NULL, NULL, NULL);
-    if (res <= 0) LOG(INFO) << "Nothing more to read";
+    if (res <= 0) LOG_ERROR( LOG_TAG, "Nothing more to read");
 
     if (FD_ISSET(ctrl_fd, &fds)) {
-      LOG(INFO) << "exitting";
+      LOG_ERROR( LOG_TAG, "exitting");
       return;
     }
 
@@ -168,34 +170,35 @@ void monitor_socket(int ctrl_fd, int fd) {
 
 /* TODO: should thread the device waiting and return immedialty */
 void hci_initialize() {
-  LOG(INFO) << __func__;
+  LOG_ERROR( LOG_TAG,"%s", __func__);
 
   char prop_value[PROPERTY_VALUE_MAX];
-  osi_property_get("bluetooth.interface", prop_value, "0");
-
+  //osi_property_get("bluetooth.interface", prop_value, "0"); 
+  
   errno = 0;
-  if (memcmp(prop_value, "hci", 3))
-    hci_interface = strtol(prop_value, NULL, 10);
-  else
-    hci_interface = strtol(prop_value + 3, NULL, 10);
+  //if (memcmp(prop_value, "hci", 3))
+   // hci_interface = strtol(prop_value, NULL, 10);
+  //else
+   // hci_interface = strtol(prop_value + 3, NULL, 10);
   if (errno) hci_interface = 0;
+  
+  LOG_ERROR(LOG_TAG,"Using interface hci-%d" ,hci_interface);
+  //prop_value = 1;
+  //osi_property_get("bluetooth.rfkill", prop_value, "1");
 
-  LOG(INFO) << "Using interface hci" << +hci_interface;
-
-  osi_property_get("bluetooth.rfkill", prop_value, "1");
-
-  rfkill_en = atoi(prop_value);
+  rfkill_en = 1; atoi(prop_value);
   if (rfkill_en) {
     rfkill(0);
   }
 
   int fd = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
-  CHECK(fd >= 0) << "socket create error" << strerror(errno);
+  CHECK(fd >= 0);
+  //LOG_ERROR( LOG_TAG, "socket create error%s" ,strerror(errno));
 
   bt_vendor_fd = fd;
 
   if (wait_hcidev()) {
-    LOG(FATAL) << "HCI interface hci" << +hci_interface << " not found";
+    LOG_ERROR( LOG_TAG, "HCI interface hci %d  not found",hci_interface);
   }
 
   struct sockaddr_hci addr;
@@ -204,12 +207,12 @@ void hci_initialize() {
   addr.hci_dev = hci_interface;
   addr.hci_channel = HCI_CHANNEL_USER;
   if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG(FATAL) << "socket bind error " << strerror(errno);
+    LOG_ERROR( LOG_TAG,"socket bind error :%s" ,strerror(errno));
   }
 
   int sv[2];
   if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0) {
-    LOG(FATAL) << "socketpair failed: " << strerror(errno);
+    LOG_ERROR( LOG_TAG, "socketpair failed: %s" , strerror(errno));
   }
 
   reader_thread_ctrl_fd = sv[0];
@@ -218,12 +221,12 @@ void hci_initialize() {
   reader_thread->task_runner()->PostTask(
       FROM_HERE, base::Bind(&monitor_socket, sv[1], bt_vendor_fd));
 
-  LOG(INFO) << "HCI device ready";
+  LOG_ERROR( LOG_TAG, "HCI device ready");
   initialization_complete();
 }
 
 void hci_close() {
-  LOG(INFO) << __func__;
+  LOG_ERROR( LOG_TAG,"%s",__func__);
 
   if (bt_vendor_fd != -1) {
     close(bt_vendor_fd);
@@ -264,7 +267,7 @@ hci_transmit_status_t hci_transmit(BT_HDR* packet) {
       break;
     default:
       status = HCI_TRANSMIT_INVALID_PKT;
-      LOG(FATAL) << "Unknown packet type " << event;
+      LOG_ERROR( LOG_TAG,"Unknown packet type %i" ,event);
       break;
   }
 
@@ -277,12 +280,12 @@ hci_transmit_status_t hci_transmit(BT_HDR* packet) {
 
   if (ret != packet->len + 1) {
     status = HCI_TRANSMIT_DAEMON_DIED;
-    LOG(ERROR) << "Should have send whole packet";
+    LOG_ERROR( LOG_TAG, "Should have send whole packet");
   }
 
   if (ret == -1) { 
     status = HCI_TRANSMIT_DAEMON_DIED;
-    LOG(FATAL) << strerror(errno);
+    LOG_ERROR( LOG_TAG,"%s" ,strerror(errno));
   }
   return status;
 }
@@ -294,11 +297,11 @@ static int wait_hcidev(void) {
   int fd;
   int ret = 0;
 
-  LOG(INFO) << __func__;
+  LOG_ERROR( LOG_TAG,"%s", __func__);
 
   fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   if (fd < 0) {
-    LOG(ERROR) << "Bluetooth socket error: %s" << strerror(errno);
+    LOG_ERROR( LOG_TAG, "Bluetooth socket error: %s", strerror(errno));
     return -1;
   }
 
@@ -308,7 +311,7 @@ static int wait_hcidev(void) {
   addr.hci_channel = HCI_CHANNEL_CONTROL;
 
   if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG(ERROR) << "HCI Channel Control: " << strerror(errno);
+    LOG_ERROR( LOG_TAG, "HCI Channel Control: %s" , strerror(errno));
     close(fd);
     return -1;
   }
@@ -324,7 +327,7 @@ static int wait_hcidev(void) {
   ssize_t wrote;
   OSI_NO_INTR(wrote = write(fd, &ev, 6));
   if (wrote != 6) {
-    LOG(ERROR) << "Unable to write mgmt command: " << strerror(errno);
+    LOG_ERROR( LOG_TAG, "Unable to write mgmt command: %s" , strerror(errno));
     ret = -1;
     goto end;
   }
@@ -333,11 +336,11 @@ static int wait_hcidev(void) {
     int n;
     OSI_NO_INTR(n = poll(fds, 1, MGMT_EV_POLL_TIMEOUT));
     if (n == -1) {
-      LOG(ERROR) << "Poll error: " << strerror(errno);
+      LOG_ERROR( LOG_TAG, "Poll error:%s " , strerror(errno));
       ret = -1;
       break;
     } else if (n == 0) {
-      LOG(ERROR) << "Timeout, no HCI device detected";
+      LOG_ERROR( LOG_TAG, "Timeout, no HCI device detected");
       ret = -1;
       break;
     }
@@ -345,7 +348,7 @@ static int wait_hcidev(void) {
     if (fds[0].revents & POLLIN) {
       OSI_NO_INTR(n = read(fd, &ev, sizeof(struct mgmt_pkt)));
       if (n < 0) {
-        LOG(ERROR) << "Error reading control channel: " << strerror(errno);
+        LOG_ERROR( LOG_TAG, "Error reading control channel: %s" , strerror(errno));
         ret = -1;
         break;
       }
@@ -376,11 +379,11 @@ static int rfkill(int block) {
   struct rfkill_event event;
   int fd;
 
-  LOG(INFO) << __func__;
+  LOG_ERROR( LOG_TAG,"%s" ,__func__);
 
   fd = open("/dev/rfkill", O_WRONLY);
   if (fd < 0) {
-    LOG(ERROR) << "Unable to open /dev/rfkill";
+    LOG_ERROR( LOG_TAG, "Unable to open /dev/rfkill");
     return -1;
   }
 
@@ -393,7 +396,7 @@ static int rfkill(int block) {
   ssize_t len;
   OSI_NO_INTR(len = write(fd, &event, sizeof(event)));
   if (len < 0) {
-    LOG(ERROR) << "Failed to change rfkill state";
+    LOG_ERROR( LOG_TAG, "Failed to change rfkill state");
     close(fd);
     return 1;
   }

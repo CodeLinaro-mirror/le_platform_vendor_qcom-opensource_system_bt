@@ -83,7 +83,7 @@ endif
 if USING_STATIC_LINK
 AM_CFLAGS += -DUSING_STATIC_LINK
 AM_CPPFLAGS += -DUSING_STATIC_LINK
-cpp_sources += src/hci_layer_le.cc
+cpp_sources += src/hci_layer_linux.cc
 common_LDFLAGS = -lpthread -lrt
 endif
 
