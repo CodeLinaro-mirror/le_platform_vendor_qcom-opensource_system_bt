@@ -28,6 +28,12 @@
 #include "osi/include/reactor.h"
 #include "osi/include/semaphore.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 typedef struct fixed_queue_t {
   list_t* list;
   semaphore_t* enqueue_sem;

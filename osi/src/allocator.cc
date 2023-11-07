@@ -22,6 +22,12 @@
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 static const allocator_id_t alloc_allocator_id = 42;
 
 char* osi_strdup(const char* str) {
