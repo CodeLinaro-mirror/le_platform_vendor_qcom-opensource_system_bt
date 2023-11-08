@@ -192,6 +192,12 @@ AC_TYPE_UINT8_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([gettimeofday memset select socket strerror])
 
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, dummy=yes, AC_MSG_ERROR(GLib >= 2.16 is required))
+GLIB_CFLAGS="$GLIB_CFLAGS"
+GLIB_LIBS="$GLIB_LIBS"
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
+
 AC_CONFIG_FILES([ \
          Makefile \
          hci/Makefile \
