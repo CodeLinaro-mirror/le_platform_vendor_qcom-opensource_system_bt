@@ -34,6 +34,7 @@
 static const char* bta_hf_client_evt_str(uint16_t event);
 static const char* bta_hf_client_state_str(uint8_t state);
 void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle);
+extern RawAddress bta_avk_get_connected_device();
 
 /* state machine states */
 enum {
@@ -585,6 +586,13 @@ bool bta_hf_client_allocate_handle(const RawAddress& bd_addr,
                      __func__);
     return false;
   }
+  //If A2dp connected in other devices abort hfp connection
+  RawAddress peer_bda = bta_avk_get_connected_device();
+  if((peer_bda != RawAddress::kEmpty) && (peer_bda != bd_addr)) {
+    APPL_TRACE_ERROR("%s: Cannot allocate as a2dp is connected with other device", __func__);
+    return false;
+  }
+
   /* Check that we do not have a request to for same device in the control
    * blocks */
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
@@ -874,6 +882,26 @@ void bta_hf_client_slc_seq(tBTA_HF_CLIENT_CB* client_cb, bool error) {
       break;
     }
   }
+}
+/*******************************************************************************
+ *
+ * Function         bta_hf_client_get_connected_device
+ *
+ * Description       Get the hfp connected device
+ *
+ *
+ * Returns          btaddress if any device is connected
+ *
+ ******************************************************************************/
+RawAddress bta_hf_client_get_connected_device() {
+  RawAddress bd_addr = RawAddress::kEmpty;
+  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
+    tBTA_HF_CLIENT_CB* client_cb = &bta_hf_client_cb_arr.cb[i];
+    if (client_cb->is_allocated && client_cb->state == BTA_HF_CLIENT_OPEN_ST) {
+      bd_addr = client_cb->peer_addr;
+    }
+  }
+  return bd_addr;
 }
 
 #ifndef CASE_RETURN_STR
