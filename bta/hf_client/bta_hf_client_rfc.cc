@@ -30,6 +30,7 @@
 #include "bt_utils.h"
 #include "bta_api.h"
 #include "bta_hf_client_int.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "port_api.h"
 

@@ -24,6 +24,14 @@
 bt_property_callout_t* property_callouts = NULL;
 #endif
 
+int property_get(const char* key, char* value, const char* default_value) {
+	return -1;
+}
+
+int property_set(const char* key, const char* value) {
+	return -1;
+}
+
 int osi_property_get(const char* key, char* value, const char* default_value) {
 #if defined(OS_GENERIC)
   if(property_callouts)
@@ -40,7 +48,7 @@ int osi_property_get(const char* key, char* value, const char* default_value) {
   value[len] = '\0';
   return len;
 #else
-  return property_get(key, value, default_value);
+  return 1;//property_get(key, value, default_value);
 #endif  // defined(OS_GENERIC)
 }
 
@@ -51,7 +59,7 @@ if(property_callouts)
 
   return -1;
 #else
-  return property_set(key, value);
+  return 1;//property_set(key, value);
 #endif  // defined(OS_GENERIC)
 }
 

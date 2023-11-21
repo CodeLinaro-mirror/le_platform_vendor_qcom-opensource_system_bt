@@ -23,12 +23,14 @@
  ******************************************************************************/
 
 #include <string.h>
+#include <base/logging.h>
 
 #include "bta_ag_co.h"
 #include "bta_ag_int.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "osi/include/osi.h"
+#include "osi/include/log.h"
 #include "utl.h"
 
 /*****************************************************************************

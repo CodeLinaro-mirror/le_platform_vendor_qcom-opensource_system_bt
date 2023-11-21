@@ -21,6 +21,8 @@
  *  this file contains GATT utility functions
  *
  ******************************************************************************/
+#include <base/logging.h>
+#include "osi/include/log.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"

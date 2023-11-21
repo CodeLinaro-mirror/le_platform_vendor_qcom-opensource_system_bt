@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 
-#include <cutils/log.h>
+#include <osi/include/log.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +44,6 @@
 #include "device/include/interop.h"
 #include "btif/include/btif_storage.h"
 #include "device/include/profile_config.h"
-#include <cutils/properties.h>
 #include <hardware/bluetooth.h>
 #include <hardware/vendor.h>
 #include "device/include/interop.h"
@@ -54,7 +53,6 @@
 #include "sdpint.h"
 //#include "service/logging_helpers.h"
 
-#include <cutils/properties.h>
 
 #if (SDP_SERVER_ENABLED == TRUE)
 
@@ -163,7 +161,7 @@ uint16_t get_dut_avrcp_version() {
     // This api get avrcp version stored in property
     uint16_t profile_version = AVRC_REV_1_0;
     char avrcp_version[PROPERTY_VALUE_MAX] = {0};
-    property_get(AVRCP_VERSION_PROPERTY, avrcp_version,
+    osi_property_get(AVRCP_VERSION_PROPERTY, avrcp_version,
                      AVRCP_1_6_STRING);
     SDP_TRACE_DEBUG(" %s AVRCP version used for sdp: \"%s\"",
              __func__,avrcp_version);
@@ -282,7 +280,7 @@ bool sdp_fallback_avrcp_version (tSDP_ATTRIBUTE *p_attr, RawAddress remote_addre
                          p_attr->value_ptr[PROFILE_VERSION_POSITION]);
                 return TRUE;
             }
-            property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
+            osi_property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
             if (!strncmp("false", a2dp_role, 5)) {
                 ver = sdp_get_stored_avrc_tg_version (remote_address);
                 if (ver != AVRC_REV_INVALID)
@@ -419,7 +417,7 @@ bool sdp_change_hfp_version (tSDP_ATTRIBUTE *p_attr, RawAddress remote_address)
                            __func__, remote_address.ToString().c_str());
             /* For PTS we should show AG's HFP version as 1.7 */
             if (is_blacklisted ||
-                (property_get("vendor.bt.pts.certification", value, "false") &&
+                (osi_property_get("vendor.bt.pts.certification", value, "false") &&
                 strcmp(value, "true") == 0))
             {
                 p_attr->value_ptr[PROFILE_VERSION_POSITION] = 0x07; // Update HFP version as 1.7
@@ -766,7 +764,7 @@ static void process_service_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
     p_ccb->cont_info.next_attr_index = 0;
     p_ccb->cont_info.attr_offset = 0;
   }
-  property_get("persist.avrcp.enable.dy_version", dy_version, "false");
+  osi_property_get("persist.avrcp.enable.dy_version", dy_version, "false");
 
   dut_profile_version = get_dut_avrcp_version();
   /* Search for attributes that match the list given to us */
@@ -1128,7 +1126,7 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
     p_ccb->cont_info.last_attr_seq_desc_sent = false;
     p_ccb->cont_info.attr_offset = 0;
   }
-  property_get("persist.avrcp.enable.dy_version", dy_version, "false");
+  osi_property_get("persist.avrcp.enable.dy_version", dy_version, "false");
 
   /* Get a list of handles that match the UUIDs given to us */
   for (p_rec = sdp_db_service_search(p_ccb->cont_info.prev_sdp_rec, &uid_seq);

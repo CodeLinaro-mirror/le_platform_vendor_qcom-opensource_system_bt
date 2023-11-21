@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
         -I../stack/include \
         -I../include \
         -I../types \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth/hal/include \
+        -I$(WORKSPACE)/bluetooth/bt_audio/hal/include \
         -I$(external_bt_path)/vhal/include
 
 cpp_sources = \

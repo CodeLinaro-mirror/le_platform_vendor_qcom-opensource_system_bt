@@ -34,7 +34,7 @@
 
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "log/log.h"
+#include "log.h"
 
 #include "btm_api.h"
 #include "btu.h"
@@ -457,7 +457,7 @@ static void bnep_data_ind(uint16_t l2cap_cid, BT_HDR* p_buf) {
   type &= 0x7f;
   if (type >= sizeof(bnep_frame_hdr_sizes) / sizeof(bnep_frame_hdr_sizes[0])) {
     BNEP_TRACE_EVENT("BNEP - rcvd frame, bad type: 0x%02x", type);
-    android_errorWriteLog(0x534e4554, "68818034");
+    //android_errorWriteLog(0x534e4554, "68818034");
     osi_free(p_buf);
     return;
   }
@@ -502,7 +502,7 @@ static void bnep_data_ind(uint16_t l2cap_cid, BT_HDR* p_buf) {
 
         org_len -= new_len;
       } while (ext & 0x80);
-      android_errorWriteLog(0x534e4554, "67863755");
+      //android_errorWriteLog(0x534e4554, "67863755");
     }
 
     osi_free(p_buf);
@@ -548,7 +548,7 @@ static void bnep_data_ind(uint16_t l2cap_cid, BT_HDR* p_buf) {
         while (extension_present && p && rem_len) {
           ext_type = *p++;
           rem_len--;
-          android_errorWriteLog(0x534e4554, "69271284");
+          //android_errorWriteLog(0x534e4554, "69271284");
           extension_present = ext_type >> 7;
           ext_type &= 0x7F;
 

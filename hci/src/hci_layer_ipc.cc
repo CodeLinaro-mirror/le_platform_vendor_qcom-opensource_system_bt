@@ -32,11 +32,9 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <sys/time.h>
-#include <cutils/properties.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <cutils/sockets.h>
 #include <linux/un.h>
 #include <sys/ioctl.h>
 #include <base/bind.h>

@@ -46,6 +46,7 @@ extern tBTIF_A2DP_SOURCE_VSC btif_a2dp_src_vsc;
 extern void btif_av_reset_reconfig_flag();
 static char a2dp_hal_imp[PROPERTY_VALUE_MAX] = "false";
 
+#if 0
 void btif_a2dp_on_idle(int index) {
   APPL_TRACE_EVENT("## ON A2DP IDLE ## peer_sep = %d", btif_av_get_peer_sep(index));
   if (btif_av_get_peer_sep(index) == AVDT_TSEP_SNK) {
@@ -196,3 +197,4 @@ void btif_debug_a2dp_dump(int fd) {
   btif_a2dp_source_debug_dump(fd);
   btif_a2dp_sink_debug_dump(fd);
 }
+#endif

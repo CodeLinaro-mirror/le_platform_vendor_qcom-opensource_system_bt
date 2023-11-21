@@ -18,13 +18,13 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 #if defined(OS_GENERIC)
 #define PROPERTY_VALUE_MAX 92
 #else
-#include <cutils/properties.h>
 #ifndef PROP_VALUE_MAX
 #define PROP_VALUE_MAX 92
+#define PROPERTY_VALUE_MAX 92
 #endif
 #endif  // defined(OS_GENERIC)
 
@@ -49,3 +49,8 @@ int osi_property_set(const char* key, const char* value);
 // returns the value of |key| truncated and coerced into an
 // int32_t. If the property is not set, then the |default_value| is used.
 int32_t osi_property_get_int32(const char* key, int32_t default_value);
+
+//dummy set and get properties. Need to remove once properties.h available
+int property_get(const char* key, char* value, const char* default_value);
+
+int property_set(const char* key, const char* value);

@@ -33,6 +33,7 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "btm_api.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "sdp_api.h"
 #include "utl.h"

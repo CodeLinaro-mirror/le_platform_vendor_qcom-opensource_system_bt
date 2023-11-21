@@ -39,7 +39,7 @@
 #include "avrc_defs.h"
 
 #include "osi/include/osi.h"
-#include <cutils/properties.h>
+#include "osi/include/properties.h"
 
 using bluetooth::Uuid;
 
@@ -1197,7 +1197,7 @@ bool SDP_Dev_Blacklisted_For_Avrcp15 (RawAddress addr)
 {
     int ver;
     char dy_version[PROPERTY_VALUE_MAX] = "false";
-    property_get("persist.avrcp.enable.dy_version", dy_version, "false");
+    osi_property_get("persist.avrcp.enable.dy_version", dy_version, "false");
     if (!strncmp("false", dy_version, 5))
         return false;
 

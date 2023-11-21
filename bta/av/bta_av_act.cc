@@ -70,7 +70,6 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include <cutils/properties.h>
 #include "utl.h"
 #include <errno.h>
 #include <hardware/vendor.h>
@@ -1013,7 +1012,7 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
         (p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ)) {
       /* check if operation is supported */
       char avrcp_ct_support[PROPERTY_VALUE_MAX];
-      property_get("bluetooth.pts.avrcp_ct.support", avrcp_ct_support,
+      osi_property_get("bluetooth.pts.avrcp_ct.support", avrcp_ct_support,
                        "false");
       if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR) {
         p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
@@ -1845,7 +1844,7 @@ uint16_t bta_get_dut_avrcp_version() {
     // This api get avrcp version stored in property
     uint16_t profile_version = AVRC_REV_1_0;
     char avrcp_version[PROPERTY_VALUE_MAX] = {0};
-    property_get(AVRCP_VERSION_PROPERTY, avrcp_version,
+    osi_property_get(AVRCP_VERSION_PROPERTY, avrcp_version,
                      AVRCP_1_6_STRING);
 
     if (!strncmp(AVRCP_1_6_STRING, avrcp_version,
@@ -1945,7 +1944,7 @@ tBTA_AV_FEAT bta_av_check_peer_features(uint16_t service_uuid) {
   char dy_version[PROPERTY_VALUE_MAX] = "false";
 
   APPL_TRACE_DEBUG("bta_av_check_peer_features service_uuid:x%x", service_uuid);
-  property_get("persist.avrcp.enable.dy_version", dy_version, "false");
+  osi_property_get("persist.avrcp.enable.dy_version", dy_version, "false");
   /* loop through all records we found */
   while (true) {
     /* get next record; if none found, we're done */

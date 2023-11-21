@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(top_srcdir)/../../bluetooth_ext
+external_bt_path := $(WORKSPACE)/bluetooth/stack/bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -12,9 +12,10 @@ if MDM_CHEROKEE
 AM_CFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED
 endif
 
+$(info $$external_bt_path is [${external_bt_path}])
+$(info $$WORKSPACE is [${WORKSPACE}])
+
 AM_CPPFLAGS = \
-        -I.. \
-        -I../include \
         -Ia2dp \
         -Iinclude \
         -Iavct \
@@ -30,30 +31,31 @@ AM_CPPFLAGS = \
         -Isdp \
         -Ismp \
         -Isrvc \
-        -I../btcore/include \
-        -I../vnd/include \
-        -I../vnd/ble \
-        -I../btif/include \
-        -I../hci/include \
-        -I../include \
-        -I../udrv/include \
-        -I../rpc/include \
-        -I../hcis \
-        -I../ctrlr/include \
-        -I../bta/include \
-        -I../bta/sys \
-        -I../utils/include \
-        -I../types \
-        -I../internal_include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/ \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/btcore/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/vnd/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/vnd/ble \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/btif/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/hci/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/udrv/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/rpc/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/hcis \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/ctrlr/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/bta/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/bta/sys \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/utils/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/types \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/internal_include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/stack/btm \
         -I$(external_bt_path)/vhal/include \
         -I$(external_bt_path)/system_bt_ext/bta/ar \
+	-I$(external_bt_path)/system_bt_ext/bta/include \
         -I$(external_bt_path)/system_bt_ext/stack/include/ \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth/hal/include \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth_ext/system_bt_ext/stack/include \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth_ext/system_bt_ext/bta/include
-
+        -I$(WORKSPACE)/bluetooth/bt_audio/hal/include
+		
 if MDM_CHEROKEE
 AM_CPPFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED
 endif

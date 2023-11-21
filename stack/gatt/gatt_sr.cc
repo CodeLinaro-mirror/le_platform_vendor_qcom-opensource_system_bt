@@ -21,8 +21,8 @@
  *  this file contains the GATT server functions
  *
  ******************************************************************************/
-
-#include <log/log.h>
+#include <base/logging.h>
+#include "osi/include/log.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
@@ -305,7 +305,7 @@ void gatt_process_exec_write_req(tGATT_TCB& tcb, uint8_t op_code, uint16_t len,
 #endif
 
   if (len < sizeof(flag)) {
-    android_errorWriteLog(0x534e4554, "73172115");
+    //android_errorWriteLog(0x534e4554, "73172115");
     LOG(ERROR) << __func__ << "invalid length";
     gatt_send_error_rsp(tcb, GATT_INVALID_PDU, GATT_REQ_EXEC_WRITE, 0, false);
     return;
@@ -791,7 +791,7 @@ void gatts_process_read_by_type_req(tGATT_TCB& tcb, uint8_t op_code,
                                     uint16_t len, uint8_t* p_data) {
   Uuid uuid = Uuid::kEmpty;
   uint16_t s_hdl = 0, e_hdl = 0, err_hdl = 0;
-  if (len < 4) android_errorWriteLog(0x534e4554, "73125709");
+  //if (len < 4) android_errorWriteLog(0x534e4554, "73125709");
   tGATT_STATUS reason =
       gatts_validate_packet_format(op_code, len, p_data, &uuid, s_hdl, e_hdl);
 
@@ -959,7 +959,7 @@ static void gatts_process_read_req(tGATT_TCB& tcb, tGATT_SRV_LIST_ELEM& el,
     /* Error: packet length is too short */
     LOG(ERROR) << __func__ << ": packet length=" << len
                << " too short. min=" << sizeof(uint16_t);
-    android_errorWriteWithInfoLog(0x534e4554, "73172115", -1, NULL, 0);
+    //android_errorWriteWithInfoLog(0x534e4554, "73172115", -1, NULL, 0);
     gatt_send_error_rsp(tcb, GATT_INVALID_PDU, op_code, 0, false);
     return;
   }

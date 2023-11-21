@@ -671,7 +671,7 @@ void smp_process_pairing_public_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   memcpy(pt.y, p_cb->peer_publ_key.y, BT_OCTET32_LEN);
 
   if (!ECC_ValidatePoint(pt)) {
-    android_errorWriteLog(0x534e4554, "72377774");
+    //android_errorWriteLog(0x534e4554, "72377774");
     smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
     return;
   }
@@ -1190,7 +1190,7 @@ void smp_key_distribution(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
               "%s BR key is higher security than existing LE keys, don't "
               "derive LK from LTK",
               __func__);
-          android_errorWriteLog(0x534e4554, "158854097");
+          //android_errorWriteLog(0x534e4554, "158854097");
         } else {
           smp_derive_link_key_from_long_term_key(p_cb, NULL);
         }

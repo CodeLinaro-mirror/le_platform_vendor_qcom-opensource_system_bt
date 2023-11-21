@@ -26,7 +26,7 @@
 
 #include "bt_target.h"
 
-#include <base/logging.h>
+#include "osi/include/log.h"
 #include <string.h>
 
 #include "bt_common.h"

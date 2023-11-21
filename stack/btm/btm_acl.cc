@@ -1211,7 +1211,7 @@ void btm_read_remote_ext_features_complete(uint8_t* p, uint8_t evt_len) {
   BTM_TRACE_DEBUG("btm_read_remote_ext_features_complete");
 
   if (evt_len < HCI_EXT_FEATURES_SUCCESS_EVT_LEN) {
-    android_errorWriteLog(0x534e4554, "141552859");
+    //android_errorWriteLog(0x534e4554, "141552859");
     BTM_TRACE_ERROR(
         "btm_read_remote_ext_features_complete evt length too short. length=%d",
         evt_len);
@@ -1238,7 +1238,7 @@ void btm_read_remote_ext_features_complete(uint8_t* p, uint8_t evt_len) {
   }
 
   if (page_num > HCI_EXT_FEATURES_PAGE_MAX) {
-    android_errorWriteLog(0x534e4554, "141552859");
+    //android_errorWriteLog(0x534e4554, "141552859");
     BTM_TRACE_ERROR("btm_read_remote_ext_features_complete num_page=%d invalid",
                     page_num);
     return;

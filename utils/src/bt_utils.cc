@@ -142,7 +142,7 @@ static intmax_t property_get_bt_imax(const char *key, intmax_t lower_bound,
     char buf[PROPERTY_VALUE_MAX] = {'\0'};
     char *end = NULL;
 
-    int len = property_get(key, buf, "");
+    int len = 0;//property_get(key, buf, "");
     if (len > 0) {
         int tmp = errno;
         errno = 0;
@@ -257,11 +257,11 @@ static void init_soc_type() {
 
   soc_type = BT_SOC_DEFAULT;
 #if defined(ANDROID)
-  ret = property_get("qcom.bluetooth.soc", bt_soc_type, NULL);
+  //ret = property_get("qcom.bluetooth.soc", bt_soc_type, NULL);
 
   if (ret == 0) {
     ALOGI("qcom.bluetooth.soc prop not set");
-    ret = property_get("vendor.bluetooth.soc", bt_soc_type, NULL);
+    //ret = property_get("vendor.bluetooth.soc", bt_soc_type, NULL);
   }
   if (ret != 0) {
     int i;

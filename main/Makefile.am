@@ -43,10 +43,10 @@ AM_CPPFLAGS= \
         -I$(external_bt_path)/system_bt_ext/device/include/ \
         -I${WORKSPACE}/external/tinyxml2 \
         -I${WORKSPACE}/external/zlib \
-        -I${WORKSPACE}/vendor/qcom/opensource/bluetooth/hal/include \
-        -I${WORKSPACE}/vendor/qcom/opensource/bluetooth_ext/system_bt_ext/stack/include \
-        -I${WORKSPACE}/vendor/qcom/opensource/bluetooth/bthost_ipc \
-        -I${WORKSPACE}/vendor/qcom/opensource/bluetooth_ext/system_bt_ext/udrv/include \
+        -I${WORKSPACE}/bluetooth/bt_audio/hal/include \
+        -I${WORKSPACE}/bluetooth/stack/bluetooth_ext/system_bt_ext/stack/include \
+        -I${WORKSPACE}/bluetooth/bt_audio/bthost_ipc \
+        -I${WORKSPACE}/bluetooth/stack/bluetooth_ext/system_bt_ext/udrv/include \
         -I$(external_bt_path)/vhal/include
 
 if MDM_ROME
@@ -164,7 +164,7 @@ common_LDFLAGS = -ldl -lrt -lresolv -lz \
                  -Wl,--whole-archive,../osi/.libs/libbtosi.a,--no-whole-archive -Wl,--whole-archive,../device/.libs/libbtdevice.a,--no-whole-archive \
                  -Wl,--whole-archive,../types/.libs/libbttypes.a,--no-whole-archive \
                  -Wl,--whole-archive,../hci/.libs/libbthci.a,--no-whole-archive \
-                 -laudioutils -lchrome
+                 -lchrome
 
 common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
 common_CPPFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)

@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <utils/StrongPointer.h>
+//#include <utils/StrongPointer.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include "buffer_allocator.h"

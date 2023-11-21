@@ -33,6 +33,7 @@
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "l2c_int.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack_config.h"
 

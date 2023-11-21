@@ -401,7 +401,7 @@ void A2DP_Init(void) {
   memset(&a2dp_cb, 0, sizeof(tA2DP_CB));
 
   char value[PROPERTY_VALUE_MAX] = {'\0'};
-  property_get("persist.bluetooth.enable_scmst", value, "false");
+  osi_property_get("persist.bluetooth.enable_scmst", value, "false");
   enable_cp = (strcmp(value, "true") == 0);
 
   a2dp_cb.avdt_sdp_ver = AVDT_VERSION;

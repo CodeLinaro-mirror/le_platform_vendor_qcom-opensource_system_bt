@@ -68,7 +68,6 @@
 #include "osi/include/properties.h"
 #include "port_api.h"
 #include "utl.h"
-#include <cutils/properties.h>
 #if (TWS_AG_ENABLED == TRUE)
 #include "bta_ag_twsp_dev.h"
 #include "bta_ag_twsp.h"

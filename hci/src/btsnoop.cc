@@ -44,6 +44,7 @@
 #include "stack_config.h"
 #include "l2c_api.h"
 #include <poll.h>
+#include <sys/uio.h>
 
 // The number of of packets per btsnoop file before we rotate to the next
 // file. As of right now there are two snoop files that are rotated through.

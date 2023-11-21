@@ -1841,7 +1841,7 @@ void bta_av_connect_req(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
   }
 
     char value[PROPERTY_VALUE_MAX] = {0};
-    property_get("vendor.bt.pts.certification", value, "false");
+    osi_property_get("vendor.bt.pts.certification", value, "false");
 
     if(!strcmp(value, "false")){
         if(bta_avk_find_lcb(p_scb->peer_addr, BTA_AVK_LCB_FIND) != NULL)

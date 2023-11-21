@@ -27,6 +27,7 @@
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "osi/include/fixed_queue.h"
+#include "osi/include/log.h"
 #include "osi/include/mutex.h"
 #include "btm_int.h"
 

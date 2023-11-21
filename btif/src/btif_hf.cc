@@ -75,7 +75,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "btif_profile_queue.h"
 #include "btif_util.h"
 #include "osi/include/properties.h"
-#include <cutils/properties.h>
 #include "device/include/controller.h"
 #include "btif_storage.h"
 #if (TWS_AG_ENABLED == TRUE)
@@ -2229,7 +2228,7 @@ bt_status_t btif_hf_execute_service(bool b_enable) {
     else
     {
         /* Read the property if local supported codecs commands is not supported */
-        if (property_get("ro.vendor.btstack.hfp.ver", value, "1.5") &&
+        if (osi_property_get("ro.vendor.btstack.hfp.ver", value, "1.5") &&
                (!strcmp(value, "1.6") || !strcmp(value, "1.7")))
             btif_hf_features |= BTA_AG_FEAT_CODEC;
     }

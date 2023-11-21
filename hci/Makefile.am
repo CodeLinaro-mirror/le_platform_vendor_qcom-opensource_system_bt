@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(top_srcdir)/../../bluetooth_ext
+external_bt_path := $(WORKSPACE)/bluetooth/stack/bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -10,17 +10,18 @@ AM_CFLAGS = -Wall \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS = -Iinclude -I../include \
-        -I../btcore/include \
-        -I../stack/include \
-        -I../utils/include \
-        -I../bta/include \
-        -I../types \
-        -I../internal_include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/btcore/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/stack/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/utils/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/bta/include \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/types \
+		-I$(WORKSPACE)/bluetooth/stack/system/bt/ \
+        -I$(WORKSPACE)/bluetooth/stack/system/bt/internal_include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/include \
         -I$(external_bt_path)/vhal/include \
         -I$(external_bt_path)/system_bt_ext/bta/ar \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth/hal/include \
+        -I$(WORKSPACE)/bluetooth/proprietary/bluetooth_transport/hidl_transport/hidl \
         -I$(bdroid_C_INCLUDES) \
         -I${D}${includedir}
 

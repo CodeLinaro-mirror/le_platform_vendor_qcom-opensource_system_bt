@@ -44,6 +44,7 @@
 #include "gap_api.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "port_api.h"
 #include "rfcdefs.h"
 #include "sdp_api.h"

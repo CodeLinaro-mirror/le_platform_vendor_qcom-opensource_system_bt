@@ -57,7 +57,6 @@
 
 #include <base/logging.h>
 #include <inttypes.h>
-#include <utils/Log.h>
 #include <string.h>
 #include <dlfcn.h>
 
@@ -1594,7 +1593,7 @@ uint8_t A2DP_IsCodecLicensed (uint16_t codec_id)
     uint8_t ret = 0xff;
     uint8_t  retry_count = 0;
     char value[PROPERTY_VALUE_MAX] = {'\0'};
-    property_get("persist.bt.haven_license", value, "true");
+    osi_property_get("persist.bt.haven_license", value, "true");
     LOG_VERBOSE(LOG_TAG, "%s haven_licensing_property = %s",__func__,value);
     // if propety set to false, always return success (0)
     if(!strcmp(value, "false")) {

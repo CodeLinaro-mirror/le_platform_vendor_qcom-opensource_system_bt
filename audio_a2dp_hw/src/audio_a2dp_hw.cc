@@ -25,7 +25,7 @@
  *****************************************************************************/
 
 #define LOG_TAG "bt_a2dp_hw"
-
+#if 0
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -2046,3 +2046,4 @@ __attribute__((
             .methods = &hal_module_methods,
         },
 };
+#endif

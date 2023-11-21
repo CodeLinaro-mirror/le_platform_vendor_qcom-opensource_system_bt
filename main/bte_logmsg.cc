@@ -60,7 +60,7 @@
 #endif
 
 #ifdef USE_ANDROID_LOGGING
-#include <utils/Log.h>
+//#include <utils/Log.h>
 #define LOGI0 ALOGI
 #define LOGD0 ALOGD
 #define LOGW0 ALOGW

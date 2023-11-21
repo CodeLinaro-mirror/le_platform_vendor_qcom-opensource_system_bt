@@ -218,6 +218,7 @@ static void btm_read_tx_power_cb(void* data);
 static void btif_a2dp_source_unblock_audio_start_timeout(void* context);
 static void btif_a2dp_source_remote_start_timeout(void* context);
 static char a2dp_hal_imp[PROPERTY_VALUE_MAX] = "false";
+#if 0
 UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
   switch (event) {
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_START)
@@ -1497,3 +1498,4 @@ static void btm_read_tx_power_cb(void* data) {
   LOG_WARN(LOG_TAG, "%s device: %s, Tx Power: %d", __func__,
            result->rem_bda.ToString().c_str(), result->tx_power);
 }
+#endif

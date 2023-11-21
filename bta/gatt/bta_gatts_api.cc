@@ -27,6 +27,7 @@
 #include <base/bind.h>
 #include <string.h>
 
+#include "osi/include/log.h"
 #include "bt_common.h"
 #include "bta_closure_api.h"
 #include "bta_gatt_api.h"

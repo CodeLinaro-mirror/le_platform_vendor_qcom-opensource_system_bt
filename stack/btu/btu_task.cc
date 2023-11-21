@@ -32,6 +32,7 @@
 #include "btcore/include/module.h"
 #include "bte.h"
 #include "btif/include/btif_common.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 #include "stack/btm/btm_int.h"

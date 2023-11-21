@@ -55,7 +55,9 @@
  ******************************************************************************/
 
 #include <stddef.h>
+#include <base/logging.h>
 
+#include "osi/include/log.h"
 #include "bt_common.h"
 #include "bta_ag_api.h"
 #include "bta_ag_co.h"

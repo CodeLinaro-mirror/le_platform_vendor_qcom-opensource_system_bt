@@ -41,7 +41,7 @@
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
-#include "log/log.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 
 static bool l2c_link_send_to_lower(tL2C_LCB* p_lcb, BT_HDR* p_buf,
@@ -1261,7 +1261,7 @@ void l2c_link_process_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
   }
 
   if (num_handles > evt_len / (2 * sizeof(uint16_t))) {
-    android_errorWriteLog(0x534e4554, "141617601");
+    //android_errorWriteLog(0x534e4554, "141617601");
     num_handles = evt_len / (2 * sizeof(uint16_t));
   }
 

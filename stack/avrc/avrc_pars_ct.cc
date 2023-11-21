@@ -22,9 +22,8 @@
 #include "avrc_int.h"
 #include "bt_common.h"
 #include "bt_utils.h"
-#include "log/log.h"
 #include "osi/include/osi.h"
-#include "log/log.h"
+#include "log.h"
 
 /*****************************************************************************
  *  Global data
@@ -545,7 +544,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
                        p_result->list_app_attr.num_attr);
 
       if (p_result->list_app_attr.num_attr > AVRC_MAX_APP_ATTR_SIZE) {
-        android_errorWriteLog(0x534e4554, "63146237");
+        //android_errorWriteLog(0x534e4554, "63146237");
         p_result->list_app_attr.num_attr = AVRC_MAX_APP_ATTR_SIZE;
       }
 
@@ -579,7 +578,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
                        p_result->get_cur_app_val.num_val);
 
       if (p_result->get_cur_app_val.num_val > AVRC_MAX_APP_ATTR_SIZE) {
-        android_errorWriteLog(0x534e4554, "63146237");
+        //android_errorWriteLog(0x534e4554, "63146237");
         p_result->get_cur_app_val.num_val = AVRC_MAX_APP_ATTR_SIZE;
       }
 

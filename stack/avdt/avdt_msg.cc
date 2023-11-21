@@ -26,7 +26,7 @@
  *
  ******************************************************************************/
 
-#include <log/log.h>
+#include <log.h>
 #include <string.h>
 #include "avdt_api.h"
 #include "avdt_int.h"
@@ -610,7 +610,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
         p_cfg->psc_mask &= ~AVDT_PSC_PROTECT;
         if (p + elem_len > p_end) {
           err = AVDT_ERR_LENGTH;
-          android_errorWriteLog(0x534e4554, "78288378");
+          //android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
         if ((elem_len + protect_offset) < AVDT_PROTECT_SIZE) {
@@ -639,7 +639,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
         }
         if (p + tmp > p_end) {
           err = AVDT_ERR_LENGTH;
-          android_errorWriteLog(0x534e4554, "78288378");
+          //android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
         p_cfg->num_codec++;
@@ -1004,8 +1004,8 @@ static uint8_t avdt_msg_prs_rej(tAVDT_MSG* p_msg, uint8_t* p, uint16_t len,
 
   if (len < 1) {
     char error_info[] = "AVDT rejected response length mismatch";
-    android_errorWriteWithInfoLog(0x534e4554, "79702484", -1, error_info,
-                                  strlen(error_info));
+    //android_errorWriteWithInfoLog(0x534e4554, "79702484", -1, error_info,
+                                  //strlen(error_info));
     error = AVDT_ERR_LENGTH;
   } else {
     p_msg->hdr.err_code = *p;

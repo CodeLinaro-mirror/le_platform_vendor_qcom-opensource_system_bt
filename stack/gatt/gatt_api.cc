@@ -34,6 +34,7 @@
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "stack_config.h"
+#include "osi/include/log.h"
 
 #define SYSTEM_APP_GATT_IF 3
 

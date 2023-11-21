@@ -51,6 +51,7 @@
 #define LOG_TAG "bta_ag_cmd"
 
 #include <ctype.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -62,13 +63,12 @@
 #include "bta_ag_int.h"
 #include "bta_api.h"
 #include "bta_sys.h"
-#include "log/log.h"
+
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "port_api.h"
 #include "utl.h"
-#include <cutils/properties.h>
 #include "device/include/interop.h"
 #include "btif/include/btif_storage.h"
 #if (TWS_AG_ENABLED == TRUE)
@@ -445,7 +445,7 @@ static bool bta_ag_parse_cmer(char* p_s, char* p_end, bool* p_enabled) {
 
     /* get integer value */
     if (p > p_end) {
-      android_errorWriteLog(0x534e4554, "112860487");
+      //android_errorWriteLog(0x534e4554, "112860487");
       return false;
     }
     *p = 0;
@@ -521,7 +521,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB* p_scb, char* p_s,
 
     /* get integre value */
     if (p > p_end) {
-      android_errorWriteLog(0x534e4554, "112860487");
+      //android_errorWriteLog(0x534e4554, "112860487");
       break;
     }
     if (*p != 0) {
@@ -676,7 +676,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB* p_scb, uint16_t command_id,
   if ((p_end - p_arg + 1) >= (long)sizeof(val.str)) {
     APPL_TRACE_ERROR("%s: p_arg is too long, send error and return", __func__);
     bta_ag_send_error(p_scb, BTA_AG_ERR_TEXT_TOO_LONG);
-    android_errorWriteLog(0x534e4554, "112860487");
+    //android_errorWriteLog(0x534e4554, "112860487");
     return;
   }
   strlcpy(val.str, p_arg, sizeof(val.str));
@@ -935,7 +935,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
   if ((p_end - p_arg + 1) >= (long)sizeof(val.str)) {
     APPL_TRACE_ERROR("%s: p_arg is too long, send error and return", __func__);
     bta_ag_send_error(p_scb, BTA_AG_ERR_TEXT_TOO_LONG);
-    android_errorWriteLog(0x534e4554, "112860487");
+    //android_errorWriteLog(0x534e4554, "112860487");
     return;
   }
   strlcpy(val.str, p_arg, sizeof(val.str));
@@ -1183,7 +1183,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
       if ((p_scb->peer_version < HFP_VERSION_1_7) &&
            (!(p_scb->peer_features & BTA_AG_PEER_FEAT_HF_IND))) {
         /* For PTS keep flags as is */
-        if (property_get("vendor.bt.pts.certification", value, "false") &&
+        if (osi_property_get("vendor.bt.pts.certification", value, "false") &&
             strcmp(value, "true") != 0)
         {
           features  = features & ~(BTA_AG_FEAT_HF_IND | BTA_AG_FEAT_ESCO);
@@ -1195,7 +1195,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
          APPL_TRACE_WARNING("%s: Remote is hfp 1.7 but does not support HF indicators" \
                   "unset hf indicator bit from BRSF", __func__);
          /* For PTS keep flags as is */
-         if (property_get("vendor.bt.pts.certification", value, "false") &&
+         if (osi_property_get("vendor.bt.pts.certification", value, "false") &&
              strcmp(value, "true") != 0)
          {
            features = features & ~(BTA_AG_FEAT_HF_IND);

@@ -82,7 +82,6 @@
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include <cutils/properties.h>
 #include "stack/sdp/sdpint.h"
 #include "btif_bat.h"
 #include "btif_tws_plus.h"
@@ -2465,7 +2464,7 @@ static bt_status_t init(btrc_callbacks_t* callbacks, int max_connections) {
 static bt_status_t init(btrc_callbacks_t* callbacks) {
   int max_connections = 1;
   char prop_connected_devices[PROPERTY_VALUE_MAX];
-  property_get("persist.bluetooth.maxconnectedaudiodevices", prop_connected_devices, "1");
+  osi_property_get("persist.bluetooth.maxconnectedaudiodevices", prop_connected_devices, "1");
   BTIF_TRACE_DEBUG("%s: max_connections from apps = %d", __func__, atoi(prop_connected_devices));
   if (atoi(prop_connected_devices) > 1)
     max_connections = 2;
@@ -6868,7 +6867,7 @@ static void sleep_ms(period_ms_t timeout_ms) {
 
 static bool absolute_volume_disabled() {
   char volume_disabled[PROPERTY_VALUE_MAX] = {0};
-  property_get("persist.bluetooth.disableabsvol", volume_disabled, "false");
+  osi_property_get("persist.bluetooth.disableabsvol", volume_disabled, "false");
   if (strncmp(volume_disabled, "true", 4) == 0) {
     BTIF_TRACE_WARNING("%s: Absolute volume disabled by property", __func__);
     return true;

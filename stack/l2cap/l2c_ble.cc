@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include <base/logging.h>
+#include "osi/include/log.h"
 #include <base/strings/stringprintf.h>
 #include <string.h>
 #include "bt_target.h"

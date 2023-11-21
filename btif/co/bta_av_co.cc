@@ -72,7 +72,6 @@
 #include "osi/include/mutex.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include <cutils/properties.h>
 #include "device/include/interop.h"
 #include "device/include/controller.h"
 #include "bt_vendor_av.h"
@@ -958,7 +957,7 @@ bool bta_av_co_audio_is_aac_wl_enabled(RawAddress *remote_bdaddr) {
   int retval;
   bool res = FALSE;
   char is_whitelist_by_default[255] = "false";
-  retval = property_get("persist.vendor.bt.a2dp.aac_whitelist", is_whitelist_by_default, "true");
+  retval = osi_property_get("persist.vendor.bt.a2dp.aac_whitelist", is_whitelist_by_default, "true");
   BTIF_TRACE_DEBUG("%s: property_get: bt.a2dp.aac_whitelist: %s, retval: %d",
                                   __func__, is_whitelist_by_default, retval);
   if (!strncmp(is_whitelist_by_default, "true", 4)) {
@@ -1733,7 +1732,7 @@ void bta_av_co_init(std::vector<btav_a2dp_codec_config_t>& codec_user_list) {
 /* SPLITA2DP */
   bool a2dp_offload = btif_av_is_split_a2dp_enabled();
   bool isScramblingSupported = bta_av_co_is_scrambling_enabled();
-  property_get("persist.bt.a2dp_offload_cap", value, "false");
+  osi_property_get("persist.bt.a2dp_offload_cap", value, "false");
   A2DP_SetOffloadStatus(a2dp_offload, value, isScramblingSupported);
 /* SPLITA2DP */
   bool isMcastSupported = btif_av_is_multicast_supported();

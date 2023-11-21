@@ -28,6 +28,7 @@
 
 #include "gatt_api.h"
 #include "gatt_int.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 
 using base::StringPrintf;

@@ -79,6 +79,7 @@ bool is_block_hal_start = false;
 
 static uint8_t multicast_query = FALSE;
 
+#if 0
 
 void btif_a2dp_control_init(void) {
   a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
@@ -1117,3 +1118,4 @@ const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event) {
 
   return "UNKNOWN A2DP_CTRL_CMD";
 }
+#endif

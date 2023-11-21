@@ -120,7 +120,7 @@ cpp_sources = \
         co/bta_gatts_co.cc
 
 common_LDFLAGS = -lpthread  -lrt -lresolv ../bta/libbtbta.la ../osi/libbtosi.la \
-                  ../device/libbtdevice.la ../audio_a2dp_hw/libaudioa2dpdefault.la
+                  ../device/libbtdevice.la
 
 common_CFLAGS =  $(AM_CFLAGS) -D_GNU_SOURCE $(Z_LIB) -fPIC
 

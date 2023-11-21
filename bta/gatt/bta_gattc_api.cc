@@ -35,6 +35,7 @@
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
 #include "device/include/controller.h"
+#include "osi/include/log.h"
 
 using bluetooth::Uuid;
 

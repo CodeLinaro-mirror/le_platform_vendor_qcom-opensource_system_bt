@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
-#include <log/log.h>
+#include <osi/include/log.h>
 #include <map>
 #include <mutex>
 #include <thread>

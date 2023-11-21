@@ -21,7 +21,7 @@
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "bt_common.h"
-#include "log/log.h"
+#include "log.h"
 
 /*****************************************************************************
  *  Global data
@@ -112,7 +112,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR* p_msg,
   if (p_msg->p_vendor_data == NULL) return AVRC_STS_INTERNAL_ERR;
 
   if (p_msg->vendor_len < 4) {
-     android_errorWriteLog(0x534e4554, "168712382");
+     //android_errorWriteLog(0x534e4554, "168712382");
      AVRC_TRACE_WARNING("%s: message length %d too short: must be at least 4",
                         __func__, p_msg->vendor_len);
      return AVRC_STS_INTERNAL_ERR;
@@ -171,7 +171,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR* p_msg,
       }
 
       if (p_result->get_cur_app_val.num_attr > AVRC_MAX_APP_ATTR_SIZE) {
-        android_errorWriteLog(0x534e4554, "63146237");
+        //android_errorWriteLog(0x534e4554, "63146237");
         p_result->get_cur_app_val.num_attr = AVRC_MAX_APP_ATTR_SIZE;
       }
 
@@ -232,7 +232,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR* p_msg,
             status = AVRC_STS_INTERNAL_ERR;
           else {
             if (p_result->get_app_val_txt.num_val > AVRC_MAX_APP_ATTR_SIZE) {
-              android_errorWriteLog(0x534e4554, "63146237");
+              //android_errorWriteLog(0x534e4554, "63146237");
               p_result->get_app_val_txt.num_val = AVRC_MAX_APP_ATTR_SIZE;
             }
 
@@ -621,7 +621,7 @@ static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE* p_msg,
         if (p_result->search.string.str_len > buf_len) {
           p_result->search.string.str_len = buf_len;
         } else {
-          android_errorWriteLog(0x534e4554, "63146237");
+          //android_errorWriteLog(0x534e4554, "63146237");
         }
         BE_STREAM_TO_ARRAY(p, p_buf, p_result->search.string.str_len);
       } else {

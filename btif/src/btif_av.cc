@@ -989,7 +989,7 @@ static bool btif_av_state_idle_handler(btif_sm_event_t event, void* p_data, int 
 #endif
       for (int i = 0; i < btif_max_av_clients; i++)
         btif_av_cb[i].dual_handoff = false;
-      property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
+      osi_property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
       if (!strncmp("false", a2dp_role, 5)) {
         btif_av_cb[index].peer_sep = AVDT_TSEP_SNK;
         isA2dpSink = true;
@@ -3811,12 +3811,12 @@ static bt_status_t init_src(
   bt_status_t status = BT_STATUS_FAIL;
   BTIF_TRACE_EVENT("%s() with max conn = %d", __func__, max_a2dp_connections);
   char value[PROPERTY_VALUE_MAX] = {'\0'};
-  property_get("persist.bt.a2dp_offload_cap", value, "false");
+  osi_property_get("persist.bt.a2dp_offload_cap", value, "false");
   BTIF_TRACE_ERROR("split_a2dp_status = %s",value);
   bt_split_a2dp_enabled = (strcmp(value, "false") != 0);
   BTIF_TRACE_ERROR("split_a2dp_status = %d",bt_split_a2dp_enabled);
 
-  property_get("persist.bluetooth.enable_scmst", value, "false");
+  osi_property_get("persist.bluetooth.enable_scmst", value, "false");
   BTIF_TRACE_ERROR("%s : Content Propection Enabled : %s",__func__, value);
   enable_scmst = (strcmp(value, "true") == 0);
 
@@ -4798,9 +4798,9 @@ bt_status_t btif_av_execute_service(bool b_enable) {
   osi_property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
   BTIF_TRACE_DEBUG("%s(): enable: %d", __func__, b_enable);
   if (b_enable) {
-    property_get("persist.bluetooth.disabledelayreports", value, "false");
+    osi_property_get("persist.bluetooth.disabledelayreports", value, "false");
     delay_report_enabled = (strcmp(value, "false") == 0);
-    property_get("persist.bluetooth.disablebrowsing", value, "false");
+    osi_property_get("persist.bluetooth.disablebrowsing", value, "false");
     avrc_browsing_enabled = (strcmp(value, "false") == 0);
     if (delay_report_enabled)
       feat_delay_rpt = BTA_AV_FEAT_DELAY_RPT;
