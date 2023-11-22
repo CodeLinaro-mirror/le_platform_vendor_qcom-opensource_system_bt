@@ -49,8 +49,3 @@ int osi_property_set(const char* key, const char* value);
 // returns the value of |key| truncated and coerced into an
 // int32_t. If the property is not set, then the |default_value| is used.
 int32_t osi_property_get_int32(const char* key, int32_t default_value);
-
-//dummy set and get properties. Need to remove once properties.h available
-int property_get(const char* key, char* value, const char* default_value);
-
-int property_set(const char* key, const char* value);

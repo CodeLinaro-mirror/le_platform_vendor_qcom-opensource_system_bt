@@ -166,7 +166,7 @@ common_LDFLAGS = -ldl -lrt -lresolv -lz \
                  -Wl,--whole-archive,../hci/.libs/libbthci.a,--no-whole-archive \
                  -lchrome
 
-common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB) @GLIB_CFLAGS@
+common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
 common_CPPFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
 library_includedir = $(pkgincludedir)
 lib_LTLIBRARIES = libbluetoothdefault.la
@@ -174,7 +174,7 @@ libbluetoothdefault_la_CC = @CC@
 libbluetoothdefault_la_SOURCES = $(c_sources) $(cpp_sources)
 libbluetoothdefault_la_CPPFLAGS = $(AM_CPPFLAGS) $(common_CPPFLAGS) -std=c++11 -fpermissive -O2
 libbluetoothdefault_la_CFLAGS = $(common_CFLAGS)
-libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS) @GLIB_LIBS@ -lpropertyvault
+libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS)
 
 externalincludedir = $(includedir)/fluoride/
 externalinclude_HEADERS=$(wildcard $(external_bt_path)/vhal/include/*.h)
