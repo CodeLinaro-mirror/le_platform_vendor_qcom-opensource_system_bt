@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(top_srcdir)/../../bluetooth_ext
+external_bt_path := $(WOEKSPACE)/bluetooth/stack/bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
