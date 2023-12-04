@@ -186,10 +186,10 @@ void hci_initialize() {
   //prop_value = 1;
   //osi_property_get("bluetooth.rfkill", prop_value, "1");
 
-  rfkill_en = 1; atoi(prop_value);
-  if (rfkill_en) {
-    rfkill(0);
-  }
+  //rfkill_en = 1; atoi(prop_value);
+  //if (rfkill_en) {
+    //rfkill(0);
+  //}
 
   int fd = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   CHECK(fd >= 0);
@@ -245,7 +245,7 @@ void hci_close() {
     reader_thread = NULL;
   }
 
-  rfkill(1);
+  //rfkill(1);
 }
 
 hci_transmit_status_t hci_transmit(BT_HDR* packet) {
