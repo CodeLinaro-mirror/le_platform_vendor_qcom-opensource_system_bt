@@ -48,7 +48,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#define SOCKETNAME  "/data/misc/bluetooth/btprop"
+#define SOCKETNAME  "/etc/bluetooth/btprop"
 #endif
 
 #include "bt_types.h"

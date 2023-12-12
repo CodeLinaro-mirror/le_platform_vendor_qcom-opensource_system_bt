@@ -3341,8 +3341,8 @@ bool btif_dm_proc_rmt_oob(const RawAddress& bd_addr, BT_OCTET16 p_c,
   const char* path_a = "/data/misc/bluedroid/LOCAL/a.key";
   const char* path_b = "/data/misc/bluedroid/LOCAL/b.key";
 #else
-  const char* path_a = "/data/misc/bluetooth/LOCAL/a.key";
-  const char* path_b = "/data/misc/bluetooth/LOCAL/b.key";
+  const char* path_a = "/etc/bluetooth/LOCAL/a.key";
+  const char* path_b = "/etc/bluetooth/LOCAL/b.key";
 #endif
   const char* path = NULL;
   char prop_oob[PROPERTY_VALUE_MAX];
