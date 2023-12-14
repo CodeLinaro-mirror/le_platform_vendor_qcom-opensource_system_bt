@@ -21,7 +21,6 @@ AM_CPPFLAGS = -Iinclude -I../include \
         -I$(external_bt_path)/system_bt_ext/include \
         -I$(external_bt_path)/vhal/include \
         -I$(external_bt_path)/system_bt_ext/bta/ar \
-        -I$(WORKSPACE)/bluetooth/proprietary/bluetooth_transport/hidl_transport/hidl \
         -I$(bdroid_C_INCLUDES) \
         -I${D}${includedir}
 
