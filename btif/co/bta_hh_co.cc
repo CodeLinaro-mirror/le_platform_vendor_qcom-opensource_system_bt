@@ -158,7 +158,7 @@ void uhid_set_non_blocking(int fd) {
 /*Internal function to perform UHID write and error checking*/
 static int uhid_write(int fd, const struct uhid_event* ev) {
   ssize_t ret;
-#ifdef ANDROID
+
   OSI_NO_INTR(ret = write(fd, ev, sizeof(*ev)));
 
   if (ret < 0) {
@@ -171,7 +171,7 @@ static int uhid_write(int fd, const struct uhid_event* ev) {
     return -EFAULT;
   }
 
-#endif
+
   return 0;
 }
 
@@ -409,7 +409,7 @@ void bta_hh_co_destroy(int fd) {
   ev.type = UHID_DESTROY;
   uhid_write(fd, &ev);
   APPL_TRACE_DEBUG("%s: Closing fd=%d", __func__, fd);
-  //close(fd);
+  close(fd);
 }
 
 int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
@@ -467,8 +467,8 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
 
       //assigning dummy value to fd for uhid dev node.
       //as, we are not using uhid driver node in LE builds.
-      p_dev->fd = 1;
-      /*if (p_dev->fd < 0) {
+      //p_dev->fd = 1;
+      if (p_dev->fd < 0) {
         p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
         if (p_dev->fd < 0) {
           APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
@@ -476,11 +476,11 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
           return;
         } else
           APPL_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
-      }*/
+      }
       //removed poll thread creation as we are not using poll thread in LE
-      //p_dev->hh_keep_polling = 1;
-      //p_dev->hh_poll_thread_id =
-          //create_thread(btif_hh_poll_event_thread, p_dev);
+      p_dev->hh_keep_polling = 1;
+      p_dev->hh_poll_thread_id =
+          create_thread(btif_hh_poll_event_thread, p_dev);
       break;
     }
     p_dev = NULL;
@@ -501,9 +501,9 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
 
         //assigning dummy value to fd for uhid dev node.
         //as, we are not using uhid driver node in LE builds.
-        p_dev->fd = 1;
+        //p_dev->fd = 1;
         // This is a new device,open the uhid driver now.
-        /*p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+        p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
         if (p_dev->fd < 0) {
           APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
                            strerror(errno));
@@ -511,10 +511,10 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
         } else {
           APPL_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
           //removed poll thread creation as we are not using poll thread in LE
-          //p_dev->hh_keep_polling = 1;
-          //p_dev->hh_poll_thread_id =
-              //create_thread(btif_hh_poll_event_thread, p_dev);
-        }*/
+          p_dev->hh_keep_polling = 1;
+          p_dev->hh_poll_thread_id =
+              create_thread(btif_hh_poll_event_thread, p_dev);
+        }
 
         break;
       }
@@ -577,7 +577,7 @@ void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id) {
           "dev_status = %d, dev_handle =%d",
           __func__, p_dev->dev_status, p_dev->dev_handle);
       memset(&p_dev->last_output_rpt_data, 0, BTIF_HH_OUTPUT_REPORT_SIZE);
-      //btif_hh_close_poll_thread(p_dev);
+      btif_hh_close_poll_thread(p_dev);
       break;
     }
   }
@@ -620,13 +620,13 @@ void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
   // Wait a maximum of MAX_POLLING_ATTEMPTS x POLLING_SLEEP_DURATION in case
   // device creation is pending.
   //removed polling as we are not using hid driver in LE.
-  /*if (p_dev->fd >= 0) {
+  if (p_dev->fd >= 0) {
     uint32_t polling_attempts = 0;
     while (!p_dev->ready_for_data &&
            polling_attempts++ < BTIF_HH_MAX_POLLING_ATTEMPTS) {
       usleep(BTIF_HH_POLLING_SLEEP_DURATION_US);
     }
-  }*/
+  }
 
   // Send the HID data to the kernel.
   if ((p_dev->fd >= 0) && p_dev->ready_for_data) {

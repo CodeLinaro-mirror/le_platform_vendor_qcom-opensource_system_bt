@@ -181,11 +181,11 @@ static int init(bt_callbacks_t* callbacks) {
   allocation_tracker_init();
 #endif
   //Cretae /data/misc/bluetooth directory
-  if (access("/data/misc/bluetooth", F_OK)) {
-    if (access("/data/misc", F_OK))
-      mkdir("/data/misc", S_IRWXU|S_IRGRP|S_IXGRP|S_IRWXO);
-    mkdir("/data/misc/bluetooth", S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
-    LOG_INFO(LOG_TAG, "%s , /data/misc/bluetooth is created\n", __func__);
+  if (access("/etc/bluetooth", F_OK)) {
+    if (access("/etc", F_OK))
+      mkdir("/etc", S_IRWXU|S_IRGRP|S_IXGRP|S_IRWXO);
+    mkdir("/etc/bluetooth", S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    LOG_INFO(LOG_TAG, "%s , /etc/bluetooth is created\n", __func__);
   }
 
   bt_hal_cbacks = callbacks;
