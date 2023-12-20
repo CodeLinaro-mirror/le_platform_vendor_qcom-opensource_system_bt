@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(WORKSPACE)/bluetooth/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
 
 AM_CFLAGS = -Wno-gnu-variable-sized-type-not-at-end \
         -Wundef \
@@ -24,7 +24,7 @@ AM_CPPFLAGS= \
         -I../include \
         -I../types \
         -I../ \
-        -I$(WORKSPACE)/bluetooth/bt_audio/hal/include \
+        -I$(BT_SOURCE)/bt_audio/hal/include \
         -I$(bdroid_C_INCLUDES)
 
 if MDM_ROME

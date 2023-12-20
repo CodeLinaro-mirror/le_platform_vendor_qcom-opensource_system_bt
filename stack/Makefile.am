@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(WORKSPACE)/bluetooth/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -11,9 +11,6 @@ AM_CFLAGS = -Wall \
 if MDM_CHEROKEE
 AM_CFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED
 endif
-
-$(info $$external_bt_path is [${external_bt_path}])
-$(info $$WORKSPACE is [${WORKSPACE}])
 
 AM_CPPFLAGS = \
         -Ia2dp \
@@ -31,30 +28,30 @@ AM_CPPFLAGS = \
         -Isdp \
         -Ismp \
         -Isrvc \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/ \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/btcore/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/vnd/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/vnd/ble \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/btif/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/hci/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/udrv/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/rpc/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/hcis \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/ctrlr/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/bta/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/bta/sys \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/utils/include \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/types \
-        -I$(WORKSPACE)/bluetooth/stack/system/bt/internal_include \
+        -I$(BT_SOURCE)/stack/system/bt/ \
+        -I$(BT_SOURCE)/stack/system/bt/include \
+        -I$(BT_SOURCE)/stack/system/bt/btcore/include \
+        -I$(BT_SOURCE)/stack/system/bt/vnd/include \
+        -I$(BT_SOURCE)/stack/system/bt/vnd/ble \
+        -I$(BT_SOURCE)/stack/system/bt/btif/include \
+        -I$(BT_SOURCE)/stack/system/bt/hci/include \
+        -I$(BT_SOURCE)/stack/system/bt/include \
+        -I$(BT_SOURCE)/stack/system/bt/udrv/include \
+        -I$(BT_SOURCE)/stack/system/bt/rpc/include \
+        -I$(BT_SOURCE)/stack/system/bt/hcis \
+        -I$(BT_SOURCE)/stack/system/bt/ctrlr/include \
+        -I$(BT_SOURCE)/stack/system/bt/bta/include \
+        -I$(BT_SOURCE)/stack/system/bt/bta/sys \
+        -I$(BT_SOURCE)/stack/system/bt/utils/include \
+        -I$(BT_SOURCE)/stack/system/bt/types \
+        -I$(BT_SOURCE)/stack/system/bt/internal_include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/stack/btm \
         -I$(external_bt_path)/vhal/include \
         -I$(external_bt_path)/system_bt_ext/bta/ar \
 	-I$(external_bt_path)/system_bt_ext/bta/include \
         -I$(external_bt_path)/system_bt_ext/stack/include/ \
-        -I$(WORKSPACE)/bluetooth/bt_audio/hal/include
+        -I$(BT_SOURCE)/bt_audio/hal/include
 		
 if MDM_CHEROKEE
 AM_CPPFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED
