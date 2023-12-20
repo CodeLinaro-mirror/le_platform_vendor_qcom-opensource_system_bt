@@ -11,8 +11,7 @@ AM_CPPFLAGS = \
         -I../ \
         -Iinclude \
         -I../types \
-        -I../include \
-        -I$(WORKSPACE)/vendor/qcom/opensource/bluetooth/hal/include
+        -I../include
 
 cpp_sources = \
         src/device_class.cc \

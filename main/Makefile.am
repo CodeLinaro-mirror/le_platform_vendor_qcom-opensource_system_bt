@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(WORKSPACE)/bluetooth/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -41,12 +41,10 @@ AM_CPPFLAGS= \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/include/ \
         -I$(external_bt_path)/system_bt_ext/device/include/ \
-        -I${WORKSPACE}/external/tinyxml2 \
-        -I${WORKSPACE}/external/zlib \
-        -I${WORKSPACE}/bluetooth/bt_audio/hal/include \
-        -I${WORKSPACE}/bluetooth/stack/bluetooth_ext/system_bt_ext/stack/include \
-        -I${WORKSPACE}/bluetooth/bt_audio/bthost_ipc \
-        -I${WORKSPACE}/bluetooth/stack/bluetooth_ext/system_bt_ext/udrv/include \
+        -I${BT_SOURCE}/bt_audio/hal/include \
+        -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/stack/include \
+        -I${BT_SOURCE}/bt_audio/bthost_ipc \
+        -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/udrv/include \
         -I$(external_bt_path)/vhal/include
 
 if MDM_ROME
