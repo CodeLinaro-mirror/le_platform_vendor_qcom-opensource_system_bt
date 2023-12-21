@@ -222,6 +222,12 @@ typedef enum {
   // to devices and might not have interface to unpair devices and then repair. So, SMP callback
   // with SMP confirm value error is triggered when there is a pin-key missing error.
   INTEROP_PINKEY_MISSING,
+
+  // Some a2dp src devices do not expect avdtp discover command from sink device
+  // when dut as sink role send the avdtp discover command remotes either do not
+  // send the AVDTP START or send the AVDTP START before media transport channel opned
+  // due to this we are rejecting AVDTP START.
+  INTEROP_DISABLE_AVDTP_DISCOVER_COMMAND,
   END_OF_INTEROP_LIST
 } interop_feature_t;
 
