@@ -343,17 +343,17 @@ void bt_acl_calc_timestamps_by_handle(uint16_t handle, uint8_t num)
         LOG_ERROR(LOG_TAG, "%s device is not found, handle :%d.", __func__, handle);
         return;
     }
-    struct timeval curTime;
+    //struct timeval curTime;
     RawAddress bd_addr;
 
     bd_addr = p_dev_rec->bd_addr;
 
-    gettimeofday(&curTime, NULL);
+    //gettimeofday(&curTime, NULL);
     if (!flush_occured) {
         for (int i = 0; i < num; i++) {
             time_stamp_t* pktItem = (time_stamp_t *)fixed_queue_dequeue(pktQ);
-            time_delta = (curTime.tv_sec - pktItem->timestamp.tv_sec) * 1000000 + (curTime.tv_usec - pktItem->timestamp.tv_usec);
-            LOG_ERROR(LOG_TAG, "%s handle:%d, A2DP: %d, Tx time_delta:%d.", __func__, handle, pktItem->isA2dpPkt, time_delta);
+            //time_delta = (curTime.tv_sec - pktItem->timestamp.tv_sec) * 1000000 + (curTime.tv_usec - pktItem->timestamp.tv_usec);
+            LOG_VERBOSE(LOG_TAG, "%s handle:%d, A2DP: %d ", __func__, handle, pktItem->isA2dpPkt);
             if (pktItem->isA2dpPkt)
                 HAL_CBACK(bt_vendor_callbacks, a2dp_tx_complete_cb, &bd_addr, FALSE);
             osi_free(pktItem);
