@@ -24,11 +24,18 @@
 // AAC codec specific settings
 #define A2DP_AAC_CODEC_LEN 8
 
+/* PTS Related Masks */
+#define A2DP_AAC_OBJ_TYPE_MSK_PTS            0xFE
+#define A2DP_AAC_CHANNEL_MODE_MSK_PTS        0x0F
+
 // [Octet 0] Object Type
+#define A2DP_AAC_OBJECT_TYPE_MASK 0xF0
 #define A2DP_AAC_OBJECT_TYPE_MPEG2_LC 0x80  /* MPEG-2 Low Complexity */
 #define A2DP_AAC_OBJECT_TYPE_MPEG4_LC 0x40  /* MPEG-4 Low Complexity */
 #define A2DP_AAC_OBJECT_TYPE_MPEG4_LTP 0x20 /* MPEG-4 Long Term Prediction */
 #define A2DP_AAC_OBJECT_TYPE_MPEG4_SCALABLE 0x10
+//AAC DRC mask
+#define A2DP_AAC_DRC_MASK 0x01;
 // [Octet 1] Sampling Frequency - 8000 to 44100
 #define A2DP_AAC_SAMPLING_FREQ_MASK0 0xFF
 #define A2DP_AAC_SAMPLING_FREQ_8000 0x80
@@ -47,6 +54,7 @@
 #define A2DP_AAC_SAMPLING_FREQ_88200 (0x20 << 8)
 #define A2DP_AAC_SAMPLING_FREQ_96000 (0x10 << 8)
 // [Octet 2], [Bits 2-3] Channel Mode
+#define A2DP_AAC_CHANNEL_MODE_MASK_1 0X0F
 #define A2DP_AAC_CHANNEL_MODE_MASK 0x0C
 #define A2DP_AAC_CHANNEL_MODE_MONO 0x08
 #define A2DP_AAC_CHANNEL_MODE_STEREO 0x04

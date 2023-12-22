@@ -79,6 +79,7 @@ typedef struct {
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
 bool A2DP_IsSourceCodecValidSbc(const uint8_t* p_codec_info);
+uint8_t A2DP_IsPeerCodecValidSbc(const uint8_t* p_codec_info);
 
 // Checks whether the codec capabilities contain a valid A2DP SBC Sink codec.
 // NOTE: only codecs that are implemented are considered valid.
