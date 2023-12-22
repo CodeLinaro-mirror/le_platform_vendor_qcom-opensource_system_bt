@@ -8,10 +8,10 @@ AM_CFLAGS = -Wall \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS = \
-        -I../ \
-        -Iinclude \
-        -I../types \
-        -I../include
+        -I$(srcdir)/.. \
+        -I$(srcdir)/include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../include
 
 cpp_sources = \
         src/device_class.cc \

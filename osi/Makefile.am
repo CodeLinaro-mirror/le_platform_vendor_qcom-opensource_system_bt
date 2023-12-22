@@ -11,11 +11,11 @@ AM_CFLAGS = -Wall \
         -D__GLIBC__
 
 AM_CPPFLAGS = \
-        -I../ \
-        -I../utils/include \
-        -I../stack/include \
-        -I../include \
-        -I../types \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../types \
         -I$(BT_SOURCE)/bt_audio/hal/include \
         -I$(external_bt_path)/vhal/include
 

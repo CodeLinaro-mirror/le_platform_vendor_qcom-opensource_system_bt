@@ -9,12 +9,12 @@ AM_CFLAGS = -Wall \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS= \
-        -I. \
-        -I../ \
-        -I../include \
-        -I../types \
-        -I../utils/include \
-        -I../audio_a2dp_hw/include \
+        -I$(srcdir) \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../audio_a2dp_hw/include \
         -I$(bdroid_C_INCLUDES)
 
 cpp_sources = \
