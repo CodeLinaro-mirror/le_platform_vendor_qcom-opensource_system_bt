@@ -37,6 +37,9 @@ if test "x$with_common_includes" != "xno"; then
    CFLAGS="${CFLAGS} -I${common_incdir}"
 fi
 
+PKG_CHECK_MODULES([AROUTE], [audioroute])
+AC_SUBST([AROUTE_CFLAGS])
+
 AC_ARG_WITH([chrome_includes],
       AC_HELP_STRING([--with-chrome-includes=@<:@dir@:>@],
          [Specify the location of the common headers]),

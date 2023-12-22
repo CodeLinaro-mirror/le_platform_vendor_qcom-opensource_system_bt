@@ -19,6 +19,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #define LOG_TAG "bt_btif_a2dp"
@@ -46,7 +50,6 @@ extern tBTIF_A2DP_SOURCE_VSC btif_a2dp_src_vsc;
 extern void btif_av_reset_reconfig_flag();
 static char a2dp_hal_imp[PROPERTY_VALUE_MAX] = "false";
 
-#if 0
 void btif_a2dp_on_idle(int index) {
   APPL_TRACE_EVENT("## ON A2DP IDLE ## peer_sep = %d", btif_av_get_peer_sep(index));
   if (btif_av_get_peer_sep(index) == AVDT_TSEP_SNK) {
@@ -114,7 +117,7 @@ bool btif_a2dp_on_started(tBTA_AV_START* p_av_start, bool pending_start,
   } else if (pending_start) {
     APPL_TRACE_WARNING("%s: A2DP start request failed: status = %d", __func__,
                        p_av_start->status);
-    if (property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+    if (osi_property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
         !strcmp(a2dp_hal_imp, "true")) {
       int index = (hdl & BTA_AV_HNDL_MSK) - 1;
       RawAddress addr = btif_av_get_addr_by_index(index);
@@ -197,4 +200,3 @@ void btif_debug_a2dp_dump(int fd) {
   btif_a2dp_source_debug_dump(fd);
   btif_a2dp_sink_debug_dump(fd);
 }
-#endif

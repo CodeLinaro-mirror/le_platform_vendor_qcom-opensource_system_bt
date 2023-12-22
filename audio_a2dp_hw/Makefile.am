@@ -1,12 +1,14 @@
 # sources and intermediate files are separated
 
-
+if BT_AUDIO_HAL_INTEGRATION
 AM_CFLAGS = -Wall \
         -Wundef \
         -Wstrict-prototypes \
         -Wno-trigraphs \
         -std=c++11 \
         -DHAS_NO_BDROID_BUILDCFG
+
+AM_CFLAGS += @AROUTE_CFLAGS@
 
 AM_CPPFLAGS= \
         -I$(srcdir) \
@@ -16,6 +18,8 @@ AM_CPPFLAGS= \
         -I$(srcdir)/../utils/include \
         -I$(srcdir)/../audio_a2dp_hw/include \
         -I$(bdroid_C_INCLUDES)
+
+AM_CPPFLAGS += @AROUTE_CFLAGS@
 
 cpp_sources = \
         src/audio_a2dp_hw.cc \
@@ -32,4 +36,4 @@ libaudioa2dpdefault_la_SOURCES = $(cpp_sources)
 libaudioa2dpdefault_la_CPPFLAGS =$(AM_CPPFLAGS)  $(common_CFLAGS)
 libaudioa2dpdefault_la_CFLAGS = $(common_CFLAGS)
 libaudioa2dpdefault_la_LDFLAGS = $(common_LDFLAGS)
-
+endif

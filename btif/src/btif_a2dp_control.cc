@@ -19,6 +19,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #define LOG_TAG "bt_btif_a2dp_control"
@@ -79,8 +83,6 @@ bool is_block_hal_start = false;
 
 static uint8_t multicast_query = FALSE;
 
-#if 0
-
 void btif_a2dp_control_init(void) {
   a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
   a2dp_cmd_queued = A2DP_CTRL_CMD_NONE;
@@ -111,7 +113,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
 
   APPL_TRACE_DEBUG("btif_a2dp_recv_ctrl_data: %s", audio_a2dp_hw_dump_ctrl_event(cmd));
 
-  if (property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+  if (osi_property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
           !strcmp(a2dp_hal_imp, "true")) {
     switch (cmd) {
       uint8_t local_ack;
@@ -967,7 +969,7 @@ static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
     case UIPC_CLOSE_EVT:
       APPL_TRACE_EVENT("%s: ## AUDIO PATH DETACHED ##", __func__);
 
-      if (property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+      if (osi_property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
             !strcmp(a2dp_hal_imp, "true")) {
         APPL_TRACE_IMP("command %s pending", audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending));
         APPL_TRACE_IMP("command %s queued", audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_queued));
@@ -1014,7 +1016,7 @@ void btif_a2dp_command_ack(tA2DP_CTRL_ACK status) {
           audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_queued), status);
 
   /* Sanity check */
-  if (property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+  if (osi_property_get("persist.vendor.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
           !strcmp(a2dp_hal_imp, "true")) {
     if (a2dp_cmd_pending == A2DP_CTRL_CMD_NONE) {
       APPL_TRACE_ERROR("btif_a2dp_command_ack: warning : no command pending, ignore ack");
@@ -1118,4 +1120,3 @@ const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event) {
 
   return "UNKNOWN A2DP_CTRL_CMD";
 }
-#endif

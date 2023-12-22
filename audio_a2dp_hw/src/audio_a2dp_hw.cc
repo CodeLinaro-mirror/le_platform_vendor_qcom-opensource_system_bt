@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /*****************************************************************************
@@ -25,7 +29,7 @@
  *****************************************************************************/
 
 #define LOG_TAG "bt_a2dp_hw"
-#if 0
+
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -41,7 +45,7 @@
 
 #include <hardware/audio.h>
 #include <hardware/hardware.h>
-#include <system/audio.h>
+#include <audio.h>
 
 #include "osi/include/hash_map_utils.h"
 #include "osi/include/log.h"
@@ -2046,4 +2050,3 @@ __attribute__((
             .methods = &hal_module_methods,
         },
 };
-#endif

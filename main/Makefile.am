@@ -46,6 +46,8 @@ AM_CPPFLAGS= \
         -I${BT_SOURCE}/bt_audio/bthost_ipc \
         -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/udrv/include \
         -I$(external_bt_path)/vhal/include
+AM_CPPFLAGS += @AROUTE_CFLAGS@
+
 
 if MDM_ROME
 AM_CFLAGS += -DBT_SOC_TYPE_ROME
