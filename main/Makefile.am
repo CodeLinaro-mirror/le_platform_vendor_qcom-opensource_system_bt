@@ -10,30 +10,30 @@ AM_CFLAGS = -Wall \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS= \
-        -I../ \
-        -I../audio_a2dp_hw/include \
-        -I../bta/include \
-        -I../bta/sys \
-        -I../bta/dm \
-        -I../btcore/include \
-        -I../include \
-        -I../stack/include \
-        -I../stack/l2cap \
-        -I../stack/a2dp \
-        -I../stack/btm \
-        -I../stack/avdt \
-        -I../udrv/include \
-        -I../btif/include \
-        -I../btif/co \
-        -I../hci/include\
-        -I../vnd/include \
-        -I../brcm/include \
-        -I../embdrv/sbc/encoder/include \
-        -I../embdrv/sbc/decoder/include \
-        -I../audio_a2dp_hw \
-        -I../utils/include \
-        -I../types \
-        -I../internal_include \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/../audio_a2dp_hw/include \
+        -I$(srcdir)/../bta/include \
+        -I$(srcdir)/../bta/sys \
+        -I$(srcdir)/../bta/dm \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../stack/l2cap \
+        -I$(srcdir)/../stack/a2dp \
+        -I$(srcdir)/../stack/btm \
+        -I$(srcdir)/../stack/avdt \
+        -I$(srcdir)/../udrv/include \
+        -I$(srcdir)/../btif/include \
+        -I$(srcdir)/../btif/co \
+        -I$(srcdir)/../hci/include\
+        -I$(srcdir)/../vnd/include \
+        -I$(srcdir)/../brcm/include \
+        -I$(srcdir)/../embdrv/sbc/encoder/include \
+        -I$(srcdir)/../embdrv/sbc/decoder/include \
+        -I$(srcdir)/../audio_a2dp_hw \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../internal_include \
         -I$(external_bt_path)/system_bt_ext/bta/include \
         -I$(external_bt_path)/system_bt_ext/bta/ar \
         -I$(external_bt_path)/system_bt_ext/btif/include \

@@ -7,10 +7,10 @@ AM_CFLAGS = -Wall \
         -std=c99
 
 AM_CPPFLAGS= \
-        -I../inc/ \
-        -I../../include \
-        -I../../stack/include \
-        -I../../test/suite
+        -I$(srcdir)/../inc/ \
+        -I$(srcdir)/../../include \
+        -I$(srcdir)/../../stack/include \
+        -I$(srcdir)/../../test/suite
 
 # HAL layer
 c_sources = \

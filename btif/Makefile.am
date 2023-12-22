@@ -15,33 +15,33 @@ AM_CFLAGS += -DAPTX_48000
 endif
 
 AM_CPPFLAGS = \
-        -I../ \
-        -I../bta/include \
-        -I../bta/sys \
-        -I../bta/dm \
-        -I../btcore/include \
-        -I../include \
-        -I../stack/include \
-        -I../stack/l2cap \
-        -I../stack/a2dp \
-        -I../stack/btm \
-        -I../stack/avdt \
-        -I../hcis \
-        -I../types \
-        -I../include \
-        -I../hcis/include \
-        -I../hcis/patchram \
-        -I../udrv/include \
-        -I../btif/include \
-        -I../btif/co \
-        -I../hci/include\
-        -I../vnd/include \
-        -I../brcm/include \
-        -I../embdrv/sbc/encoder/include \
-        -I../embdrv/sbc/decoder/include \
-        -I../audio_a2dp_hw \
-        -I../utils/include \
-        -I../internal_include \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/../bta/include \
+        -I$(srcdir)/../bta/sys \
+        -I$(srcdir)/../bta/dm \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../stack/l2cap \
+        -I$(srcdir)/../stack/a2dp \
+        -I$(srcdir)/../stack/btm \
+        -I$(srcdir)/../stack/avdt \
+        -I$(srcdir)/../hcis \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../hcis/include \
+        -I$(srcdir)/../hcis/patchram \
+        -I$(srcdir)/../udrv/include \
+        -I$(srcdir)/../btif/include \
+        -I$(srcdir)/../btif/co \
+        -I$(srcdir)/../hci/include\
+        -I$(srcdir)/../vnd/include \
+        -I$(srcdir)/../brcm/include \
+        -I$(srcdir)/../embdrv/sbc/encoder/include \
+        -I$(srcdir)/../embdrv/sbc/decoder/include \
+        -I$(srcdir)/../audio_a2dp_hw \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../internal_include \
         -I${external_bt_path}/vhal/include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/btif/include \

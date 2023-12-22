@@ -10,14 +10,14 @@ AM_CFLAGS = -Wall \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS = \
-        -I../ \
-        -Iinclude \
-        -I../btcore/include \
-        -I../hci/include \
-        -I../include \
-        -I../types \
-        -I../internal_include \
-        -I../stack/include \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/include \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../hci/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../internal_include \
+        -I$(srcdir)/../stack/include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/vhal/include \
         -I$(external_bt_path)/system_bt_ext/device/include

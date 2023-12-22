@@ -14,31 +14,31 @@ AM_CFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED
 AM_CFLAGS += -DBTA_AV_SPLIT_A2DP_DEF_FREQ_48KHZ
 endif
 
-AM_CPPFLAGS = -Iinclude \
-        -Isys \
-        -Idm \
-        -Ihh \
-        -Iag \
-        -I../ \
-        -I../btcore/include \
-        -I../hci/include \
-        -I../include \
-        -I../stack/include \
-        -I../stack/avdt \
-        -I../stack/btm \
-        -I../udrv/include \
-        -I../vnd/include \
-        -I../utils/include \
-        -I../types \
-        -I../internal_include \
+AM_CPPFLAGS = -I$(srcdir)/include \
+        -I$(srcdir)/sys \
+        -I$(srcdir)/dm \
+        -I$(srcdir)/hh \
+        -I$(srcdir)/ag \
+        -I$(srcdir)/../ \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../hci/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../stack/avdt \
+        -I$(srcdir)/../stack/btm \
+        -I$(srcdir)/../udrv/include \
+        -I$(srcdir)/../vnd/include \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../internal_include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/vhal/include \
-        -I$(BT_SOURCE)/bt_audio/hal/include \
-        -I$(BT_SOURCE)/stack/bluetooth_ext/system_bt_ext/bta/ar \
-        -I$(BT_SOURCE)/stack/bluetooth_ext/system_bt_ext/bta/avk \
-        -I$(BT_SOURCE)/stack/bluetooth_ext/system_bt_ext/bta/include \
-        -I$(BT_SOURCE)/stack/bluetooth_ext/system_bt_ext/stack/include \
-        -I$(BT_SOURCE)/stack/bluetooth_ext/system_bt_ext/bta/tws_plus
+        -I$(external_bt_path)/system_bt_ext/bta/ar \
+        -I$(external_bt_path)/system_bt_ext/bta/avk \
+        -I$(external_bt_path)/system_bt_ext/bta/include \
+        -I$(external_bt_path)/system_bt_ext/stack/include \
+        -I$(external_bt_path)/system_bt_ext/bta/tws_plus \
+        -I$(BT_SOURCE)/bt_audio/hal/include
 
 if MDM_CHEROKEE
 AM_CPPFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED

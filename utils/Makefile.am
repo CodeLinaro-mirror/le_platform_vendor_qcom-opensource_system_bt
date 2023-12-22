@@ -14,16 +14,17 @@ AM_CFLAGS = -Wno-gnu-variable-sized-type-not-at-end \
         -DHAS_NO_BDROID_BUILDCFG
 
 AM_CPPFLAGS= \
-        -Iinclude \
-        -I../btcore/include \
-        -I../stack/include \
-        -I../utils/include \
-        -I../bta/include \
-        -I../internal_include \
+        -I$(srcdir)/include \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../bta/include \
+        -I$(srcdir)/../internal_include \
         -I$(external_bt_path)/vhal/include \
-        -I../include \
-        -I../types \
-        -I../ \
+        -I$(BT_SOURCE)/bt_audio/hal/include \
+        -I$(srcdir)/../include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/../ \
         -I$(BT_SOURCE)/bt_audio/hal/include \
         -I$(bdroid_C_INCLUDES)
 

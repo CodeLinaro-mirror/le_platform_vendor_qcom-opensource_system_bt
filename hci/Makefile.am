@@ -9,14 +9,14 @@ AM_CFLAGS = -Wall \
         -std=c++11 \
         -DHAS_NO_BDROID_BUILDCFG
 
-AM_CPPFLAGS = -Iinclude -I../include \
-        -I$(BT_SOURCE)/stack/system/bt/btcore/include \
-        -I$(BT_SOURCE)/stack/system/bt/stack/include \
-        -I$(BT_SOURCE)/stack/system/bt/utils/include \
-        -I$(BT_SOURCE)/stack/system/bt/bta/include \
-        -I$(BT_SOURCE)/stack/system/bt/types \
-	-I$(BT_SOURCE)/stack/system/bt/ \
-        -I$(BT_SOURCE)/stack/system/bt/internal_include \
+AM_CPPFLAGS = -I$(srcdir)/include -I$(srcdir)/../include \
+        -I$(srcdir)/../btcore/include \
+        -I$(srcdir)/../stack/include \
+        -I$(srcdir)/../utils/include \
+        -I$(srcdir)/../bta/include \
+        -I$(srcdir)/../types \
+        -I$(srcdir)/.. \
+        -I$(srcdir)/../internal_include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/include \
         -I$(external_bt_path)/vhal/include \
