@@ -2362,7 +2362,7 @@ void bta_av_setconfig_rej(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   APPL_TRACE_DEBUG("%s: sep_idx: %d", __func__, p_scb->sep_idx);
 
   char value[PROPERTY_VALUE_MAX] = {'\0'};
-  property_get("vendor.bt.pts.certification", value, "false");
+  osi_property_get("vendor.bt.pts.certification", value, "false");
   if (!(strcmp(value,"true"))) {
       error = p_data->ci_setconfig.err_code;
   } else {

@@ -26,7 +26,7 @@
  *  control block state machine.
  *
  ******************************************************************************/
-#include <cutils/log.h>
+#include <log.h>
 #include <string.h>
 #include "a2dp_codec_api.h"
 #include "avdt_api.h"
@@ -737,9 +737,9 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB* p_scb, tAVDT_SCB_EVT* p_data) {
         avdt_cb.p_conn_cback(0, &(p_scb->p_ccb->peer_addr), AVDT_SETCONFIG_CMD_EVT, &avdt_ctrl);
     } else {
       char value[PROPERTY_VALUE_MAX] = {'\0'};
-      property_get("vendor.bt.pts.certification", value, "false");
+      osi_property_get("vendor.bt.pts.certification", value, "false");
       if (!(strcmp(value,"true"))) {
-        property_get("vendor.bt.pts.certification_ns_codec", value, "false");
+        osi_property_get("vendor.bt.pts.certification_ns_codec", value, "false");
         if (!(strcmp(value,"true"))) {
           p_data->msg.hdr.err_code = A2DP_NS_CODEC_TYPE;
         } else {

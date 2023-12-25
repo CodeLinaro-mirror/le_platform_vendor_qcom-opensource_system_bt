@@ -198,7 +198,7 @@ static tA2DP_STATUS A2DP_ParseInfoAac(tA2DP_AAC_CIE* p_ie,
     return A2DP_WRONG_CODEC;
   }
   bool pts_status = false;
-  property_get("vendor.bt.pts.certification", value, "false");
+  osi_property_get("vendor.bt.pts.certification", value, "false");
   if (!(strcmp(value,"true"))) { pts_status = true; }
 
   if (pts_status) {
@@ -234,7 +234,7 @@ static tA2DP_STATUS A2DP_ParseInfoAac(tA2DP_AAC_CIE* p_ie,
   if (A2DP_BitsSet(p_ie->channelMode) != A2DP_SET_ONE_BIT)
     return A2DP_BAD_CHANNEL;
   if (drc) {
-    property_get("vendor.bt.pts.certification_ns_drc", value, "false");
+    osi_property_get("vendor.bt.pts.certification_ns_drc", value, "false");
     if (!(strcmp(value,"true"))) {
         return A2DP_NS_DRC;
     } else {
