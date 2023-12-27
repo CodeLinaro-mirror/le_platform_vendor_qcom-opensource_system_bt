@@ -7,8 +7,8 @@ AM_CFLAGS = -Wall \
         -std=c99 \
         -DHAS_NO_BDROID_BUILDCFG
 
-AM_CPPFLAGS = -Iinclude \
-              -Isrce
+AM_CPPFLAGS = -I$(srcdir)/include \
+              -I$(srcdir)/srce
 
 c_sources = \
         ./srce/alloc.c \
