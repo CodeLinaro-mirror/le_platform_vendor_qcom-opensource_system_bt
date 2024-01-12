@@ -5875,13 +5875,17 @@ void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec, uint8_t res,
     if (is_le_transport) {
       tBTM_SEC_CALLBACK* p_callback = p_dev_rec->p_ble_callback;
       p_dev_rec->p_ble_callback = NULL;
-      (*p_callback)(&p_dev_rec->ble.pseudo_addr, BT_TRANSPORT_LE,
+      if (p_callback != nullptr) {
+        (*p_callback)(&p_dev_rec->ble.pseudo_addr, BT_TRANSPORT_LE,
                     p_dev_rec->p_ref_data, res);
+      }
     } else {
       tBTM_SEC_CALLBACK* p_callback = p_dev_rec->p_callback;
       p_dev_rec->p_callback = NULL;
-      (*p_callback)(&p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR,
+      if (p_callback != nullptr) {
+        (*p_callback)(&p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR,
                     p_dev_rec->p_ref_data, res);
+      }
     }
   }
 
