@@ -69,6 +69,7 @@ void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA* p_data) {
   /* if SCO is open close SCO and wait on RFCOMM close */
   if (client_cb->sco_state == BTA_HF_CLIENT_SCO_OPEN_ST) {
     client_cb->sco_close_rfc = true;
+    bta_hf_client_sco_conn_close(p_data);
   } else {
     bta_hf_client_rfc_do_close(p_data);
   }
