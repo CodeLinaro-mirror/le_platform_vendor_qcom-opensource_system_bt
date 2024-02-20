@@ -128,6 +128,9 @@
  */
 #define A2DP_BAD_CP_FORMAT 0xE1
 
+#define A2DP_INVALID_DRC 0xE4
+
+#define A2DP_NS_DRC 0XE5
 typedef uint8_t tA2DP_STATUS;
 
 #endif  // A2DP_ERROR_CODES_H

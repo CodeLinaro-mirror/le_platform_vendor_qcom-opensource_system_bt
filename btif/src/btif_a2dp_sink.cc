@@ -19,6 +19,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #define LOG_TAG "bt_btif_a2dp_sink"
@@ -128,7 +132,7 @@ static void btif_a2dp_sink_set_focus_state_event(
     btif_a2dp_sink_focus_state_t state);
 static void btif_a2dp_sink_audio_rx_flush_event(void);
 static void btif_a2dp_sink_clear_track_event_req(void);
-#if 0
+
 UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
   switch (event) {
     CASE_RETURN_STR(BTIF_MEDIA_SINK_DECODER_UPDATE)
@@ -651,4 +655,3 @@ void btif_a2dp_sink_on_init(void) {
   btif_a2dp_sink_cb.rx_focus_state = BTIF_A2DP_SINK_FOCUS_GRANTED;
   btif_a2dp_sink_cb.audio_track = NULL;
 }
-#endif

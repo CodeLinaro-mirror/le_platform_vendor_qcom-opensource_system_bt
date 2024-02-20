@@ -521,6 +521,7 @@ bool A2DP_IsSinkCodecValid(const uint8_t* p_codec_info);
 // Returns true if |p_codec_info| contains information about a valid codec,
 // otherwise false.
 bool A2DP_IsPeerSourceCodecValid(const uint8_t* p_codec_info);
+uint8_t A2DP_IsPeerCodecValid(const uint8_t* p_codec_info);
 
 // Checks whether the codec capabilities contain a valid peer A2DP Sink codec.
 // NOTE: only codecs that are implemented are considered valid.

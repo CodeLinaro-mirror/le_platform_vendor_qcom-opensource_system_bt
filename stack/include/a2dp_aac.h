@@ -81,6 +81,7 @@ bool A2DP_IsPeerSourceCodecValidAac(const uint8_t* p_codec_info);
 // Returns true if |p_codec_info| contains information about a valid AAC
 // codec, otherwise false.
 bool A2DP_IsPeerSinkCodecValidAac(const uint8_t* p_codec_info);
+uint8_t A2DP_IsPeerCodecValidAac(const uint8_t* p_codec_info);
 
 // Checks whether A2DP AAC Sink codec is supported.
 // |p_codec_info| contains information about the codec capabilities.

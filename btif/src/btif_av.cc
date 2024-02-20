@@ -4455,7 +4455,7 @@ ssize_t send_encoded_data_vendor( bt_bdaddr_t *bd_addr, const void* buffer, size
     int length=0;
     int index = 0;
     btif_sm_state_t state;
-    BTIF_TRACE_IMP("AV %s", __FUNCTION__);
+    BTIF_TRACE_VERBOSE("AV %s", __FUNCTION__);
 
     if((buffer == NULL) || (bd_addr == NULL)) {
         return length;

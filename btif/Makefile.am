@@ -45,8 +45,9 @@ AM_CPPFLAGS = \
         -I${external_bt_path}/vhal/include \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/btif/include \
-	-I$(external_bt_path)/system_bt_ext/bta/include \
-	-I$(external_bt_path)/system_bt_ext/stack/include
+        -I$(external_bt_path)/system_bt_ext/bta/include \
+        -I$(external_bt_path)/system_bt_ext/stack/include
+AM_CPPFLAGS += @AROUTE_CFLAGS@
 
 if MDM_CHEROKEE
 AM_CPPFLAGS += -DBTA_AV_SPLIT_A2DP_ENABLED

@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #pragma once
-#include <base/logging.h>
+//#include <base/logging.h>
 #include <string.h>
 #include <iostream>
 #include <sstream>

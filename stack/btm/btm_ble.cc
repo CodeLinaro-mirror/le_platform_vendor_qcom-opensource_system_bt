@@ -1840,7 +1840,6 @@ uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
     /* if authentication requires MITM protection, put on the mask */
     if (p_dev_rec->security_required & BTM_SEC_IN_MITM)
       p_data->auth_req |= BTM_LE_AUTH_REQ_MITM;
-    p_data->auth_req &= ~BTM_LE_AUTH_REQ_BOND;
 
     if (!(p_data->auth_req & SMP_AUTH_BOND)) {
       BTM_TRACE_DEBUG("Non bonding: No keys should be exchanged");

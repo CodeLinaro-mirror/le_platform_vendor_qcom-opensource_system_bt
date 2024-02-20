@@ -19,6 +19,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #define LOG_TAG "bt_btif_a2dp_source"
@@ -218,7 +222,7 @@ static void btm_read_tx_power_cb(void* data);
 static void btif_a2dp_source_unblock_audio_start_timeout(void* context);
 static void btif_a2dp_source_remote_start_timeout(void* context);
 static char a2dp_hal_imp[PROPERTY_VALUE_MAX] = "false";
-#if 0
+
 UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
   switch (event) {
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_START)
@@ -766,7 +770,7 @@ void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND* p_av_suspend) {
         if ((pending_cmd == A2DP_CTRL_CMD_STOP) ||
             (pending_cmd == A2DP_CTRL_CMD_SUSPEND)) {
           btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-          if (property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+          if (osi_property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
               !strcmp(a2dp_hal_imp, "true")) {
             btif_a2dp_pending_cmds_reset();
             int index = ((p_av_suspend->hndl) & BTA_AV_HNDL_MSK) - 1;
@@ -809,7 +813,7 @@ void btif_a2dp_source_on_suspended(tBTA_AV_SUSPEND* p_av_suspend) {
         if ((pending_cmd == A2DP_CTRL_CMD_STOP) ||
             (pending_cmd == A2DP_CTRL_CMD_SUSPEND)) {
           btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-          if (property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
+          if (osi_property_get("persist.bt.a2dp.hal.implementation", a2dp_hal_imp, "false") &&
               !strcmp(a2dp_hal_imp, "true")) {
             btif_a2dp_pending_cmds_reset();
             int index = ((p_av_suspend->hndl) & BTA_AV_HNDL_MSK) - 1;
@@ -846,7 +850,7 @@ size_t btif_media_writebuf_vendor(bt_bdaddr_t *bd_addr, const void* buffer, size
     uint8_t rtp_offset = 0;
     if(buffer == NULL)
         return 0;
-    BTIF_TRACE_IMP("AV %s , data size = %d", __FUNCTION__,length);
+    BTIF_TRACE_VERBOSE("AV %s , data size = %d", __FUNCTION__,length);
 
     if(length > 0 && btif_a2dp_source_cb.tx_audio_queue != NULL) {
 
@@ -1498,4 +1502,3 @@ static void btm_read_tx_power_cb(void* data) {
   LOG_WARN(LOG_TAG, "%s device: %s, Tx Power: %d", __func__,
            result->rem_bda.ToString().c_str(), result->tx_power);
 }
-#endif

@@ -46,6 +46,8 @@ AM_CPPFLAGS= \
         -I${BT_SOURCE}/bt_audio/bthost_ipc \
         -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/udrv/include \
         -I$(external_bt_path)/vhal/include
+AM_CPPFLAGS += @AROUTE_CFLAGS@
+
 
 if MDM_ROME
 AM_CFLAGS += -DBT_SOC_TYPE_ROME
@@ -172,7 +174,7 @@ libbluetoothdefault_la_CC = @CC@
 libbluetoothdefault_la_SOURCES = $(c_sources) $(cpp_sources)
 libbluetoothdefault_la_CPPFLAGS = $(AM_CPPFLAGS) $(common_CPPFLAGS) -std=c++11 -fpermissive -O2
 libbluetoothdefault_la_CFLAGS = $(common_CFLAGS)
-libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS)
+libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS) -lpropertyvault
 
 externalincludedir = $(includedir)/fluoride/
 externalinclude_HEADERS=$(wildcard $(external_bt_path)/vhal/include/*.h)

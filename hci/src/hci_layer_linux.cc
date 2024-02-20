@@ -102,6 +102,7 @@ extern void acl_event_received(BT_HDR* packet);
 extern void sco_data_received(BT_HDR* packet);
 
 static int bt_vendor_fd = -1;
+static int reader_thread_listen_fd = -1;
 static int hci_interface;
 static int rfkill_en;
 static int wait_hcidev(void);
@@ -216,6 +217,7 @@ void hci_initialize() {
   }
 
   reader_thread_ctrl_fd = sv[0];
+  reader_thread_listen_fd = sv[1];
   reader_thread = new Thread("hci_sock_reader");
   reader_thread->Start();
   reader_thread->task_runner()->PostTask(
@@ -236,7 +238,13 @@ void hci_close() {
   if (reader_thread_ctrl_fd != -1) {
     uint8_t msg[] = {1};
     send(reader_thread_ctrl_fd, msg, sizeof(msg), 0);
+    close(reader_thread_ctrl_fd);
     reader_thread_ctrl_fd = -1;
+  }
+
+  if (reader_thread_listen_fd != -1) {
+      close(reader_thread_listen_fd);
+      reader_thread_listen_fd = -1;
   }
 
   if (reader_thread != NULL) {

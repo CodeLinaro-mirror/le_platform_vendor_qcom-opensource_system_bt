@@ -49,6 +49,7 @@
 #include "l2c_int.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack_config.h"
 #if (BT_ACL_TIMIMG_ENABLED == TRUE)
 #include "bt_acl_timestamps.h"
 #endif
@@ -58,6 +59,7 @@ using tracked_objects::Location;
 extern void bte_main_disable(void);
 extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
 extern void btm_ble_test_command_complete(uint8_t* p);
+extern void smp_cancel_start_encryption_attempt();
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -737,6 +739,48 @@ static void btu_hcif_rmt_name_request_comp_evt(uint8_t* p, uint16_t evt_len) {
   btm_sec_rmt_name_request_complete(&bd_addr, p, status);
 }
 
+constexpr uint8_t MIN_KEY_SIZE = 7;
+
+static void read_encryption_key_size_complete_after_encryption_change(
+    uint8_t status, uint16_t handle, uint8_t key_size) {
+  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
+    /* If remote device stop the encryption before we call "Read Encryption Key
+     * Size", we might receive Insufficient Security, which means that link is
+     * no longer encrypted. */
+    HCI_TRACE_WARNING("%s encryption stopped on link: 0x%02x", __func__,
+                      handle);
+    return;
+  }
+
+  if (status != HCI_SUCCESS) {
+    HCI_TRACE_WARNING("%s: disconnecting, status: 0x%02x", __func__, status);
+    btsnd_hcic_disconnect(handle, HCI_ERR_PEER_USER);
+    return;
+  }
+
+  if (stack_config_get_interface()->get_pts_bredr_invalid_encryption_keysize() > 0) {
+    key_size = stack_config_get_interface()->get_pts_bredr_invalid_encryption_keysize();
+    HCI_TRACE_ERROR(
+        "%s key_size set for pts test, handle: 0x%02x, key_size: "
+        "%d",
+        __func__, handle, key_size);
+  }
+
+  if (key_size < MIN_KEY_SIZE) {
+    HCI_TRACE_ERROR(
+        "%s encryption key too short, disconnecting. handle: 0x%02x, key_size: "
+        "%d",
+        __func__, handle, key_size);
+
+    btsnd_hcic_disconnect(handle, HCI_ERR_HOST_REJECT_SECURITY);
+    return;
+  }
+
+  // good key size - succeed
+  btm_acl_encrypt_change(handle, status, 1 /* enable */);
+  btm_sec_encrypt_change(handle, status, 1 /* enable */);
+}
+
 /*******************************************************************************
  *
  * Function         btu_hcif_encryption_change_evt
@@ -755,8 +799,20 @@ static void btu_hcif_encryption_change_evt(uint8_t* p) {
   STREAM_TO_UINT16(handle, p);
   STREAM_TO_UINT8(encr_enable, p);
 
-  btm_acl_encrypt_change(handle, status, encr_enable);
-  btm_sec_encrypt_change(handle, status, encr_enable);
+   if (status == HCI_ERR_CONNECTION_TOUT) {
+    smp_cancel_start_encryption_attempt();
+    return;
+  }
+
+  if (status != HCI_SUCCESS || encr_enable == 0 ||
+      BTM_IsBleConnection(handle)) {
+    btm_acl_encrypt_change(handle, status, encr_enable);
+    btm_sec_encrypt_change(handle, status, encr_enable);
+  } else {
+    btsnd_hcic_read_encryption_key_size(
+        handle,
+        base::Bind(&read_encryption_key_size_complete_after_encryption_change));
+  }
 }
 
 /*******************************************************************************
@@ -1760,20 +1816,62 @@ static void btu_hcif_enhanced_flush_complete_evt(void) {
  * End of Simple Pairing Events
  **********************************************/
 
+static void read_encryption_key_size_complete_after_key_refresh(
+    uint8_t status, uint16_t handle, uint8_t key_size) {
+  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
+    /* If remote device stop the encryption before we call "Read Encryption Key
+     * Size", we might receive Insufficient Security, which means that link is
+     * no longer encrypted. */
+    HCI_TRACE_WARNING("%s encryption stopped on link: 0x%02x", __func__,
+                      handle);
+    return;
+  }
+
+  if (status != HCI_SUCCESS) {
+    HCI_TRACE_WARNING("%s: disconnecting, status: 0x%02x", __func__, status);
+    btsnd_hcic_disconnect(handle, HCI_ERR_PEER_USER);
+    return;
+  }
+
+  if (stack_config_get_interface()->get_pts_bredr_invalid_encryption_keysize() > 0) {
+    key_size = stack_config_get_interface()->get_pts_bredr_invalid_encryption_keysize();
+    HCI_TRACE_ERROR(
+        "%s key_size set for pts test, handle: 0x%02x, key_size: "
+        "%d",
+        __func__, handle, key_size);
+  }
+
+  if (key_size < MIN_KEY_SIZE) {
+    HCI_TRACE_WARNING(
+        "%s encryption key too short, disconnecting. handle: 0x%02x, key_size: "
+        "%d",
+        __func__, handle, key_size);
+
+    btsnd_hcic_disconnect(handle, HCI_ERR_HOST_REJECT_SECURITY);
+    return;
+  }
+
+  btm_sec_encrypt_change(handle, status, 1 /* enc_enable */);
+}
+
+
 /**********************************************
  * BLE Events
  **********************************************/
 static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   uint8_t status;
-  uint8_t enc_enable = 0;
   uint16_t handle;
 
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
 
-  if (status == HCI_SUCCESS) enc_enable = 1;
-
-  btm_sec_encrypt_change(handle, status, enc_enable);
+  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle)) {
+    btm_sec_encrypt_change(handle, status, (status == HCI_SUCCESS) ? 1 : 0);
+  } else {
+    btsnd_hcic_read_encryption_key_size(
+       handle,
+        base::Bind(&read_encryption_key_size_complete_after_key_refresh));
+  }
 }
 
 static void btu_ble_ll_conn_complete_evt(uint8_t* p, uint16_t evt_len) {

@@ -33,6 +33,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/time.h"
+#include "stack_config.h"
 
 #include "bt_types.h"
 #include "bt_utils.h"
@@ -3463,6 +3464,13 @@ void btm_io_capabilities_req(const RawAddress& p) {
           evt_data.auth_req);
     }
 
+    if (stack_config_get_interface()->get_pts_bredr_auth_req() >= 0) {
+      evt_data.auth_req = stack_config_get_interface()->get_pts_bredr_auth_req();
+      BTM_TRACE_WARNING(
+          "%s: set auth_req to 0x%02x for pts test ", __func__,
+          evt_data.auth_req);
+    }
+
     /* if the user does not indicate "reply later" by setting the oob_data to
      * unknown */
     /* send the response right now. Save the current IO capability in the
@@ -5867,13 +5875,17 @@ void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec, uint8_t res,
     if (is_le_transport) {
       tBTM_SEC_CALLBACK* p_callback = p_dev_rec->p_ble_callback;
       p_dev_rec->p_ble_callback = NULL;
-      (*p_callback)(&p_dev_rec->ble.pseudo_addr, BT_TRANSPORT_LE,
+      if (p_callback != nullptr) {
+        (*p_callback)(&p_dev_rec->ble.pseudo_addr, BT_TRANSPORT_LE,
                     p_dev_rec->p_ref_data, res);
+      }
     } else {
       tBTM_SEC_CALLBACK* p_callback = p_dev_rec->p_callback;
       p_dev_rec->p_callback = NULL;
-      (*p_callback)(&p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR,
+      if (p_callback != nullptr) {
+        (*p_callback)(&p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR,
                     p_dev_rec->p_ref_data, res);
+      }
     }
   }
 

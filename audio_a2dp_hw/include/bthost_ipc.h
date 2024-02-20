@@ -18,6 +18,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /*****************************************************************************
@@ -29,9 +32,9 @@
  *****************************************************************************/
 #ifndef BT_HOST_IPC_H
 #define BT_HOST_IPC_H
-#if 0
+
 #include "audio_a2dp_hw.h"
-//#include <hardware/audio.h>
+#include <audio.h>
 /*****************************************************************************
 **  Constants & Macros
 ******************************************************************************/
@@ -181,5 +184,4 @@ extern "C" void audio_handoff_triggered(void);
 extern "C" void clear_a2dpsuspend_flag(void);
 extern "C" int audio_check_a2dp_ready(void);
 
-#endif
 #endif
