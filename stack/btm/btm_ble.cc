@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -568,13 +571,18 @@ void BTM_BleSetConnScanParams(uint32_t scan_interval, uint32_t scan_window) {
 void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
                               uint16_t max_conn_int, uint16_t slave_latency,
                               uint16_t supervision_tout) {
+#ifndef SUPPORT_ESL_AP
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+#else
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bd_addr);
+#endif
 
   BTM_TRACE_API(
       "BTM_BleSetPrefConnParams min: %u  max: %u  latency: %u  \
                     tout: %u",
       min_conn_int, max_conn_int, slave_latency, supervision_tout);
 
+#ifndef SUPPORT_ESL_AP
   if (BTM_BLE_ISVALID_PARAM(min_conn_int, BTM_BLE_CONN_INT_MIN,
                             BTM_BLE_CONN_INT_MAX) &&
       BTM_BLE_ISVALID_PARAM(max_conn_int, BTM_BLE_CONN_INT_MIN,
@@ -583,6 +591,14 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
                             BTM_BLE_CONN_SUP_TOUT_MAX) &&
       (slave_latency <= BTM_BLE_CONN_LATENCY_MAX ||
        slave_latency == BTM_BLE_CONN_PARAM_UNDEF)) {
+#else
+  if (BTM_BLE_ISVALID_PARAM(min_conn_int, BTM_BLE_CONN_INT_MIN,
+                            BTM_BLE_CONN_INT_MAX) &&
+      BTM_BLE_ISVALID_PARAM(max_conn_int, BTM_BLE_CONN_INT_MIN,
+                            BTM_BLE_CONN_INT_MAX) &&
+      (slave_latency <= BTM_BLE_CONN_LATENCY_MAX ||
+       slave_latency == BTM_BLE_CONN_PARAM_UNDEF)) {
+#endif
     if (p_dev_rec) {
       /* expect conn int and stout and slave latency to be updated all together
        */
@@ -603,8 +619,21 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
         else
           p_dev_rec->conn_params.slave_latency = BTM_BLE_CONN_SLAVE_LATENCY_DEF;
 
-        if (supervision_tout != BTM_BLE_CONN_PARAM_UNDEF)
+#ifndef SUPPORT_ESL_AP
+        if (supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) {
+            p_dev_rec->conn_params.supervision_tout = supervision_tout;
+        }
+#else
+        if (supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) {
+          if (!BTM_BLE_ISVALID_PARAM(supervision_tout, BTM_BLE_CONN_SUP_TOUT_MIN, BTM_BLE_CONN_SUP_TOUT_MAX)) {
+            if (supervision_tout < BTM_BLE_CONN_SUP_TOUT_MIN)
+              supervision_tout = BTM_BLE_CONN_SUP_TOUT_MIN;
+            else
+              supervision_tout = BTM_BLE_CONN_SUP_TOUT_MAX;
+            }
           p_dev_rec->conn_params.supervision_tout = supervision_tout;
+        }
+#endif
         else
           p_dev_rec->conn_params.supervision_tout = BTM_BLE_CONN_TIMEOUT_DEF;
       }

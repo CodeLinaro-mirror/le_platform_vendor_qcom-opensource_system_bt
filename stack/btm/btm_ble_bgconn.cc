@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -94,6 +97,21 @@ static void background_connection_remove(const RawAddress& address) {
 }
 
 static void background_connections_clear() { background_connections.clear(); }
+
+#ifdef SUPPORT_ESL_AP
+static RawAddress get_bg_conn_pending_bdaddr() {
+  for (auto& map_el : background_connections) {
+    background_connection_t* connection = &map_el.second;
+    if (connection->pending_removal) continue;
+    const bool connected =
+        BTM_IsAclConnectionUp(connection->address, BT_TRANSPORT_LE);
+    if (!connected) {
+      return connection->address;
+    }
+  }
+  return RawAddress::kEmpty;
+}
+#endif
 
 static bool background_connections_pending() {
   for (auto& map_el : background_connections) {
@@ -412,6 +430,13 @@ bool btm_ble_start_auto_conn(bool start) {
   uint8_t own_addr_type = BLE_ADDR_PUBLIC;
   uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
 
+#ifdef SUPPORT_ESL_AP
+  static uint16_t conn_int_min  = BTM_BLE_CONN_INT_MIN_DEF;
+  static uint16_t conn_int_max = BTM_BLE_CONN_INT_MAX_DEF;
+  static uint16_t conn_latency = BTM_BLE_CONN_SLAVE_LATENCY_DEF;
+  static uint16_t conn_timeout = BTM_BLE_CONN_TIMEOUT_DEF;
+#endif
+
   uint8_t phy = PHY_LE_1M;
   if (controller_get_interface()->supports_ble_2m_phy()) phy |= PHY_LE_2M;
   if (controller_get_interface()->supports_ble_coded_phy()) phy |= PHY_LE_CODED;
@@ -435,6 +460,31 @@ bool btm_ble_start_auto_conn(bool start) {
                      ? BTM_BLE_SCAN_SLOW_WIN_1
                      : p_cb->scan_win;
 
+#ifdef SUPPORT_ESL_AP
+    RawAddress rem_bd_addr = get_bg_conn_pending_bdaddr();
+    tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(rem_bd_addr);
+    if (p_dev_rec == NULL) {
+        BTM_TRACE_EVENT("%s no prefered conn_params", __func__);
+    }
+    /* If there are any preferred connection parameters, set them now */
+    else if ((p_dev_rec->conn_params.min_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+                (p_dev_rec->conn_params.min_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+                (p_dev_rec->conn_params.max_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+                (p_dev_rec->conn_params.max_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+                (p_dev_rec->conn_params.slave_latency <= BTM_BLE_CONN_LATENCY_MAX) &&
+                (p_dev_rec->conn_params.supervision_tout >= BTM_BLE_CONN_SUP_TOUT_MIN) &&
+                (p_dev_rec->conn_params.supervision_tout <= BTM_BLE_CONN_SUP_TOUT_MAX)) {
+
+        conn_int_min = p_dev_rec->conn_params.min_conn_int;
+        conn_int_max = p_dev_rec->conn_params.max_conn_int;
+        conn_latency = p_dev_rec->conn_params.slave_latency;
+        conn_timeout = p_dev_rec->conn_params.supervision_tout;
+        BTM_TRACE_DEBUG(
+        "%s: min_conn_int=%d max_conn_int=%d slave_latency=%d upervision_tout=%d",
+        __func__, conn_int_min, conn_int_max, conn_latency, conn_timeout);
+    }
+#endif
+
 #if (BLE_PRIVACY_SPT == TRUE)
       if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE &&
           controller_get_interface()->supports_ble_privacy()) {
@@ -450,10 +500,17 @@ bool btm_ble_start_auto_conn(bool start) {
           peer_addr_type,                 /* uint8_t addr_type_peer */
           RawAddress::kEmpty,             /* BD_ADDR bda_peer     */
           own_addr_type,                  /* uint8_t addr_type_own */
+#ifndef SUPPORT_ESL_AP
           BTM_BLE_CONN_INT_MIN_DEF,       /* uint16_t conn_int_min  */
           BTM_BLE_CONN_INT_MAX_DEF,       /* uint16_t conn_int_max  */
           BTM_BLE_CONN_SLAVE_LATENCY_DEF, /* uint16_t conn_latency  */
           BTM_BLE_CONN_TIMEOUT_DEF,       /* uint16_t conn_timeout  */
+#else
+          conn_int_min,                   /* uint16_t conn_int_min  */
+          conn_int_max,                   /* uint16_t conn_int_max  */
+          conn_latency,                   /* uint16_t conn_latency  */
+          conn_timeout,                   /* uint16_t conn_timeout  */
+#endif
           0,                              /* uint16_t min_len       */
           0,                              /* uint16_t max_len       */
           phy);

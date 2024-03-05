@@ -49,6 +49,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -222,6 +225,15 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec != NULL) {
+#ifdef SUPPORT_ESL_AP
+    if (bd_addr == btm_cb.pairing_bda) {
+      /* Reset btm pairing state */
+      BTM_TRACE_WARNING("%s Resetting BTM Pairing flags ", __func__);
+      btm_cb.pairing_bda = RawAddress::kAny;
+      btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
+      btm_cb.pairing_flags = 0;
+    }
+#endif
     btm_sec_free_dev(p_dev_rec);
     /* Tell controller to get rid of the link key, if it has one stored */
     BTM_DeleteStoredLinkKey(&p_dev_rec->bd_addr, NULL);

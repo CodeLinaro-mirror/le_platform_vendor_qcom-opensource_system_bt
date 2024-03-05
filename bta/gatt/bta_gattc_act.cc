@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -866,7 +869,11 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
 
   if (p_clcb->transport == BTA_TRANSPORT_LE) {
     if (!interop_match_addr_or_name(INTEROP_DISABLE_LE_CONN_UPDATES, &p_clcb->p_srcb->server_bda)) {
+#ifndef SUPPORT_ESL_AP
       L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, true);
+#else
+      L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, false);
+#endif
     }
   }
   p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;

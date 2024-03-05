@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #ifndef HCIDEFS_H
@@ -596,6 +599,9 @@ constexpr uint8_t HCI_LE_STATES_INIT_MASTER_SLAVE_BIT = 41;
 #define HCI_BLE_PHY_UPDATE_COMPLETE_EVT 0x0c
 #define HCI_LE_EXTENDED_ADVERTISING_REPORT_EVT 0x0D
 #define HCI_LE_ADVERTISING_SET_TERMINATED_EVT 0x12
+#ifdef SUPPORT_ESL_AP
+#define HCI_BLE_ENHANCED_CONN_COMPLETE_EVT_V2 0x29
+#endif
 
 /* Definitions for LE Channel Map */
 #define HCI_BLE_CHNL_MAP_SIZE 5
