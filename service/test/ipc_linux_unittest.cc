@@ -91,7 +91,7 @@ class IPCLinuxTest : public ::testing::Test {
     struct sockaddr_un address;
     memset(&address, 0, sizeof(address));
     address.sun_family = AF_UNIX;
-    strncpy(address.sun_path, kTestSocketPath, sizeof(address.sun_path) - 1);
+    strlcpy(address.sun_path, kTestSocketPath, sizeof(address.sun_path) - 1);
 
     int status =
         connect(client_fd_.get(), (struct sockaddr*)&address, sizeof(address));

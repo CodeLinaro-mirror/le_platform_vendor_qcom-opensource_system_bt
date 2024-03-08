@@ -27,7 +27,7 @@
  ******************************************************************************/
 
 #include "avct_api.h"
-#include <string.h>
+#include <bsd/string.h>
 #include "avct_int.h"
 #include "bt_common.h"
 #include "bt_target.h"

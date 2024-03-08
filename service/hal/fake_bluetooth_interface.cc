@@ -101,7 +101,7 @@ void FakeBluetoothInterface::NotifyAdapterPropertiesChanged(
 void FakeBluetoothInterface::NotifyAdapterNamePropertyChanged(
     const std::string& name) {
   bt_bdname_t hal_name;
-  strncpy(reinterpret_cast<char*>(hal_name.name), name.c_str(),
+  strlcpy(reinterpret_cast<char*>(hal_name.name), name.c_str(),
           std::min(sizeof(hal_name) - 1, name.length()));
   reinterpret_cast<char*>(hal_name.name)[name.length()] = '\0';
 

@@ -35,5 +35,5 @@ libaudioa2dpdefault_la_CC = @CC@
 libaudioa2dpdefault_la_SOURCES = $(cpp_sources)
 libaudioa2dpdefault_la_CPPFLAGS =$(AM_CPPFLAGS)  $(common_CFLAGS)
 libaudioa2dpdefault_la_CFLAGS = $(common_CFLAGS)
-libaudioa2dpdefault_la_LDFLAGS = $(common_LDFLAGS)
+libaudioa2dpdefault_la_LDFLAGS = $(common_LDFLAGS) -lbsd
 endif
