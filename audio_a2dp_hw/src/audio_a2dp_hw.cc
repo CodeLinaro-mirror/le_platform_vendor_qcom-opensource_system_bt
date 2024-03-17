@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <bsd/string.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -247,7 +248,7 @@ static int skt_connect(const char* path, size_t buffer_sz) {
 #else
     memset(&remote, 0, sizeof(remote));
     remote.sun_family = AF_LOCAL;
-    strncpy(remote.sun_path, path, sizeof(remote.sun_path)-1);
+    strlcpy(remote.sun_path, path, sizeof(remote.sun_path)-1);
     if(connect(skt_fd, (struct sockaddr*)&remote, sizeof(remote)) < 0)
 #endif
   {

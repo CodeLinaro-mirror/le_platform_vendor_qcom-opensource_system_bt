@@ -218,4 +218,4 @@ libbtstack_la_CC = @CC@
 libbtstack_la_SOURCES = $(cpp_sources)
 libbtstack_la_CPPFLAGS = $(AM_CPPFLAGS) -DHAS_NO_BDROID_BUILDCFG -std=c++11 -Wall -fpermissive -fPIC
 libbtstack_la_CFLAGS = $(common_CFLAGS)
-libbtstack_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes
+libbtstack_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes -lbsd

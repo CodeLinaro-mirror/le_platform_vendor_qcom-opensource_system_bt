@@ -120,7 +120,7 @@ class AsyncManagerSocketTest : public ::testing::Test {
   }
 
   void WriteFromClient(int socket_cli_fd) {
-    strcpy(client_buffer_, "1");
+    strlcpy(client_buffer_, "1",strlen("1"));
     int n = write(socket_cli_fd, client_buffer_, strlen(client_buffer_));
     EXPECT_TRUE(n > 0);
   }

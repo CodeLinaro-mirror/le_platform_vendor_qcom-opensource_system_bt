@@ -33,6 +33,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <bsd/string.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -478,7 +479,7 @@ static int skt_connect(char *path, size_t buffer_sz)
     skt_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
     memset(&remote, 0, sizeof(remote));
     remote.sun_family = AF_LOCAL;
-    strncpy(remote.sun_path, path, sizeof(remote.sun_path)-1);
+    strlcpy(remote.sun_path, path, sizeof(remote.sun_path)-1);
 
     if(connect(skt_fd, (struct sockaddr*)&remote, sizeof(remote)) < 0)
     {

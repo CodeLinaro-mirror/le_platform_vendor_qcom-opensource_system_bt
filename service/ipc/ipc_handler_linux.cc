@@ -85,7 +85,7 @@ bool IPCHandlerLinux::Run() {
     struct sockaddr_un address;
     memset(&address, 0, sizeof(address));
     address.sun_family = AF_UNIX;
-    strncpy(address.sun_path, path.value().c_str(),
+    strlcpy(address.sun_path, path.value().c_str(),
             sizeof(address.sun_path) - 1);
     if (bind(server_socket.get(), (struct sockaddr*)&address, sizeof(address)) <
         0) {

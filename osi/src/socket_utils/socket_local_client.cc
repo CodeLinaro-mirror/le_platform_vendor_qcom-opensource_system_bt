@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include "osi/include/osi.h"
+#include "osi/include/compat.h"
 #include "osi/include/socket_utils/socket_local.h"
 #include "osi/include/socket_utils/sockets.h"
 
@@ -63,8 +64,8 @@ int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
         goto error;
       }
 
-      strcpy(p_addr->sun_path, FILESYSTEM_SOCKET_PREFIX);
-      strcat(p_addr->sun_path, name);
+      strlcpy(p_addr->sun_path, FILESYSTEM_SOCKET_PREFIX,strlen(FILESYSTEM_SOCKET_PREFIX));
+      strlcat(p_addr->sun_path, name,strlen(name));
 #endif
       break;
 
@@ -76,8 +77,8 @@ int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
         goto error;
       }
 
-      strcpy(p_addr->sun_path, ANDROID_RESERVED_SOCKET_PREFIX);
-      strcat(p_addr->sun_path, name);
+      strlcpy(p_addr->sun_path, ANDROID_RESERVED_SOCKET_PREFIX,strlen(ANDROID_RESERVED_SOCKET_PREFIX));
+      strlcat(p_addr->sun_path, name,strlen(name));
       break;
 
     case ANDROID_SOCKET_NAMESPACE_FILESYSTEM:
@@ -88,7 +89,7 @@ int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
         goto error;
       }
 
-      strcpy(p_addr->sun_path, name);
+      strlcpy(p_addr->sun_path, name,strlen(name));
       break;
     default:
       // invalid namespace id

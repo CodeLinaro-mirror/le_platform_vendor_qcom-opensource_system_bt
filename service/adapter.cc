@@ -168,7 +168,7 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
       return false;
     }
 
-    strncpy(reinterpret_cast<char*>(hal_name.name), name.c_str(),
+    strlcpy(reinterpret_cast<char*>(hal_name.name), name.c_str(),
             name.length() + 1);
 
     VLOG(1) << "Setting adapter name: " << name;
