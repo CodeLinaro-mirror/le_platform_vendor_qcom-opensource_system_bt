@@ -2897,7 +2897,7 @@ void BTM_StartEncryption(RawAddress address, uint8_t *rand, uint16_t ediv, const
     }
 
     p_cb->enc_handle = p_rec->ble_hci_handle;
-    p_rec->p_callback = p_callback;
+    p_rec->p_ble_callback = p_callback;
     p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
 
     BTM_TRACE_WARNING("%s: send start enc", __FUNCTION__);

@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  *****************************************************************************/
 
 /******************************************************************************
@@ -1446,6 +1449,14 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
   ple_key.key_size = p_cb->loc_enc_size;
   btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_PENC,
                       (tBTM_LE_KEY_VALUE*)&ple_key, true);
+
+#ifdef SUPPORT_ESL_AP
+  // send ltk to uplayer.
+  tSMP_CALLBACK* p_callback = p_cb->p_callback;
+  tSMP_EVT_DATA cb_data;
+  memcpy(&cb_data.enc_key, &ple_key, sizeof(tBTM_LE_PENC_KEYS));
+  if (p_callback) (*p_callback)(SMP_ENCRYPTION_INFORMATION_EVT, p_cb->pairing_bda, &cb_data);
+#endif
 }
 
 /*******************************************************************************

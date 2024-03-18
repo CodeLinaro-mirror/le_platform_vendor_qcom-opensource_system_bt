@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #ifndef SMP_API_TYPES_H
@@ -59,6 +62,11 @@
 /* SC OOB local data set is created (as result of SMP_CrLocScOobData(...)) */
 #define SMP_SC_LOC_OOB_DATA_UP_EVT 10
 #define SMP_BR_KEYS_REQ_EVT 12 /* SMP over BR keys request event */
+
+#ifdef SUPPORT_ESL_AP
+#define SMP_ENCRYPTION_INFORMATION_EVT 13 /* encryption information event */
+#endif
+
 typedef uint8_t tSMP_EVT;
 
 /* pairing failure reason code */
@@ -252,12 +260,25 @@ typedef struct {
   tSMP_PEER_OOB_DATA peer_oob_data;
 } tSMP_SC_OOB_DATA;
 
+#ifdef SUPPORT_ESL_AP
+typedef struct {
+  BT_OCTET16 ltk;
+  BT_OCTET8 rand;
+  uint16_t ediv;
+  uint8_t sec_level;
+  uint8_t key_size;
+} tSMP_ENC_KEY;
+#endif
+
 typedef union {
   uint32_t passkey;
   tSMP_IO_REQ io_req; /* IO request */
   tSMP_CMPL cmplt;
   tSMP_OOB_DATA_TYPE req_oob_type;
   tSMP_LOC_OOB_DATA loc_oob_data;
+#ifdef SUPPORT_ESL_AP
+  tSMP_ENC_KEY enc_key;
+#endif
 } tSMP_EVT_DATA;
 
 /* AES Encryption output */
