@@ -428,7 +428,11 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
   // Eww...horrible hackery here
   /* If command was a VSC, then extract command_complete callback */
   if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC ||
-      (opcode == HCI_BLE_RAND) || (opcode == HCI_BLE_ENCRYPT)) {
+      (opcode == HCI_BLE_RAND) || (opcode == HCI_BLE_ENCRYPT)
+      #ifdef SUPPORT_ESL_AP
+       || (opcode == HCI_DISCONNECT)
+      #endif
+      ) {
     vsc_callback = *((void**)(p_buf + 1));
   }
 
@@ -1334,14 +1338,22 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
           #endif
           */
           default:
+          #ifdef SUPPORT_ESL_AP
+            if ((opcode == HCI_DISCONNECT) || ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC))
+          #else
             if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
+          #endif
               btm_vsc_complete(&status, opcode, 1,
                                (tBTM_VSC_CMPL_CB*)p_vsc_status_cback);
             break;
         }
 
       } else {
+      #ifdef SUPPORT_ESL_AP
+        if ((opcode == HCI_DISCONNECT) || ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC))
+      #else
         if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
+      #endif
           btm_vsc_complete(&status, opcode, 1,
                            (tBTM_VSC_CMPL_CB*)p_vsc_status_cback);
       }
