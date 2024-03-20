@@ -12,6 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
 #ifndef ANDROID_INCLUDE_BT_GATT_CLIENT_H
@@ -302,7 +306,12 @@ typedef struct {
 
   /** Get gatt db content */
   bt_status_t (*get_gatt_db)(int conn_id);
-
+#ifdef SUPPORT_ESL_AP
+/** Create a fast connection to a remote LE or dual-mode device */
+  bt_status_t (*connect_v2)(int client_if, uint8_t advertising_handle, uint8_t subevent,
+                         const RawAddress& bd_addr, bool is_direct, int transport,
+                         bool opportunistic, int initiating_phys);
+#endif
 } btgatt_client_interface_t;
 
 __END_DECLS

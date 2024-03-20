@@ -877,6 +877,16 @@ extern void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
                                            uint8_t initiating_phys,
                                            EXT_CONN_PHY_CFG* phy_cfg);
 
+#ifdef SUPPORT_ESL_AP
+extern void btsnd_hcic_ble_ext_create_conn_v2(uint8_t advertising_handle,
+                                              uint8_t subevent,
+                                              uint8_t init_filter_policy,
+                                              uint8_t addr_type_own,
+                                              uint8_t addr_type_peer,
+                                              const RawAddress& bda_peer,
+                                              uint8_t initiating_phys,
+                                              EXT_CONN_PHY_CFG* phy_cfg);
+#endif
 extern void btsnd_hcic_ble_add_device_resolving_list(
     uint8_t addr_type_peer, const RawAddress& bda_peer,
     uint8_t irk_peer[HCIC_BLE_IRK_SIZE], uint8_t irk_local[HCIC_BLE_IRK_SIZE]);

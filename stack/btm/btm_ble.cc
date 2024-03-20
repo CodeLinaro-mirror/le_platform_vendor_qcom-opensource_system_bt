@@ -2071,17 +2071,26 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
 #endif
   } else {
     role = HCI_ROLE_UNKNOWN;
+#ifndef SUPPORT_ESL_AP
     if (status != HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT) {
       btm_ble_set_conn_st(BLE_CONN_IDLE);
-#if (BLE_PRIVACY_SPT == TRUE)
-      btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
-#endif
+  #if (BLE_PRIVACY_SPT == TRUE)
+        btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
+  #endif
     } else {
-#if (BLE_PRIVACY_SPT == TRUE)
-      btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
-      btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, true);
-#endif
+  #if (BLE_PRIVACY_SPT == TRUE)
+        btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
+        btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, true);
+  #endif
     }
+#else
+    l2cu_find_lcb_by_bd_addr_to_clean(bda, BT_TRANSPORT_LE);
+    BTM_TRACE_EVENT("zhoz debug set p_clb as null as receive error connection complete event");
+    btm_ble_set_conn_st(BLE_CONN_IDLE);
+  #if (BLE_PRIVACY_SPT == TRUE)
+      btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
+  #endif
+#endif
   }
 
   btm_ble_update_mode_operation(role, &bda, status);

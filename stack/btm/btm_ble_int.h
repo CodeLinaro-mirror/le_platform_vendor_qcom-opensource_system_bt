@@ -149,6 +149,14 @@ extern void btm_ble_update_mode_operation(uint8_t link_role,
 extern bool btm_execute_wl_dev_operation(void);
 extern void btm_ble_update_link_topology_mask(uint8_t role, bool increase);
 extern void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr);
+#ifdef SUPPORT_ESL_AP
+extern void btm_send_hci_create_connection_v2(
+    uint16_t scan_int, uint16_t scan_win, uint8_t advertising_handle,
+    uint8_t subevent, uint8_t init_filter_policy, uint8_t addr_type_peer,
+    const RawAddress& bda_peer,uint8_t addr_type_own,uint16_t conn_int_min,
+    uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
+    int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys);
+#endif
 
 /* direct connection utility */
 extern bool btm_send_pending_direct_conn(void);
