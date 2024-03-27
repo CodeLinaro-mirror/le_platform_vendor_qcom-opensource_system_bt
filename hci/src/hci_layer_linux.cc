@@ -287,12 +287,13 @@ hci_transmit_status_t hci_transmit(BT_HDR* packet) {
 
   uint8_t* addr = packet->data + packet->offset - 1;
   uint8_t store = *addr;
+  uint16_t hci_pktlen = packet->len;
   *addr = type;
-  size_t ret = write(bt_vendor_fd, addr, packet->len + 1);
+  size_t ret = write(bt_vendor_fd, addr, hci_pktlen + 1);
 
   *(addr) = store;
 
-  if (ret != packet->len + 1) {
+  if (ret != hci_pktlen + 1) {
     status = HCI_TRANSMIT_DAEMON_DIED;
     LOG_ERROR( LOG_TAG, "Should have send whole packet");
   }
