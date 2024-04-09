@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ * Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #ifndef HCIMSGS_H
@@ -673,6 +676,11 @@ extern void btsnd_hcic_raw_cmd (void *buffer, uint16_t opcode, uint8_t len,
 extern void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode,
                                        uint8_t len, uint8_t* p_data,
                                        void* p_cmd_cplt_cback);
+
+#ifdef SUPPORT_ESL_AP
+void btsnd_hcic_raw_cmd_with_status_cb (void *buffer, uint16_t opcode, uint8_t len,
+                                 uint8_t *p_data, void *p_cmd_status_cback);
+#endif
 
 /*******************************************************************************
  * BLE Commands

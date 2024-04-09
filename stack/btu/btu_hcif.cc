@@ -428,11 +428,7 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
   // Eww...horrible hackery here
   /* If command was a VSC, then extract command_complete callback */
   if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC ||
-      (opcode == HCI_BLE_RAND) || (opcode == HCI_BLE_ENCRYPT)
-      #ifdef SUPPORT_ESL_AP
-       || (opcode == HCI_DISCONNECT)
-      #endif
-      ) {
+      (opcode == HCI_BLE_RAND) || (opcode == HCI_BLE_ENCRYPT)) {
     vsc_callback = *((void**)(p_buf + 1));
   }
 
@@ -440,6 +436,38 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
       p_buf, btu_hcif_command_complete_evt, btu_hcif_command_status_evt,
       vsc_callback);
 }
+
+#ifdef SUPPORT_ESL_AP
+static void btu_hcif_command_status_evt_with_cb_on_task_all(uint8_t status,
+                                                        BT_HDR* event,
+                                                        void* context) {
+  command_opcode_t opcode;
+  uint8_t* stream = event->data + event->offset;
+  STREAM_TO_UINT16(opcode, stream);
+
+  tBTM_RAW_STATUS raw_status_params;
+  raw_status_params.opcode = opcode;
+  raw_status_params.status = status;
+  tBTM_RAW_STATUS_CB *cb = (tBTM_RAW_STATUS_CB*)context;
+  (*cb)(&raw_status_params);
+
+  osi_free(event);
+}
+
+static void btu_hcif_command_status_evt_with_cb_all(uint8_t status, BT_HDR* command,
+                                                void* context) {
+  // report command status event every time.
+  do_in_hci_thread(
+      FROM_HERE, base::Bind(btu_hcif_command_status_evt_with_cb_on_task_all, status,
+                            command, context));
+}
+
+void btu_hcif_send_cmd_with_status_cb(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf, void* status_cb) {
+  hci_layer_get_interface()->transmit_command(
+      p_buf, NULL,
+      btu_hcif_command_status_evt_with_cb_all, status_cb);
+}
+#endif
 
 using hci_cmd_cb = base::Callback<void(uint8_t* /* return_parameters */,
                                        uint16_t /* return_parameters_length*/)>;
@@ -1338,22 +1366,14 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
           #endif
           */
           default:
-          #ifdef SUPPORT_ESL_AP
-            if ((opcode == HCI_DISCONNECT) || ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC))
-          #else
             if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
-          #endif
               btm_vsc_complete(&status, opcode, 1,
                                (tBTM_VSC_CMPL_CB*)p_vsc_status_cback);
             break;
         }
 
       } else {
-      #ifdef SUPPORT_ESL_AP
-        if ((opcode == HCI_DISCONNECT) || ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC))
-      #else
         if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
-      #endif
           btm_vsc_complete(&status, opcode, 1,
                            (tBTM_VSC_CMPL_CB*)p_vsc_status_cback);
       }

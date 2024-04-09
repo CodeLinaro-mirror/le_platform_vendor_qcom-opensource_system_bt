@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ * Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -695,6 +698,21 @@ BTM_TRACE_EVENT ("BTM: BTM_Hci_Raw_Command: Opcode: 0x%04X, ParamLen: %i.",
     return BTM_NO_RESOURCES;
 
 }
+
+#ifdef SUPPORT_ESL_AP
+void BTM_Hci_Raw_Command_with_status_cb(uint16_t opcode, uint8_t param_len,
+                               uint8_t* p_param_buf, tBTM_RAW_STATUS_CB* p_cb) {
+  /* Allocate a buffer to hold HCI command plus the callback function */
+  void* p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB*) + param_len +
+                           HCIC_PREAMBLE_SIZE);
+
+  BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__, opcode,
+                  param_len);
+  /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
+  btsnd_hcic_raw_cmd_with_status_cb(p_buf, opcode, param_len, p_param_buf,(void*)p_cb);
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         BTM_VendorSpecificCommand
