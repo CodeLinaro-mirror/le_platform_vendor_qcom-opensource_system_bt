@@ -48,6 +48,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /*******************************************************************************
@@ -1970,6 +1973,9 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
   tBTA_SERVICE_MASK service_mask;
   uint32_t i;
   RawAddress bd_addr;
+  #ifdef SUPPORT_ESL_AP
+  bool skip = false;
+  #endif
 
   BTIF_TRACE_EVENT("%s: ev: %s", __func__, dump_dm_event(event));
 
@@ -2115,8 +2121,19 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       }
       btif_update_remote_version_property(&bd_addr);
       btif_dm_update_cod(bd_addr, p_data->link_up.dc);
+#ifndef SUPPORT_ESL_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_CONNECTED);
+#else
+      if (vendor_acl_state_changed_cb) {
+          uint16_t conn_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
+          skip = vendor_acl_state_changed_cb(BT_STATUS_SUCCESS, &bd_addr, BT_ACL_STATE_CONNECTED, conn_handle);
+      }
+      if (!skip) {
+          HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
+                &bd_addr, BT_ACL_STATE_CONNECTED);
+      }
+#endif
 
       HAL_CBACK(bt_vendor_callbacks, acl_state_changed_with_reason_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_CONNECTED, BT_STATUS_SUCCESS,
@@ -2143,8 +2160,19 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btif_av_move_idle(bd_addr);
       BTIF_TRACE_DEBUG(
           "BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
+#ifndef SUPPORT_ESL_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_DISCONNECTED);
+#else
+      if (vendor_acl_state_changed_cb) {
+          skip = vendor_acl_state_changed_cb(BT_STATUS_SUCCESS, &bd_addr, BT_ACL_STATE_DISCONNECTED, 0xff);
+      }
+
+      if (!skip) {
+        HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
+                &bd_addr, BT_ACL_STATE_DISCONNECTED);
+      }
+#endif
 
       HAL_CBACK(bt_vendor_callbacks, acl_state_changed_with_reason_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_DISCONNECTED, btm_get_acl_disc_reason_code(),

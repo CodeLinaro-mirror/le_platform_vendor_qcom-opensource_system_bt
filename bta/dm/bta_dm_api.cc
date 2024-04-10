@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -835,9 +838,15 @@ void BTA_DmSetBlePrefConnParams(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void BTA_DmSetBleConnScanParams(uint32_t scan_interval, uint32_t scan_window) {
+#ifndef SUPPORT_ESL_AP
   tBTA_DM_API_BLE_SCAN_PARAMS* p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS*)osi_calloc(
       sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
 
+#else
+  tBTA_DM_API_BLE_CONN_SCAN_PARAMS* p_msg = (tBTA_DM_API_BLE_CONN_SCAN_PARAMS*)osi_calloc(
+      sizeof(tBTA_DM_API_BLE_CONN_SCAN_PARAMS));
+
+#endif
   p_msg->hdr.event = BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT;
   p_msg->scan_int = scan_interval;
   p_msg->scan_window = scan_window;

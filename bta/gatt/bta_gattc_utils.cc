@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -345,9 +348,16 @@ bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB* p_clreg,
   uint8_t i;
 
   for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
+#ifndef SUPPORT_ESL_AP
     if (p_clreg->notif_reg[i].in_use &&
         p_clreg->notif_reg[i].remote_bda == p_srcb->server_bda &&
         p_clreg->notif_reg[i].handle == p_notify->handle) {
+#else
+    if (p_clreg->notif_reg[i].in_use &&
+        ((p_clreg->notif_reg[i].remote_bda == p_srcb->server_bda) ||
+         (p_clreg->notif_reg[i].remote_bda == RawAddress::kAny)) &&
+        p_clreg->notif_reg[i].handle == p_notify->handle) {
+#endif
       APPL_TRACE_DEBUG("Notification registered!");
       return true;
     }
