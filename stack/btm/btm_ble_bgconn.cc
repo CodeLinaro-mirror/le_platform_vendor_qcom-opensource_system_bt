@@ -411,6 +411,40 @@ void btm_send_hci_create_connection(
   }
 }
 
+#ifdef SUPPORT_ESL_AP
+void btm_send_hci_create_connection_v2(
+    uint16_t scan_int, uint16_t scan_win, uint8_t advertising_handle,
+    uint8_t subevent, uint8_t init_filter_policy, uint8_t addr_type_peer,
+    const RawAddress& bda_peer,uint8_t addr_type_own,uint16_t conn_int_min,
+    uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
+    int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys) {
+  if (controller_get_interface()->supports_ble_extended_advertising()) {
+    EXT_CONN_PHY_CFG phy_cfg[3];  // maximum three phys
+
+    int phy_cnt =
+        std::bitset<std::numeric_limits<uint8_t>::digits>(initiating_phys)
+            .count();
+
+    LOG_ASSERT(phy_cnt < 4) << "More than three phys provided";
+    // TODO(jpawlowski): tune parameters for different transports
+    for (int i = 0; i < phy_cnt; i++) {
+      phy_cfg[i].scan_int = scan_int;
+      phy_cfg[i].scan_win = scan_win;
+      phy_cfg[i].conn_int_min = conn_int_min;
+      phy_cfg[i].conn_int_max = conn_int_max;
+      phy_cfg[i].conn_latency = conn_latency;
+      phy_cfg[i].sup_timeout = conn_timeout;
+      phy_cfg[i].min_ce_len = min_ce_len;
+      phy_cfg[i].max_ce_len = max_ce_len;
+    }
+    addr_type_peer &= ~BLE_ADDR_TYPE_ID_BIT;
+    btsnd_hcic_ble_ext_create_conn_v2(advertising_handle, subevent, init_filter_policy, addr_type_own,
+                                   addr_type_peer, bda_peer, initiating_phys, phy_cfg);
+  } else {
+    BTM_TRACE_EVENT("%s Not support ble extended advertising", __func__);
+  }
+}
+#endif
 /*******************************************************************************
  *
  * Function         btm_ble_start_auto_conn

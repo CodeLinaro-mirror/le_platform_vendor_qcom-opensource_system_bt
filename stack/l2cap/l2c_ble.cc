@@ -992,6 +992,143 @@ bool l2cble_create_conn(tL2C_LCB* p_lcb) {
   return rt;
 }
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         l2cble_init_direct_conn_v2
+ *
+ * Description      This function is to initate a direct connection by extend connect
+ *
+ * Returns          true connection initiated, false otherwise.
+ *
+ ******************************************************************************/
+bool l2cble_init_direct_conn_v2(tL2C_LCB* p_lcb) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(p_lcb->remote_bd_addr);
+  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  uint16_t scan_int;
+  uint16_t scan_win;
+  uint8_t adv_handle;
+  uint8_t subevent;
+  RawAddress peer_addr;
+  uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
+  uint8_t own_addr_type = BLE_ADDR_PUBLIC;
+  /* There can be only one BLE connection request outstanding at a time */
+  if (p_dev_rec == NULL) {
+    L2CAP_TRACE_WARNING("unknown device, can not initate connection");
+    return (false);
+  }
+
+  scan_int = (p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF)
+                 ? BTM_BLE_SCAN_FAST_INT
+                 : p_cb->scan_int;
+  scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF)
+                 ? BTM_BLE_SCAN_FAST_WIN
+                 : p_cb->scan_win;
+
+  peer_addr_type = p_lcb->ble_addr_type;
+  peer_addr = p_lcb->remote_bd_addr;
+  adv_handle = p_lcb->advertising_handle;
+  subevent = p_lcb->subevent;
+
+#if (BLE_PRIVACY_SPT == TRUE)
+  /* For RCUs, we always use public address for the connection and disable
+     adding them to the resolving list, because RCUs can not resolve our
+     random address */
+  if (!interop_match_addr_or_name
+     (INTEROP_DISABLE_RESOLVING, &(p_dev_rec->bd_addr))) {
+    own_addr_type =
+        btm_cb.ble_ctr_cb.privacy_mode ? BLE_ADDR_RANDOM : BLE_ADDR_PUBLIC;
+    if (p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) {
+      if (btm_cb.ble_ctr_cb.privacy_mode >= BTM_PRIVACY_1_2)
+        own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
+
+      btm_ble_enable_resolving_list(BTM_BLE_RL_INIT);
+      btm_random_pseudo_to_identity_addr(&peer_addr, &peer_addr_type);
+    } else {
+      btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
+
+      // If we have a current RPA, use that instead.
+      if (!p_dev_rec->ble.cur_rand_addr.IsEmpty()) {
+        peer_addr = p_dev_rec->ble.cur_rand_addr;
+      }
+    }
+  }
+#endif
+
+  if (!btm_ble_topology_check(BTM_BLE_STATE_INIT)) {
+    l2cu_release_lcb(p_lcb);
+    L2CAP_TRACE_ERROR("initate direct connection fail, topology limitation");
+    return false;
+  }
+  btm_send_hci_create_connection_v2(
+      scan_int,       /* uint16_t scan_int      */
+      scan_win,       /* uint16_t scan_win      */
+      adv_handle,     /* uint8_t adv_handle     */
+      subevent,       /* uint8_t subevent       */
+      false,          /* uint8_t white_list     */
+      peer_addr_type, /* uint8_t addr_type_peer */
+      peer_addr,      /* BD_ADDR bda_peer     */
+      own_addr_type,  /* uint8_t addr_type_own  */
+      (uint16_t)(
+          (p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF)
+              ? p_dev_rec->conn_params.min_conn_int
+              : BTM_BLE_CONN_INT_MIN_DEF), /* uint16_t conn_int_min  */
+      (uint16_t)(
+          (p_dev_rec->conn_params.max_conn_int != BTM_BLE_CONN_PARAM_UNDEF)
+              ? p_dev_rec->conn_params.max_conn_int
+              : BTM_BLE_CONN_INT_MAX_DEF), /* uint16_t conn_int_max  */
+      (uint16_t)(
+          (p_dev_rec->conn_params.slave_latency != BTM_BLE_CONN_PARAM_UNDEF)
+              ? p_dev_rec->conn_params.slave_latency
+              : BTM_BLE_CONN_SLAVE_LATENCY_DEF), /* uint16_t conn_latency  */
+      (uint16_t)(
+          (p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF)
+              ? p_dev_rec->conn_params.supervision_tout
+              : BTM_BLE_CONN_TIMEOUT_DEF), /* conn_timeout */
+      0,                                   /* uint16_t min_len       */
+      0,                                   /* uint16_t max_len       */
+      p_lcb->initiating_phys);
+
+  p_lcb->link_state = LST_CONNECTING;
+  l2cb.is_ble_connecting = true;
+  l2cb.ble_connecting_bda = p_lcb->remote_bd_addr;
+  alarm_set_on_mloop(p_lcb->l2c_lcb_timer, L2CAP_BLE_LINK_CONNECT_TIMEOUT_MS,
+                     l2c_lcb_timer_timeout, p_lcb);
+  btm_ble_set_conn_st(BLE_DIR_CONN);
+
+  return (true);
+}
+
+/*******************************************************************************
+ *
+ * Function         l2cble_create_conn_v2
+ *
+ * Description      This function initiates an acl connection via HCI
+ *
+ * Returns          true if successful, false if connection not started.
+ *
+ ******************************************************************************/
+bool l2cble_create_conn_v2(tL2C_LCB* p_lcb) {
+  tBTM_BLE_CONN_ST conn_st = btm_ble_get_conn_st();
+  bool rt = false;
+
+  /* There can be only one BLE connection request outstanding at a time */
+  if (conn_st == BLE_CONN_IDLE) {
+    rt = l2cble_init_direct_conn_v2(p_lcb);
+  } else {
+    /*L2CAP_TRACE_WARNING(
+        "L2CAP - LE - cannot start new connection at conn st: %d", conn_st);
+
+    btm_ble_enqueue_direct_conn_req(p_lcb);
+
+    if (conn_st == BLE_BG_CONN) btm_ble_suspend_bg_conn();
+
+    rt = true;*/
+  }
+  return rt;
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         l2c_link_processs_ble_num_bufs

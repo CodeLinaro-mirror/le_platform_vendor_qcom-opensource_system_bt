@@ -296,6 +296,44 @@ void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg) {
                      p_msg->api_conn.client_if);
   }
 }
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         bta_gattc_process_api_open_v2
+ *
+ * Description      process connect API request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg) {
+  uint16_t event = ((BT_HDR*)p_msg)->event;
+  tBTA_GATTC_CLCB* p_clcb = NULL;
+  tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(p_msg->api_conn.client_if);
+
+  if (p_clreg != NULL) {
+    if (p_msg->api_conn.is_direct) {
+      p_clcb = bta_gattc_find_alloc_clcb(p_msg->api_conn.client_if,
+                                         p_msg->api_conn.remote_bda,
+                                         p_msg->api_conn.transport);
+      if (p_clcb != NULL) {
+        bta_gattc_sm_execute(p_clcb, event, p_msg);
+      } else {
+        APPL_TRACE_ERROR("No resources to open a new connection.");
+
+        bta_gattc_send_open_cback(
+            p_clreg, BTA_GATT_NO_RESOURCES, p_msg->api_conn.remote_bda,
+            BTA_GATT_INVALID_CONN_ID, p_msg->api_conn.transport, 0);
+      }
+    } else {
+      bta_gattc_init_bk_conn(&p_msg->api_conn, p_clreg);
+    }
+  } else {
+    APPL_TRACE_ERROR("%s: Failed, unknown client_if: %d", __func__,
+                     p_msg->api_conn.client_if);
+  }
+}
+#endif
 /*******************************************************************************
  *
  * Function         bta_gattc_process_api_open_cancel
@@ -432,6 +470,39 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
     /* else wait for the callback event */
   }
 }
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         bta_gattc_open_v2
+ *
+ * Description      Process API connection function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
+  tBTA_GATTC_DATA gattc_data;
+  /* open/hold a connection */
+  if (!GATT_Connect_v2(p_clcb->p_rcb->client_if, p_data->api_conn_v2.advertising_handle,
+                    p_data->api_conn_v2.subevent, p_data->api_conn.remote_bda, true,
+                    p_data->api_conn.transport, p_data->api_conn.opportunistic,
+                    p_data->api_conn.initiating_phys)) {
+    APPL_TRACE_ERROR("Connection open failure");
+
+    bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_OPEN_FAIL_EVT, p_data);
+  } else {
+    /* a connected remote device */
+    if (GATT_GetConnIdIfConnected(
+            p_clcb->p_rcb->client_if, p_data->api_conn.remote_bda,
+            &p_clcb->bta_conn_id, p_data->api_conn.transport)) {
+      gattc_data.int_conn.hdr.layer_specific = p_clcb->bta_conn_id;
+
+      bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_CONN_EVT, &gattc_data);
+    }
+    /* else wait for the callback event */
+  }
+}
+#endif
 /*******************************************************************************
  *
  * Function         bta_gattc_init_bk_conn

@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -646,6 +649,28 @@ extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if,
                            tBTA_GATT_TRANSPORT transport, bool opportunistic,
                            uint8_t initiating_phys);
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         BTA_GATTC_Open_v2
+ *
+ * Description      Open a direct connection or add a background auto connection
+ *                  bd address
+ *
+ * Parameters       client_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *                  initiating_phys: LE PHY to use, optional
+ *
+ ******************************************************************************/
+extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
+                           const RawAddress& remote_bda, bool is_direct,
+                           tBTA_GATT_TRANSPORT transport, bool opportunistic);
+extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
+                           const RawAddress& remote_bda, bool is_direct,
+                           tBTA_GATT_TRANSPORT transport, bool opportunistic,
+                           uint8_t initiating_phys);
+#endif
 /*******************************************************************************
  *
  * Function         BTA_GATTC_CancelOpen
