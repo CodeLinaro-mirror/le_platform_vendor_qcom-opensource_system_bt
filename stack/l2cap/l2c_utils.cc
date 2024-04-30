@@ -290,7 +290,7 @@ void l2cu_find_lcb_by_bd_addr_to_clean(const RawAddress& p_bd_addr,
   for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++) {
     if ((p_lcb->in_use) && p_lcb->transport == transport &&
         (p_lcb->remote_bd_addr == p_bd_addr)) {
-      memset(p_lcb, 0 ,sizeof(struct t_l2c_linkcb));
+      l2cu_release_lcb(p_lcb);
     }
   }
 }
