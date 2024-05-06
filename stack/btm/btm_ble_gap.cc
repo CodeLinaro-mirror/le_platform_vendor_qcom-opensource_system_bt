@@ -2847,20 +2847,17 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
 }
 
 #ifdef SUPPORT_ESL_AP
-void BTM_GetScanStatus(base::Callback<void(bool, uint8_t)> cb) {
-
-  //if (BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
-  //  BTM_TRACE_WARNING("%s: scan_activity= %x, active ", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity);
-  //  cb.Run(true, BTM_BLE_SCAN_MODE_ACTI);
-  //}
+void BTM_GetScanStatus(bool *running, uint8_t *scan_type) {
 
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
-        tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
-        BTM_TRACE_WARNING("%s: scan_activity= %x, obs, type:%d", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity, p_inq->scan_type);
-        cb.Run(true, p_inq->scan_type);
+    tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
+    BTM_TRACE_WARNING("%s: scan_activity= %x, obs, type:%d", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity, p_inq->scan_type);
+    *running = true;
+    *scan_type = p_inq->scan_type;
   }
   else {
-    cb.Run(false, 0xff);
+    *running = false;
+    *scan_type = 0xff;
   }
 }
 
