@@ -1392,7 +1392,7 @@
  *****************************************************************************/
 
 #ifndef AAC_DECODER_INCLUDED
-#define AAC_DECODER_INCLUDED        TRUE
+#define AAC_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef MP3_DECODER_INCLUDED
@@ -1400,15 +1400,15 @@
 #endif
 
 #ifndef APTX_CLASSIC_DECODER_INCLUDED
-#define APTX_CLASSIC_DECODER_INCLUDED        TRUE
+#define APTX_CLASSIC_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef APTX_HD_DECODER_INCLUDED
-#define APTX_HD_DECODER_INCLUDED        TRUE
+#define APTX_HD_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef APTX_AD_DECODER_INCLUDED
-#define APTX_AD_DECODER_INCLUDED        TRUE
+#define APTX_AD_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef A2D_M24_INCLUDED
