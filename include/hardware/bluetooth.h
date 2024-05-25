@@ -351,6 +351,52 @@ typedef enum {
    */
   BT_PROPERTY_LOCAL_LE_FEATURES,
 
+  /**
+   * Description - Local Input/Output Capabilities for classic Bluetooth
+   * Access mode - GET and SET
+   * Data Type - bt_io_cap_t.
+   */
+  BT_PROPERTY_LOCAL_IO_CAPS,
+
+  /**
+   * Description - Local Input/Output Capabilities for BLE
+   * Access mode - GET and SET
+   * Data Type - bt_io_cap_t.
+   */
+  BT_PROPERTY_LOCAL_IO_CAPS_BLE,
+
+  BT_PROPERTY_DYNAMIC_AUDIO_BUFFER,
+
+  /**
+   * Description - Whether remote device supports Secure Connections mode
+   * Access mode - GET and SET.
+   * Data Type - uint8_t.
+   */
+  BT_PROPERTY_REMOTE_SECURE_CONNECTIONS_SUPPORTED,
+
+  /**
+   * Description - Maximum observed session key for remote device
+   * Access mode - GET and SET.
+   * Data Type - uint8_t.
+   */
+  BT_PROPERTY_REMOTE_MAX_SESSION_KEY_SIZE,
+
+  /**
+   * Description - Bluetooth Service 128-bit ADV AUDIO UUIDs
+   * Access mode - Only GET.
+   * Data type   - Array of bluetooth::Uuid (Array size inferred from property
+   *               length).
+   */
+  BT_PROPERTY_ADV_AUDIO_UUIDS = 0xA0,
+
+  /**
+   * Description - ADV AUDIO UUIDS Which triggers Action UUID
+   * Access mode - GET
+   * Data Type - Status flag.
+   */
+  BT_PROPERTY_ADV_AUDIO_ACTION_UUID,
+
+
   BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP = 0xFF,
 } bt_property_type_t;
 
