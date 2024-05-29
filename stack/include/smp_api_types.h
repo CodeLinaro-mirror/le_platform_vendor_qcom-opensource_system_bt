@@ -278,6 +278,7 @@ typedef union {
   tSMP_LOC_OOB_DATA loc_oob_data;
 #ifdef SUPPORT_ESL_AP
   tSMP_ENC_KEY enc_key;
+  tSMP_AUTH_REQ auth_req;
 #endif
 } tSMP_EVT_DATA;
 
