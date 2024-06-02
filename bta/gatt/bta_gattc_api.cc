@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -142,6 +145,51 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
   bta_sys_sendmsg(p_buf);
 }
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         BTA_GATTC_Open_v2
+ *
+ * Description      Open a direct connection or add a background auto connection
+ *                  bd address
+ *
+ * Parameters       client_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *                  transport: Transport to be used for GATT connection
+ *                             (BREDR/LE)
+ *                  initiating_phys: LE PHY to use, optional
+ *                  opportunistic: wether the connection shall be opportunistic,
+ *                                 and don't impact the disconnection timer
+ *
+ ******************************************************************************/
+void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
+                       const RawAddress& remote_bda, bool is_direct, tBTA_GATT_TRANSPORT transport,
+                       bool opportunistic) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  BTA_GATTC_Open_v2(client_if, advertising_handle, subevent, remote_bda, is_direct, transport, opportunistic,
+                 phy);
+}
+
+void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
+                    const RawAddress& remote_bda, bool is_direct, tBTA_GATT_TRANSPORT transport,
+                    bool opportunistic, uint8_t initiating_phys) {
+  tBTA_GATTC_API_OPEN_V2* p_buf =
+      (tBTA_GATTC_API_OPEN_V2*)osi_malloc(sizeof(tBTA_GATTC_API_OPEN_V2));
+
+  p_buf->hdr.event = BTA_GATTC_API_OPEN_EVT_V2;
+  p_buf->client_if = client_if;
+  p_buf->is_direct = is_direct;
+  p_buf->transport = transport;
+  p_buf->initiating_phys = initiating_phys;
+  p_buf->opportunistic = opportunistic;
+  p_buf->remote_bda = remote_bda;
+  p_buf->advertising_handle = advertising_handle;
+  p_buf->subevent = subevent;
+
+  bta_sys_sendmsg(p_buf);
+}
+#endif
 /*******************************************************************************
  *
  * Function         BTA_GATTC_CancelOpen

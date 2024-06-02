@@ -987,6 +987,34 @@ extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                          bool is_direct, tBT_TRANSPORT transport,
                          bool opportunistic, uint8_t initiating_phys);
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         GATT_Connect_v2
+ *
+ * Description      This function initiate a connecttion to a remote device on
+ *                  GATT channel.
+ *
+ * Parameters       gatt_if: applicaiton interface
+ *                  bd_addr: peer device address.
+ *                  is_direct: is a direct connection or a background auto
+ *                             connection
+ *                  transport : Physical transport for GATT connection
+ *                              (BR/EDR or LE)
+ *                  opportunistic: will not keep device connected if other apps
+ *                      disconnect, will not update connected apps counter, when
+ *                      disconnected won't cause physical disconnection.
+ *
+ * Returns          true if connection started; else false
+ *
+ ******************************************************************************/
+extern bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
+                         const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport,
+                         bool opportunistic);
+extern bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
+                         const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport,
+                         bool opportunistic, uint8_t initiating_phys);
+#endif
 /*******************************************************************************
  *
  * Function         GATT_CancelConnect

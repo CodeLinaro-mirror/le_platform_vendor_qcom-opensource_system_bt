@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -37,6 +40,9 @@
  ****************************************************************************/
 enum {
   BTA_GATTC_API_OPEN_EVT = BTA_SYS_EVT_START(BTA_ID_GATTC),
+#ifdef SUPPORT_ESL_AP
+  BTA_GATTC_API_OPEN_EVT_V2,
+#endif
   BTA_GATTC_INT_OPEN_FAIL_EVT,
   BTA_GATTC_API_CANCEL_OPEN_EVT,
   BTA_GATTC_INT_CANCEL_OPEN_OK_EVT,
@@ -90,6 +96,20 @@ typedef struct {
   uint8_t initiating_phys;
   bool opportunistic;
 } tBTA_GATTC_API_OPEN;
+
+#ifdef SUPPORT_ESL_AP
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  bool is_direct;
+  tBTA_TRANSPORT transport;
+  uint8_t initiating_phys;
+  bool opportunistic;
+  uint8_t advertising_handle;
+  uint8_t subevent;
+} tBTA_GATTC_API_OPEN_V2;
+#endif
 
 typedef tBTA_GATTC_API_OPEN tBTA_GATTC_API_CANCEL_OPEN;
 
@@ -170,6 +190,9 @@ typedef struct {
 typedef union {
   BT_HDR hdr;
   tBTA_GATTC_API_OPEN api_conn;
+#ifdef SUPPORT_ESL_AP
+  tBTA_GATTC_API_OPEN_V2 api_conn_v2;
+#endif
   tBTA_GATTC_API_CANCEL_OPEN api_cancel_conn;
   tBTA_GATTC_API_READ api_read;
   tBTA_GATTC_API_SEARCH api_search;
@@ -400,6 +423,10 @@ extern void bta_gattc_process_api_refresh(const RawAddress& remote_bda);
 extern void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_listen(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_broadcast(tBTA_GATTC_DATA* p_msg);
+#ifdef SUPPORT_ESL_AP
+extern void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
+#endif
 
 /* utility functions */
 extern tBTA_GATTC_CLCB* bta_gattc_find_clcb_by_cif(uint8_t client_if,

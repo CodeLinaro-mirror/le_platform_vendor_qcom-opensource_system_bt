@@ -583,5 +583,13 @@ extern tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB* p_db, bool is_long,
                                                tGATT_SEC_FLAG sec_flag,
                                                uint8_t key_size);
 extern bluetooth::Uuid* gatts_get_service_uuid(tGATT_SVC_DB* p_db);
+#ifdef SUPPORT_ESL_AP
+/* for fast connection*/
+extern bool gatt_act_connect_v2(tGATT_REG* p_reg, uint8_t advertising_handle, uint8_t subevent,
+                                const RawAddress& bd_addr, tBT_TRANSPORT transport, bool opportunistic,
+                                int8_t initiating_phys);
+extern bool gatt_connect_v2(const RawAddress& rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
+                         uint8_t advertising_handle, uint8_t subevent,uint8_t initiating_phys);
+#endif
 
 #endif

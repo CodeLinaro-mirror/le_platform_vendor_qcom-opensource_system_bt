@@ -1321,4 +1321,53 @@ extern void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status);
 *******************************************************************************/
 extern bool L2CA_isMediaChannel(uint16_t handle, uint16_t channel_id, bool is_local_cid);
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         L2CA_ConnectReq_v2
+ *
+ * Description      Higher layers call this function to create an L2CAP
+ *                  connection.
+ *                  Note that the connection is not established at this time,
+ *                  but connection establishment gets started. The callback
+ *                  will be invoked when connection establishes or fails.
+ *
+ * Returns          the CID of the connection, or 0 if it failed to start
+ *
+ ******************************************************************************/
+extern uint16_t L2CA_ConnectReq_v2(uint16_t psm, const RawAddress& p_bd_addr, uint8_t advertising_handle, uint8_t subevent);
+
+/*******************************************************************************
+ *
+ * Function         L2CA_ErtmConnectReq_v2
+ *
+ * Description      Higher layers call this function to create an L2CAP
+ *                  connection that needs to use Enhanced Retransmission Mode.
+ *                  Note that the connection is not established at this time,
+ *                  but connection establishment gets started. The callback
+ *                  will be invoked when connection establishes or fails.
+ *
+ * Returns          the CID of the connection, or 0 if it failed to start
+ *
+ ******************************************************************************/
+extern uint16_t L2CA_ErtmConnectReq_v2(uint16_t psm, const RawAddress& p_bd_addr,
+                                    tL2CAP_ERTM_INFO* p_ertm_info, uint8_t advertising_handle, uint8_t subevent);
+
+                                    /*******************************************************************************
+ *
+ *  Function        L2CA_ConnectFixedChnl_v2
+ *
+ *  Description     Connect an fixed signalling channel to a remote device.
+ *
+ *  Parameters:     Fixed CID
+ *                  BD Address of remote
+ *
+ *  Return value:   true if connection started
+ *
+ ******************************************************************************/
+extern bool L2CA_ConnectFixedChnl_v2(uint16_t fixed_cid,
+                                  const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent);
+extern bool L2CA_ConnectFixedChnl_v2(uint16_t fixed_cid, const RawAddress& bd_addr,
+                                  uint8_t advertising_handle, uint8_t subevent, uint8_t initiating_phys);
+#endif
 #endif /* L2C_API_H */

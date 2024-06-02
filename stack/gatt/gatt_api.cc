@@ -1145,6 +1145,60 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
   return status;
 }
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         GATT_Connect_v2
+ *
+ * Description      This function initiate a connecttion to a remote device on
+ *                  GATT channel.
+ *
+ * Parameters       gatt_if: applicaiton interface
+ *                  bd_addr: peer device address.
+ *                  is_direct: is a direct conenection or a background auto
+ *                             connection
+ *
+ * Returns          true if connection started; false if connection start
+ *                  failure.
+ *
+ ******************************************************************************/
+bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
+                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
+                  bool opportunistic) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  return GATT_Connect_v2(gatt_if, advertising_handle, subevent, bd_addr, is_direct, transport, opportunistic,
+                      phy);
+}
+
+bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
+                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
+                  bool opportunistic, uint8_t initiating_phys) {
+  tGATT_REG* p_reg;
+  bool status = false;
+  LOG(INFO) << __func__ << "gatt_if=" << +gatt_if << " " << bd_addr;
+
+  /* Make sure app is registered */
+  p_reg = gatt_get_regcb(gatt_if);
+  if (p_reg == NULL) {
+    LOG(ERROR) << "gatt_if = " << gatt_if << " is not registered";
+    return (false);
+  }
+
+  if (is_direct)
+    status = gatt_act_connect_v2(p_reg, advertising_handle, subevent, bd_addr, transport, opportunistic,
+                              initiating_phys);
+  else {
+    if (transport == BT_TRANSPORT_LE)
+      status = gatt_update_auto_connect_dev(gatt_if, true, bd_addr);
+    else {
+      LOG(ERROR) << "Unsupported transport for background connection";
+    }
+  }
+
+  return status;
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         GATT_CancelConnect

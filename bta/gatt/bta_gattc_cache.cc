@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ * Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -830,6 +833,9 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
   tBTA_GATTC_SERV* p_srvc_cb = NULL;
   bool pri_srvc;
   tBTA_GATTC_CLCB* p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
+#ifdef SUPPORT_ESL_AP
+  static uint8_t include_service_data[255];
+#endif
 
   p_srvc_cb = bta_gattc_find_scb_by_cid(conn_id);
 
@@ -858,6 +864,7 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
             p_data->value.incl_service.e_handle,
             p_data->value.incl_service.service_type);
 
+#ifndef SUPPORT_ESL_AP
         if (!pri_srvc)
           bta_gattc_add_srvc_to_list(
               p_srvc_cb, p_data->value.incl_service.s_handle,
@@ -868,6 +875,15 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
             p_srvc_cb, p_data->handle, p_data->value.incl_service.service_type,
             pri_srvc, p_data->value.incl_service.s_handle,
             BTA_GATTC_ATTR_TYPE_INCL_SRVC);
+#else
+        if (!pri_srvc) {
+          bta_gattc_add_srvc_to_list(
+              p_srvc_cb, p_data->value.incl_service.s_handle,
+              p_data->value.incl_service.e_handle,
+              p_data->value.incl_service.service_type, false);
+              memcpy(include_service_data, p_data, 255);
+        }
+#endif
         break;
 
       case GATT_DISC_CHAR:
@@ -876,6 +892,13 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                                    p_data->value.dclr_value.val_handle,
                                    p_data->value.dclr_value.char_uuid,
                                    p_data->value.dclr_value.char_prop);
+#ifdef SUPPORT_ESL_AP
+        if(p_data->handle == ((((tGATT_DISC_RES*)include_service_data)->value.incl_service.e_handle) - 2)) {
+          bta_gattc_add_attr_to_cache(
+            p_srvc_cb, ((tGATT_DISC_RES*)include_service_data)->handle, ((tGATT_DISC_RES*)include_service_data)->value.incl_service.service_type,
+            false, ((tGATT_DISC_RES*)include_service_data)->value.incl_service.s_handle,BTA_GATTC_ATTR_TYPE_INCL_SRVC);
+        }
+#endif
         break;
 
       case GATT_DISC_CHAR_DSCPT:

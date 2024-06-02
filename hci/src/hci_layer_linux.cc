@@ -30,7 +30,7 @@
 #include <string.h>
 #include <algorithm>
 //#include <bits/sa_family_t.h>
-
+#include <mutex>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
@@ -100,7 +100,7 @@ extern void hci_event_received(const tracked_objects::Location& from_here,
                                BT_HDR* packet);
 extern void acl_event_received(BT_HDR* packet);
 extern void sco_data_received(BT_HDR* packet);
-
+static std::mutex bthci_mutex;
 static int bt_vendor_fd = -1;
 static int reader_thread_listen_fd = -1;
 static int hci_interface;
@@ -172,17 +172,18 @@ void monitor_socket(int ctrl_fd, int fd) {
 /* TODO: should thread the device waiting and return immedialty */
 void hci_initialize() {
   LOG_ERROR( LOG_TAG,"%s", __func__);
+  std::lock_guard<std::mutex> lock(bthci_mutex);
 
   char prop_value[PROPERTY_VALUE_MAX];
-  //osi_property_get("bluetooth.interface", prop_value, "0"); 
-  
+  //osi_property_get("bluetooth.interface", prop_value, "0");
+
   errno = 0;
   //if (memcmp(prop_value, "hci", 3))
    // hci_interface = strtol(prop_value, NULL, 10);
   //else
    // hci_interface = strtol(prop_value + 3, NULL, 10);
   if (errno) hci_interface = 0;
-  
+
   LOG_ERROR(LOG_TAG,"Using interface hci-%d" ,hci_interface);
   //prop_value = 1;
   //osi_property_get("bluetooth.rfkill", prop_value, "1");
@@ -229,6 +230,7 @@ void hci_initialize() {
 
 void hci_close() {
   LOG_ERROR( LOG_TAG,"%s",__func__);
+  std::lock_guard<std::mutex> lock(bthci_mutex);
 
   if (bt_vendor_fd != -1) {
     close(bt_vendor_fd);
@@ -259,8 +261,12 @@ void hci_close() {
 hci_transmit_status_t hci_transmit(BT_HDR* packet) {
   uint8_t type;
   hci_transmit_status_t status = HCI_TRANSMIT_SUCCESS;
+  std::lock_guard<std::mutex> lock(bthci_mutex);
 
-  CHECK(bt_vendor_fd != -1);
+  if(bt_vendor_fd == -1) {
+    LOG_INFO(LOG_TAG, "%s: Link with HCI socket is closed", __func__);
+    return HCI_TRANSMIT_DAEMON_CLOSED;
+  }
 
   uint16_t event = packet->event & MSG_EVT_MASK;
   switch (event & MSG_EVT_MASK) {
@@ -281,12 +287,13 @@ hci_transmit_status_t hci_transmit(BT_HDR* packet) {
 
   uint8_t* addr = packet->data + packet->offset - 1;
   uint8_t store = *addr;
+  uint16_t hci_pktlen = packet->len;
   *addr = type;
-  size_t ret = write(bt_vendor_fd, addr, packet->len + 1);
+  size_t ret = write(bt_vendor_fd, addr, hci_pktlen + 1);
 
   *(addr) = store;
 
-  if (ret != packet->len + 1) {
+  if (ret != hci_pktlen + 1) {
     status = HCI_TRANSMIT_DAEMON_DIED;
     LOG_ERROR( LOG_TAG, "Should have send whole packet");
   }

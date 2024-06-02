@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 /******************************************************************************
@@ -2842,3 +2845,62 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
   }
   return rt;
 }
+
+#ifdef SUPPORT_ESL_AP
+void BTM_GetScanStatus(base::Callback<void(bool, uint8_t)> cb) {
+
+  //if (BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
+  //  BTM_TRACE_WARNING("%s: scan_activity= %x, active ", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity);
+  //  cb.Run(true, BTM_BLE_SCAN_MODE_ACTI);
+  //}
+
+  if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
+        tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
+        BTM_TRACE_WARNING("%s: scan_activity= %x, obs, type:%d", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity, p_inq->scan_type);
+        cb.Run(true, p_inq->scan_type);
+  }
+  else {
+    cb.Run(false, 0xff);
+  }
+}
+
+void BTM_StartEncryption(RawAddress address, uint8_t *rand, uint16_t ediv, const BT_OCTET16& ltk, tBTM_SEC_CBACK* p_callback) {
+    uint8_t sec_flag = 0;
+
+    BTM_GetSecurityFlagsByTransport(address, &sec_flag, BT_TRANSPORT_LE);
+    BTM_TRACE_WARNING("%s: sec_flag = %d", __FUNCTION__, sec_flag);
+
+    if (sec_flag & BTM_SEC_FLAG_ENCRYPTED) {
+      /* if link has been encrypted */
+      if (p_callback)
+          p_callback(&address, BT_TRANSPORT_LE, NULL, BTM_SUCCESS);
+      return;
+    }
+
+    /* if bonded and link not encrypted */
+    tBTM_STATUS cmd = BTM_NO_RESOURCES;
+    tBTM_SEC_DEV_REC* p_rec = btm_find_dev(address);
+    tBTM_BLE_SEC_REQ_ACT sec_req_act;
+    tBTM_LE_AUTH_REQ auth_req;
+    tBTM_CB* p_cb = &btm_cb;
+
+    if (p_rec == NULL) {
+        BTM_TRACE_WARNING( "btm_ble_set_encryption (NULL device record!! ");
+        p_callback(&address, BT_TRANSPORT_LE, NULL, BTM_WRONG_MODE);
+        return;
+    }
+
+
+    if (p_rec->sec_state == BTM_SEC_STATE_ENCRYPTING) {
+      BTM_TRACE_WARNING("Link Encryption is active, Busy!");
+      p_callback(&address, BT_TRANSPORT_LE, NULL, BTM_BUSY);
+    }
+
+    p_cb->enc_handle = p_rec->ble_hci_handle;
+    p_rec->p_ble_callback = p_callback;
+    p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+
+    BTM_TRACE_WARNING("%s: send start enc", __FUNCTION__);
+    btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, rand, ediv, ltk);
+}
+#endif

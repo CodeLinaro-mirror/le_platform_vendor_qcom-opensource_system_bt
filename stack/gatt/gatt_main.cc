@@ -220,6 +220,36 @@ bool gatt_connect(const RawAddress& rem_bda, tGATT_TCB* p_tcb,
 
   return gatt_ret;
 }
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         gatt_connect_v2
+ *
+ * Description      This function is called to initiate a connection to a peer
+ *                  device.
+ *
+ * Parameter        rem_bda: remote device address to connect to.
+ *
+ * Returns          true if connection is started, otherwise return false.
+ *
+ ******************************************************************************/
+bool gatt_connect_v2(const RawAddress& rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
+                         uint8_t advertising_handle, uint8_t subevent,uint8_t initiating_phys) {
+  bool gatt_ret = false;
+  if (gatt_get_ch_state(p_tcb) != GATT_CH_OPEN)
+    gatt_set_ch_state(p_tcb, GATT_CH_CONN);
+
+  if (transport == BT_TRANSPORT_LE) {
+    p_tcb->att_lcid = L2CAP_ATT_CID;
+    gatt_ret = L2CA_ConnectFixedChnl_v2(L2CAP_ATT_CID, rem_bda, advertising_handle, subevent, initiating_phys);
+  } else {
+    p_tcb->att_lcid = L2CA_ConnectReq_v2(BT_PSM_ATT, rem_bda, advertising_handle, subevent);
+    if (p_tcb->att_lcid != 0) gatt_ret = true;
+  }
+
+  return gatt_ret;
+}
+#endif
 
 /*******************************************************************************
  *
@@ -439,6 +469,70 @@ bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
   return ret;
 }
 
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         gatt_act_connect_v2
+ *
+ * Description      GATT connection initiation.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+bool gatt_act_connect_v2(tGATT_REG* p_reg, uint8_t advertising_handle, uint8_t subevent,
+                      const RawAddress& bd_addr, tBT_TRANSPORT transport, bool opportunistic,
+                      int8_t initiating_phys) {
+  bool ret = false;
+  tGATT_TCB* p_tcb;
+  uint8_t st;
+  p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
+  if (p_tcb != NULL) {
+    ret = true;
+    st = gatt_get_ch_state(p_tcb);
+
+//TCB exist as last fast connection is error and need to do retry.
+  if (gatt_get_ch_state(p_tcb) == GATT_CH_CONN) {
+      gatt_set_ch_state(p_tcb, GATT_CH_OPEN);
+      st = gatt_get_ch_state(p_tcb);
+  }
+      p_tcb->app_hold_link.clear();
+    /* before link down, another app try to open a GATT connection */
+    if (st == GATT_CH_OPEN && p_tcb->app_hold_link.empty() &&
+        transport == BT_TRANSPORT_LE) {
+      gatt_set_ch_state(p_tcb, GATT_CH_CONN);
+      if (!gatt_connect_v2(bd_addr, p_tcb, transport, advertising_handle, subevent, initiating_phys))
+        ret = false;
+    } else if (st == GATT_CH_CLOSING) {
+      /* need to complete the closing first */
+      ret = false;
+    }
+  } else {
+    p_tcb = gatt_allocate_tcb_by_bdaddr(bd_addr, transport);
+    if (p_tcb != NULL) {
+      if (!gatt_connect_v2(bd_addr, p_tcb, transport, advertising_handle, subevent, initiating_phys)) {
+        LOG(ERROR) << "gatt_connect_v2 failed";
+        fixed_queue_free(p_tcb->pending_ind_q, NULL);
+        *p_tcb = tGATT_TCB();
+      } else{
+          ret = true;
+      }
+    } else {
+      ret = 0;
+      LOG(ERROR) << "Max TCB for gatt_if [ " << +p_reg->gatt_if << "] reached.";
+    }
+  }
+
+  if (ret) {
+    if (!opportunistic)
+      gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, true);
+    else
+      VLOG(1) << __func__
+              << ": connection is opportunistic, not updating app usage";
+  }
+
+  return ret;
+}
+#endif
 /*******************************************************************************
  *
  * Function         gatt_le_connect_cback

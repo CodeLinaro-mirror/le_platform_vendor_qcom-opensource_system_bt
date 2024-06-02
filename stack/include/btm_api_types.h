@@ -14,6 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ * Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
 
 #ifndef BTM_API_TYPES_H
@@ -103,6 +106,14 @@ typedef struct
 } tBTM_RAW_CMPL;
 #define BTM_VSC_CMPL_DATA_SIZE \
   (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
+
+#ifdef SUPPORT_ESL_AP
+typedef struct {
+  uint16_t opcode;
+  uint8_t status;
+} tBTM_RAW_STATUS;
+#endif
+
 /**************************************************
  *  Device Control and General Callback Functions
  **************************************************/
@@ -139,6 +150,10 @@ typedef void(tBTM_VSC_CMPL_CB)(tBTM_VSC_CMPL* p1);
 ** BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_RAW_CMPL_CB) (tBTM_RAW_CMPL *p1);
+
+#ifdef SUPPORT_ESL_AP
+typedef void (tBTM_RAW_STATUS_CB) (tBTM_RAW_STATUS *p1);
+#endif
 
 /* Callback for apps to check connection and inquiry filters.
  * Parameters are the BD Address of remote and the Dev Class of remote. If the
@@ -1951,3 +1966,7 @@ extern tBTM_STATUS BTM_Hci_Raw_Command(uint16_t opcode,
                                                          uint8_t  param_len,
                                                          uint8_t *p_param_buf,
                                                          tBTM_RAW_CMPL_CB *p_cb);
+#ifdef SUPPORT_ESL_AP
+extern void BTM_Hci_Raw_Command_with_status_cb(uint16_t opcode, uint8_t param_len,
+                               uint8_t* p_param_buf, tBTM_RAW_STATUS_CB* p_cb);
+#endif
