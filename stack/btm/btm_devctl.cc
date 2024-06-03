@@ -763,6 +763,23 @@ void btm_hci_event(uint8_t *p, uint8_t event_code, uint8_t param_len)
   }
 }
 #endif
+
+#ifdef SUPPORT_ESL_AP
+void btm_hci_status(uint16_t opcode, uint8_t status)
+{
+  tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
+  tBTM_RAW_STATUS  raw_status_params;
+
+  /* If there was a callback address for raw cmd complete, call it */
+  if (p_devcb->p_hci_status_cb) {
+    /* Pass paramters to the callback function */
+    raw_status_params.opcode = opcode;   /* Number of bytes in return info */
+    raw_status_params.status = status;    /* Number of bytes in return info */
+    (p_devcb->p_hci_status_cb) (&raw_status_params);  /* Call the cmd complete callback function */
+  }
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         btm_vsc_complete
