@@ -2900,4 +2900,10 @@ void BTM_StartEncryption(RawAddress address, uint8_t *rand, uint16_t ediv, const
     BTM_TRACE_WARNING("%s: send start enc", __FUNCTION__);
     btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, rand, ediv, ltk);
 }
+
+void BTM_Deregister_Bgdev_List(tGATT_IF gatt_if) {
+    BTM_TRACE_WARNING("%s: gatt_if = %d", __FUNCTION__, gatt_if);
+    gatt_deregister_bgdev_list(gatt_if);
+}
+
 #endif
