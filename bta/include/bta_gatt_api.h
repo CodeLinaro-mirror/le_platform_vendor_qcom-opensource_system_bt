@@ -650,6 +650,10 @@ extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if,
                            uint8_t initiating_phys);
 
 #ifdef SUPPORT_ESL_AP
+extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
+                          bool is_direct, tBTA_GATT_TRANSPORT transport,
+                          bool opportunistic, uint8_t initiating_phys, tBTM_RAW_STATUS_CB *p_status_cb);
+
 /*******************************************************************************
  *
  * Function         BTA_GATTC_Open_v2

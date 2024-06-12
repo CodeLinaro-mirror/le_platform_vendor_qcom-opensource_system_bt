@@ -40,6 +40,10 @@
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 
+#ifdef SUPPORT_ESL_AP
+#include "stack/btm/btm_int.h"
+#endif
+
 using bluetooth::Uuid;
 
 /*****************************************************************************
@@ -146,6 +150,17 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
 }
 
 #ifdef SUPPORT_ESL_AP
+
+void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
+                    bool is_direct, tBTA_GATT_TRANSPORT transport,
+                    bool opportunistic, uint8_t initiating_phys, tBTM_RAW_STATUS_CB *p_status_cb) {
+  tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
+  if (p_status_cb != NULL && p_status_cb != (p_devcb->p_hci_status_cb)) {
+    p_devcb->p_hci_status_cb = p_status_cb;
+  }
+  BTA_GATTC_Open(client_if, remote_bda, is_direct, transport, opportunistic, initiating_phys);
+}
+
 /*******************************************************************************
  *
  * Function         BTA_GATTC_Open_v2
