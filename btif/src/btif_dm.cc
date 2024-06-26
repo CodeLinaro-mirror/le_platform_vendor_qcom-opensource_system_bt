@@ -1973,9 +1973,10 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
   tBTA_SERVICE_MASK service_mask;
   uint32_t i;
   RawAddress bd_addr;
-  #ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_ESL_AP
   bool skip = false;
-  #endif
+  char privacy_property[PROPERTY_VALUE_MAX];
+#endif
 
   BTIF_TRACE_EVENT("%s: ev: %s", __func__, dump_dm_event(event));
 
@@ -1999,9 +2000,20 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
         BTA_DmSetDeviceName(btif_get_default_local_name());
       }
 
+#ifdef SUPPORT_ESL_AP
+        osi_property_get("vendor.bt.eslap.privacy.disable", privacy_property, "false");
+        if (strncmp("true", privacy_property, 4) == 0) {
+            BTIF_TRACE_DEBUG("%s privacy disable = %s", __func__, privacy_property);
+            /* Disable local privacy */
+            BTA_DmBleConfigLocalPrivacy(false);
+        } else {
+            /* Enable local privacy */
+            BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
+        }
+#else
       /* Enable local privacy */
       BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
-
+#endif
       /* for each of the enabled services in the mask, trigger the profile
        * enable */
       service_mask = btif_get_enabled_services_mask();
