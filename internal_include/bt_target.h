@@ -748,11 +748,7 @@
  * Enables or disables support for local privacy (ex. address rotation)
  */
 #ifndef BLE_LOCAL_PRIVACY_ENABLED
-#ifndef SUPPORT_ESL_AP
 #define BLE_LOCAL_PRIVACY_ENABLED TRUE
-#else
-#define BLE_LOCAL_PRIVACY_ENABLED FALSE
-#endif
 #endif
 
 /*
