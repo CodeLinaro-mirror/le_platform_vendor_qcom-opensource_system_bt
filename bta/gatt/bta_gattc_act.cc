@@ -238,6 +238,21 @@ void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
       }
     }
 
+#ifdef SUPPORT_ESL_AP
+    /* remove pd connection associated with this rcb */
+    for (i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX; i++) {
+      if (bta_gattc_cb.pd_track[i].in_use) {
+        if (bta_gattc_cb.pd_track[i].cif_mask &
+            (1 << (p_clreg->client_if - 1))) {
+          bta_gattc_mark_pd_conn(p_clreg->client_if,
+                                 bta_gattc_cb.pd_track[i].remote_bda, false);
+          GATT_CancelConnect(p_clreg->client_if,
+                             bta_gattc_cb.pd_track[i].remote_bda, false);
+        }
+      }
+    }
+#endif
+
     if (p_clreg->num_clcb > 0) {
       /* close all CLCB related to this app */
       for (i = 0; i < BTA_GATTC_CLCB_MAX; i++) {
@@ -309,29 +324,61 @@ void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg) {
 void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg) {
   uint16_t event = ((BT_HDR*)p_msg)->event;
   tBTA_GATTC_CLCB* p_clcb = NULL;
-  tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(p_msg->api_conn.client_if);
+  tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(p_msg->api_conn_v2.client_if);
 
   if (p_clreg != NULL) {
-    if (p_msg->api_conn.is_direct) {
-      p_clcb = bta_gattc_find_alloc_clcb(p_msg->api_conn.client_if,
-                                         p_msg->api_conn.remote_bda,
-                                         p_msg->api_conn.transport);
+    if (p_msg->api_conn_v2.is_direct) {
+      p_clcb = bta_gattc_find_alloc_clcb(p_msg->api_conn_v2.client_if,
+                                         p_msg->api_conn_v2.remote_bda,
+                                         p_msg->api_conn_v2.transport);
       if (p_clcb != NULL) {
         bta_gattc_sm_execute(p_clcb, event, p_msg);
       } else {
         APPL_TRACE_ERROR("No resources to open a new connection.");
 
         bta_gattc_send_open_cback(
-            p_clreg, BTA_GATT_NO_RESOURCES, p_msg->api_conn.remote_bda,
-            BTA_GATT_INVALID_CONN_ID, p_msg->api_conn.transport, 0);
+            p_clreg, BTA_GATT_NO_RESOURCES, p_msg->api_conn_v2.remote_bda,
+            BTA_GATT_INVALID_CONN_ID, p_msg->api_conn_v2.transport, 0);
       }
     } else {
-      bta_gattc_init_bk_conn(&p_msg->api_conn, p_clreg);
+      bta_gattc_init_pd_conn(&p_msg->api_conn_v2, p_clreg);
     }
   } else {
     APPL_TRACE_ERROR("%s: Failed, unknown client_if: %d", __func__,
-                     p_msg->api_conn.client_if);
+                     p_msg->api_conn_v2.client_if);
   }
+}
+
+void bta_gattc_process_add_pd_list(tBTA_GATTC_DATA* p_msg) {
+  if (bta_gattc_mark_pd_conn(p_msg->api_add_pd.client_if, p_msg->api_add_pd.remote_bda, true)) {
+    GATT_Add_Pending_List(p_msg->api_add_pd.client_if, p_msg->api_add_pd.remote_bda, p_msg->api_add_pd.advertising_handle, p_msg->api_add_pd.subevent);
+  } else {
+    APPL_TRACE_ERROR("mark device true in pd failed.");
+  }
+}
+
+void bta_gattc_process_rm_pd_list(tBTA_GATTC_DATA* p_msg) {
+  /* mark pending list device false as create connection timeout or gatt connection to remove from pending list */
+  if (bta_gattc_mark_pd_conn(p_msg->api_rm_pd.client_if, p_msg->api_rm_pd.remote_bda, false)) {
+    GATT_Remove_Pending_List(p_msg->api_rm_pd.client_if, p_msg->api_rm_pd.remote_bda, p_msg->api_rm_pd.advertising_handle, p_msg->api_rm_pd.subevent);
+  } else {
+    APPL_TRACE_ERROR("mark device false in pd failed.");
+  }
+}
+
+void bta_gattc_process_cl_pd_list(tBTA_GATTC_DATA* p_msg) {
+  /* clear pd connection associated with this rcb */
+  for (int i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX; i++) {
+    if (bta_gattc_cb.pd_track[i].in_use) {
+      if (bta_gattc_cb.pd_track[i].cif_mask &
+          (1 << (p_msg->api_cl_pd.client_if - 1))) {
+        bta_gattc_mark_pd_conn(p_msg->api_cl_pd.client_if,
+                                bta_gattc_cb.pd_track[i].remote_bda, false);
+      }
+    }
+  }
+
+  GATT_Clear_Pending_List(p_msg->api_cl_pd.client_if, p_msg->api_cl_pd.advertising_handle);
 }
 #endif
 /*******************************************************************************
@@ -484,17 +531,17 @@ void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
   tBTA_GATTC_DATA gattc_data;
   /* open/hold a connection */
   if (!GATT_Connect_v2(p_clcb->p_rcb->client_if, p_data->api_conn_v2.advertising_handle,
-                    p_data->api_conn_v2.subevent, p_data->api_conn.remote_bda, true,
-                    p_data->api_conn.transport, p_data->api_conn.opportunistic,
-                    p_data->api_conn.initiating_phys)) {
+                    p_data->api_conn_v2.subevent, p_data->api_conn_v2.remote_bda, true,
+                    p_data->api_conn_v2.transport, p_data->api_conn_v2.opportunistic,
+                    p_data->api_conn_v2.initiating_phys)) {
     APPL_TRACE_ERROR("Connection open failure");
 
     bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_OPEN_FAIL_EVT, p_data);
   } else {
     /* a connected remote device */
     if (GATT_GetConnIdIfConnected(
-            p_clcb->p_rcb->client_if, p_data->api_conn.remote_bda,
-            &p_clcb->bta_conn_id, p_data->api_conn.transport)) {
+            p_clcb->p_rcb->client_if, p_data->api_conn_v2.remote_bda,
+            &p_clcb->bta_conn_id, p_data->api_conn_v2.transport)) {
       gattc_data.int_conn.hdr.layer_specific = p_clcb->bta_conn_id;
 
       bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_CONN_EVT, &gattc_data);
@@ -581,6 +628,87 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
     (*p_clreg->p_cback)(BTA_GATTC_CANCEL_OPEN_EVT, &cb_data);
   }
 }
+
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         bta_gattc_init_pd_conn
+ *
+ * Description      Process API Open for a pending list connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data,
+                            tBTA_GATTC_RCB* p_clreg) {
+  tBTA_GATT_STATUS status = BTA_GATT_NO_RESOURCES;
+  uint16_t conn_id;
+  tBTA_GATTC_CLCB* p_clcb;
+  tBTA_GATTC_DATA gattc_data;
+
+  /* always call open to hold a connection */
+  if (!GATT_Connect_v2(p_data->client_if, p_data->advertising_handle, p_data->subevent, p_data->remote_bda, false,
+                    p_data->transport, false)) {
+    status = BTA_GATT_ERROR;
+    LOG(ERROR) << __func__ << " unable to connect to remote bd_addr:"
+                << p_data->remote_bda;
+
+  } else {
+    status = BTA_GATT_OK;
+
+    /* if is a connected remote device */
+    if (GATT_GetConnIdIfConnected(p_data->client_if, p_data->remote_bda,
+                                  &conn_id, p_data->transport)) {
+      p_clcb = bta_gattc_find_alloc_clcb(
+          p_data->client_if, p_data->remote_bda, BTA_GATT_TRANSPORT_LE);
+      if (p_clcb != NULL) {
+        gattc_data.hdr.layer_specific = p_clcb->bta_conn_id = conn_id;
+
+        /* open connection */
+        bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_CONN_EVT, &gattc_data);
+        status = BTA_GATT_OK;
+      }
+    }
+  }
+
+  /* open failure, report OPEN_EVT */
+  if (status != BTA_GATT_OK) {
+    bta_gattc_send_open_cback(p_clreg, status, p_data->remote_bda,
+                              BTA_GATT_INVALID_CONN_ID, BTA_GATT_TRANSPORT_LE,
+                              0);
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_cancel_pd_conn
+ *
+ * Description      Process API Cancel Open for a pending list connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
+  tBTA_GATTC_RCB* p_clreg;
+  tBTA_GATTC cb_data;
+  cb_data.status = BTA_GATT_ERROR;
+
+  /* remove the device from the bg connection mask */
+  if (bta_gattc_mark_pd_conn(p_data->client_if, p_data->remote_bda, false)) {
+    if (GATT_CancelConnect(p_data->client_if, p_data->remote_bda, false)) {
+      cb_data.status = BTA_GATT_OK;
+    } else {
+      APPL_TRACE_ERROR("%s: failed", __func__);
+    }
+  }
+  p_clreg = bta_gattc_cl_get_regcb(p_data->client_if);
+
+  if (p_clreg && p_clreg->p_cback) {
+    (*p_clreg->p_cback)(BTA_GATTC_CANCEL_OPEN_EVT, &cb_data);
+  }
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         bta_gattc_int_cancel_open_ok

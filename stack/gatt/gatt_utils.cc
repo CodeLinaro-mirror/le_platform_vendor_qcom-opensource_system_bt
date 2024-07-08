@@ -1488,3 +1488,171 @@ bool gatt_update_auto_connect_dev(tGATT_IF gatt_if, bool add,
   }
   return ret;
 }
+
+#ifdef SUPPORT_ESL_AP
+/** Returns true if this is one of the background devices for the application,
+ * false otherwise */
+bool gatt_is_pd_dev_for_app(tGATT_PD_CONN_DEV* p_dev, tGATT_IF gatt_if) {
+  return p_dev->gatt_if.count(gatt_if);
+}
+/** background connection device from the list. Returns pointer to the device
+ * record, or nullptr if not found */
+tGATT_PD_CONN_DEV* gatt_find_pd_dev(const RawAddress& remote_bda) {
+  for (tGATT_PD_CONN_DEV& dev : gatt_cb.pdconn_dev) {
+    if (dev.remote_bda == remote_bda) {
+      return &dev;
+    }
+  }
+  return nullptr;
+}
+
+std::list<tGATT_PD_CONN_DEV>::iterator gatt_find_pd_dev_it(
+    const RawAddress& remote_bda) {
+  auto& list = gatt_cb.pdconn_dev;
+  for (auto it = list.begin(); it != list.end(); it++) {
+    if (it->remote_bda == remote_bda) {
+      return it;
+    }
+  }
+  return list.end();
+}
+
+/** Add a device from the pendling connection list.  Returns true if device
+ * added to the list, or already in list, false otherwise */
+bool gatt_add_pd_dev_list(tGATT_REG* p_reg, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+  tGATT_IF gatt_if = p_reg->gatt_if;
+
+  tGATT_PD_CONN_DEV* p_dev = gatt_find_pd_dev(bd_addr);
+  if (p_dev) {
+    // device already in the pendinglist, just add interested app to the list
+    if (!p_dev->gatt_if.insert(gatt_if).second) {
+      LOG(ERROR) << "device already in iniator pending list";
+    }
+
+    return true;
+  }
+  // the device is not in the pendinglist
+  if (!BTM_BleUpdatePdConnDev(true, bd_addr, advertising_handle, subevent)) return false;
+
+  gatt_cb.pdconn_dev.emplace_back();
+  tGATT_PD_CONN_DEV& dev = gatt_cb.pdconn_dev.back();
+  dev.remote_bda = bd_addr;
+  dev.gatt_if.insert(gatt_if);
+
+  return true;
+}
+
+/** Remove the application interface for the specified pending list device */
+bool gatt_remove_pd_dev_for_app(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+  tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
+  bool status;
+
+  if (p_tcb) gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
+      status = gatt_update_pd_connect_dev(gatt_if, false, bd_addr, advertising_handle, subevent);
+  return status;
+}
+
+/** Removes all registrations for pending list connection for given device.
+ * Returns true if anything was removed, false otherwise */
+uint8_t gatt_clear_pd_dev_for_addr(const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+  auto dev_it = gatt_find_pd_dev_it(bd_addr);
+  if (dev_it == gatt_cb.pdconn_dev.end()) return false;
+
+  CHECK(BTM_BleUpdatePdConnDev(false, dev_it->remote_bda, advertising_handle, subevent));
+  gatt_cb.pdconn_dev.erase(dev_it);
+  return true;
+}
+
+/** Remove device from the pending list connection device list or listening to
+ * advertising list.  Returns true if device was on the list and was succesfully
+ * removed */
+bool gatt_remove_pd_dev_from_list(tGATT_REG* p_reg, const RawAddress& bd_addr , uint8_t advertising_handle, uint8_t subevent) {
+  tGATT_IF gatt_if = p_reg->gatt_if;
+  auto dev_it = gatt_find_pd_dev_it(bd_addr);
+  if (dev_it == gatt_cb.pdconn_dev.end()) return false;
+  if (!dev_it->gatt_if.erase(gatt_if)) return false;
+  if (!dev_it->gatt_if.empty()) return true;
+  // no more apps interested - remove from whitelist and delete record
+  CHECK(BTM_BleUpdatePdConnDev(false, dev_it->remote_bda, advertising_handle, subevent));
+  gatt_cb.pdconn_dev.erase(dev_it);
+  return true;
+}
+/** deregister all related pending list connetion device. */
+void gatt_deregister_pddev_list(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent) {
+  auto it = gatt_cb.pdconn_dev.begin();
+  auto end = gatt_cb.pdconn_dev.end();
+  /* update the BG conn device list */
+  while (it != end) {
+    it->gatt_if.erase(gatt_if);
+    if (it->gatt_if.size()) {
+      it++;
+      continue;
+    }
+
+    BTM_BleUpdatePdConnDev(false, it->remote_bda, advertising_handle, subevent);
+    it = gatt_cb.pdconn_dev.erase(it);
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         gatt_reset_pddev_list
+ *
+ * Description      reset pd device list
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
+void gatt_reset_pddev_list(void) { gatt_cb.pdconn_dev.clear(); }
+
+/*******************************************************************************
+ *
+ * Function         gatt_update_pd_connect_dev
+ *
+ * Description      This function add or remove a device for pending list
+ *                  connection procedure.
+ *
+ * Parameters       gatt_if: Application ID.
+ *                  add: add peer device
+ *                  bd_addr: peer device address.
+ *
+ * Returns          true if connection started; false otherwise.
+ *
+ ******************************************************************************/
+bool gatt_update_pd_connect_dev(tGATT_IF gatt_if, bool add,
+                                  const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+  bool ret = false;
+  tGATT_REG* p_reg;
+  tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
+
+  VLOG(1) << __func__;
+  /* Make sure app is registered */
+  p_reg = gatt_get_regcb(gatt_if);
+  if (p_reg == NULL) {
+    LOG(ERROR) << __func__ << " gatt_if is not registered " << +gatt_if;
+    return false;
+  }
+
+  if (add) {
+    ret = gatt_add_pd_dev_list(p_reg, bd_addr,advertising_handle, subevent);
+    if (ret && p_tcb != NULL) {
+      /* if a connected device, update the link holding number */
+      gatt_update_app_use_link_flag(gatt_if, p_tcb, true, true);
+    }
+  } else {
+    ret = gatt_remove_pd_dev_from_list(p_reg, bd_addr, advertising_handle, subevent);
+  }
+  return ret;
+}
+
+bool gatt_clear_pd_connect_dev(tGATT_IF gatt_if, uint8_t advertising_handle)
+{
+  bool ret = true;
+  BTM_BleClearPdConnDev(advertising_handle);
+  return ret;
+}
+
+bool gatt_start_auto_fast_connection() {
+  return BTM_BleStartAutoConnV2();
+}
+#endif

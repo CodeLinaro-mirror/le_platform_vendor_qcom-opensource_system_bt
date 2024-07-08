@@ -45,6 +45,10 @@
 
 static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state);
 static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state);
+#ifdef SUPPORT_ESL_AP
+static void btm_suspend_pl_activity(tBTM_BLE_PL_STATE pl_state);
+static void btm_resume_pl_activity(tBTM_BLE_PL_STATE pl_state);
+#endif
 
 // Unfortunately (for now?) we have to maintain a copy of the device whitelist
 // on the host to determine if a device is pending to be connected or not. This
@@ -133,6 +137,95 @@ static int background_connections_count() {
   }
   return count;
 }
+
+#ifdef SUPPORT_ESL_AP
+typedef struct pendinglist_connection_t {
+  RawAddress address;
+  uint8_t addr_type;
+
+  bool in_controller_pl;
+  uint8_t addr_type_in_pl;
+
+  bool pending_removal;
+
+  uint8_t advertising_handle;
+  uint8_t subevent;
+} pendinglist_connection_t;
+
+struct PdConnHash {
+  bool operator()(const RawAddress& x) const {
+    const uint8_t* a = x.address;
+    return a[0] ^ (a[1] << 8) ^ (a[2] << 16) ^ (a[3] << 24) ^ a[4] ^
+           (a[5] << 8);
+  }
+};
+
+static std::unordered_map<RawAddress, pendinglist_connection_t, PdConnHash>
+    pendinglist_connections;
+
+static void pendinglist_connection_add(uint8_t addr_type,
+                                      const RawAddress& address,
+                                      uint8_t advertising_handle, uint8_t subevent) {
+  auto map_iter = pendinglist_connections.find(address);
+  if (map_iter == pendinglist_connections.end()) {
+    pendinglist_connections[address] =
+        pendinglist_connection_t{address, addr_type, false, 0, false, advertising_handle, subevent};
+  } else {
+    pendinglist_connection_t* connection = &map_iter->second;
+    connection->addr_type = addr_type;
+    connection->pending_removal = false;
+  }
+}
+
+static void pendinglist_connection_remove(const RawAddress& address) {
+  auto map_iter = pendinglist_connections.find(address);
+  if (map_iter != pendinglist_connections.end()) {
+    if (map_iter->second.in_controller_pl) {
+      map_iter->second.pending_removal = true;
+    } else {
+      pendinglist_connections.erase(map_iter);
+      LOG(INFO) << __func__ << "erase" << address;
+    }
+  }
+}
+
+static void pendinglist_connections_clear() { pendinglist_connections.clear(); }
+
+static RawAddress get_pd_conn_pending_bdaddr() {
+  for (auto& map_el : pendinglist_connections) {
+    pendinglist_connection_t* connection = &map_el.second;
+    if (connection->pending_removal) continue;
+    const bool connected =
+        BTM_IsAclConnectionUp(connection->address, BT_TRANSPORT_LE);
+    if (!connected) {
+      return connection->address;
+    }
+  }
+  return RawAddress::kEmpty;
+}
+
+
+static bool pendinglist_connections_pending() {
+  for (auto& map_el : pendinglist_connections) {
+    pendinglist_connection_t* connection = &map_el.second;
+    if (connection->pending_removal) continue;
+    const bool connected =
+        BTM_IsAclConnectionUp(connection->address, BT_TRANSPORT_LE);
+    if (!connected) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static int pendinglist_connections_count() {
+  int count = 0;
+  for (auto& map_el : pendinglist_connections) {
+    if (!map_el.second.pending_removal) ++count;
+  }
+  return count;
+}
+#endif
 
 /*******************************************************************************
  *
@@ -656,12 +749,15 @@ tBTM_BLE_CONN_ST btm_ble_get_conn_st(void) {
 void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st) {
   btm_cb.ble_ctr_cb.conn_state = new_st;
 
+#ifdef SUPPORT_ESL_AP
+  if (new_st == BLE_BG_CONN || new_st == BLE_PD_CONN || new_st == BLE_DIR_CONN)
+#else
   if (new_st == BLE_BG_CONN || new_st == BLE_DIR_CONN)
+#endif
     btm_ble_set_topology_mask(BTM_BLE_STATE_INIT_BIT);
   else
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
 }
-
 /*******************************************************************************
  *
  * Function         btm_ble_enqueue_direct_conn_req
@@ -734,3 +830,429 @@ bool btm_send_pending_direct_conn(void) {
 
   return rt;
 }
+
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         btm_ble_pdconn_cancel_if_disconnected
+ *
+ * Description      If a device has been disconnected, it must be re-added to
+ *                  the white list. If needed, this function cancels a pending
+ *                  initiate command in order to trigger restart of the initiate
+ *                  command which in turn updates the white list.
+ *
+ * Parameters       bd_addr: updated device
+ *
+ ******************************************************************************/
+void btm_ble_pdconn_cancel_if_disconnected(const RawAddress& bd_addr) {
+  if (btm_cb.ble_ctr_cb.conn_state != BLE_PD_CONN) return;
+
+  auto map_it = pendinglist_connections.find(bd_addr);
+  if (map_it != pendinglist_connections.end()) {
+    pendinglist_connection_t* connection = &map_it->second;
+    if (!connection->in_controller_pl && !connection->pending_removal &&
+        !BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
+      btm_ble_start_auto_conn_v2(false);
+    }
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_add_dev_to_controller_pd_list
+ *
+ * Description      This function load the device into controller pending list
+ ******************************************************************************/
+bool btm_add_dev_to_controller_pd_list(bool to_add, const RawAddress& bd_addr,uint8_t advertising_handle, uint8_t subevent) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+  bool started = false;
+  if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
+    if (to_add) {
+      if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC ||
+          !BTM_BLE_IS_RESOLVE_BDA(bd_addr)) {
+        pendinglist_connection_add(p_dev_rec->ble.ble_addr_type, bd_addr, advertising_handle, subevent);
+        started = true;
+        p_dev_rec->ble.in_controller_pd_list |= BTM_PENDING_LIST_BIT;
+      } else if (p_dev_rec->ble.static_addr != bd_addr &&
+                 !p_dev_rec->ble.static_addr.IsEmpty()) {
+        pendinglist_connection_add(p_dev_rec->ble.static_addr_type,
+                                  p_dev_rec->ble.static_addr, advertising_handle, subevent);
+        started = true;
+        p_dev_rec->ble.in_controller_pd_list |= BTM_PENDING_LIST_BIT;
+      }
+    } else {
+      if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC ||
+          !BTM_BLE_IS_RESOLVE_BDA(bd_addr)) {
+        pendinglist_connection_remove(bd_addr);
+        started = true;
+      }
+
+      if (!p_dev_rec->ble.static_addr.IsEmpty() &&
+          p_dev_rec->ble.static_addr != bd_addr) {
+        pendinglist_connection_remove(p_dev_rec->ble.static_addr);
+        started = true;
+      }
+
+      p_dev_rec->ble.in_controller_pd_list &= ~BTM_PENDING_LIST_BIT;
+    }
+  } else {
+    /* not a known device, i.e. attempt to connect to device never seen before
+     */
+    started = true;
+    if (to_add) {
+      pendinglist_connection_add(BLE_ADDR_PUBLIC, bd_addr, advertising_handle, subevent);
+    }
+    else {
+      pendinglist_connection_remove(bd_addr);
+    }
+  }
+
+  return started;
+}
+
+
+/*******************************************************************************
+ *
+ * Function         btm_vsc_brcm_features_complete
+ *
+ * Description      Command Complete callback for HCI_BLE_VENDOR_CAP_OCF
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void btm_ble_vendor_pendinglist_vsc_cmpl_cback(
+    tBTM_VSC_CMPL* p_vcs_cplt_params) {
+  uint8_t status = 0xFF;
+  uint8_t* p;
+
+  BTM_TRACE_DEBUG("%s", __func__);
+
+  /* Check status of command complete event */
+  if ((p_vcs_cplt_params->opcode == HCI_BLE_VENDOR_CAP_OCF) &&
+      (p_vcs_cplt_params->param_len > 0)) {
+    p = p_vcs_cplt_params->p_param_buf;
+    STREAM_TO_UINT8(status, p);
+  }
+
+  if (status == HCI_SUCCESS) {
+    BTM_TRACE_DEBUG("btm handle pending list success");
+  }
+}
+
+void btm_ble_add_pending_list(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle, uint8_t subevent) {
+  uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
+
+  p[0] = QESL_AP_SUBCOMMAND_ADD_DEVICE_TO_PENDING_LIST;
+  p[1] = advertising_handle;
+  p[2] = addr_type;
+  p[3] = bda.address[5];
+  p[4] = bda.address[4];
+  p[5] = bda.address[3];
+  p[6] = bda.address[2];
+  p[7] = bda.address[1];
+  p[8] = bda.address[0];
+  p[9] = subevent;
+  BTM_VendorSpecificCommand(HCI_BLE_RAW_HCI_CMD, HCIC_PARAM_SIZE_ADD_PENDING_LIST,
+                            p, btm_ble_vendor_pendinglist_vsc_cmpl_cback);
+  osi_free(p);
+}
+
+void btm_ble_remove_from_pending_list(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle) {
+  uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
+
+  p[0] = QESL_AP_SUBCOMMAND_REMOVE_DEVICE_FROM_PENDING_LIST;
+  p[1] = advertising_handle;
+  p[2] = addr_type;
+  p[3] = bda.address[5];
+  p[4] = bda.address[4];
+  p[5] = bda.address[3];
+  p[6] = bda.address[2];
+  p[7] = bda.address[1];
+  p[8] = bda.address[0];
+  BTM_VendorSpecificCommand(HCI_BLE_RAW_HCI_CMD, HCIC_PARAM_SIZE_REMOVE_PENDING_LIST,
+                            p, btm_ble_vendor_pendinglist_vsc_cmpl_cback);
+  osi_free(p);
+}
+
+void btm_ble_clear_pending_list_from_controller(uint8_t advertising_handle) {
+  uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
+
+  p[0] = QESL_AP_SUBCOMMAND_CLEAR_PENDING_LIST;
+  p[1] = advertising_handle;
+
+  BTM_VendorSpecificCommand(HCI_BLE_RAW_HCI_CMD, HCIC_PARAM_SIZE_CLEAR_PENDING_LIST,
+                            p, btm_ble_vendor_pendinglist_vsc_cmpl_cback);
+  osi_free(p);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_execute_pl_dev_operation
+ *
+ * Description      execute the pending list device operation (loading or
+ *                                                                  removing)
+ ******************************************************************************/
+bool btm_execute_pl_dev_operation(void) {
+  // handle removals first to avoid filling up controller's white list
+  for (auto map_it = pendinglist_connections.begin();
+       map_it != pendinglist_connections.end();) {
+    pendinglist_connection_t* connection = &map_it->second;
+    if (connection->pending_removal) {
+      btm_ble_remove_from_pending_list(connection->addr_type_in_pl,connection->address,connection->advertising_handle);
+      LOG(INFO) << __func__ << "erase" << connection->address;
+      map_it = pendinglist_connections.erase(map_it);
+    } else
+      ++map_it;
+  }
+  for (auto& map_el : pendinglist_connections) {
+    pendinglist_connection_t* connection = &map_el.second;
+    const bool connected =
+        BTM_IsAclConnectionUp(connection->address, BT_TRANSPORT_LE);
+    if (!connection->in_controller_pl && !connected) {
+      btm_ble_add_pending_list(connection->addr_type, connection->address, connection->advertising_handle, connection->subevent);
+      connection->in_controller_pl = true;
+      connection->addr_type_in_pl = connection->addr_type;
+    } else if (connection->in_controller_pl && connected) {
+      connection->pending_removal = true;
+    }
+  }
+  return true;
+}
+/*******************************************************************************
+ *
+ * Function         btm_update_dev_to_pending_list
+ *
+ * Description      This function adds or removes a device into/from
+ *                  the pending list.
+ *
+ ******************************************************************************/
+bool btm_update_dev_to_pending_list(bool to_add, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  if (to_add &&
+      pendinglist_connections_count() == 128) {
+    BTM_TRACE_ERROR("%s Pendinglist full, unable to add device", __func__);
+    return false;
+  }
+
+  btm_add_dev_to_controller_pd_list(to_add, bd_addr, advertising_handle, subevent);
+  btm_execute_pl_dev_operation();
+  return true;
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_clear_pending_list
+ *
+ * Description      This function clears the pending list.
+ *
+ ******************************************************************************/
+void btm_ble_clear_pending_list(uint8_t advertising_handle) {
+  BTM_TRACE_EVENT("btm_ble_clear_pending_list");
+  pendinglist_connections_clear();
+  btm_ble_clear_pending_list_from_controller(advertising_handle);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_clear_pending_list_complete
+ *
+ * Description      Indicates pending list cleared.
+ *
+ ******************************************************************************/
+void btm_ble_clear_pending_list_complete(uint8_t* p_data,
+                                       UNUSED_ATTR uint16_t evt_len) {
+  uint8_t status;
+
+  STREAM_TO_UINT8(status, p_data);
+  BTM_TRACE_EVENT("%s status=%d", __func__, status);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_pending_list_init
+ *
+ * Description      Initialize pending list size
+ *
+ ******************************************************************************/
+void btm_ble_pending_list_init(uint8_t pending_list_size) {
+  BTM_TRACE_DEBUG("%s pending_list_size = %d", __func__, pending_list_size);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_add_2_pending_list_complete
+ *
+ * Description      pending list element added
+ *
+ ******************************************************************************/
+void btm_ble_add_2_pending_list_complete(uint8_t status) {
+  BTM_TRACE_EVENT("%s status=%d", __func__, status);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_remove_from_pending_list_complete
+ *
+ * Description      pending list element removal complete
+ *
+ ******************************************************************************/
+void btm_ble_remove_from_pending_list_complete(uint8_t* p,
+                                             UNUSED_ATTR uint16_t evt_len) {
+  BTM_TRACE_EVENT("%s status=%d", __func__, *p);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_start_auto_conn_v2
+ *
+ * Description      This function is to start/stop auto connection procedure.
+ *
+ * Parameters       start: true to start; false to stop.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+bool btm_ble_start_auto_conn_v2(bool start) {
+  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  bool exec = true;
+  uint16_t scan_int;
+  uint16_t scan_win;
+  uint8_t advertising_handle = 0x01;
+  uint8_t subevent = 0x00;
+  uint8_t own_addr_type = BLE_ADDR_PUBLIC;
+  uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
+  static uint16_t conn_int_min  = BTM_BLE_CONN_INT_MIN_DEF;
+  static uint16_t conn_int_max = BTM_BLE_CONN_INT_MAX_DEF;
+  static uint16_t conn_latency = BTM_BLE_CONN_SLAVE_LATENCY_DEF;
+  static uint16_t conn_timeout = BTM_BLE_CONN_TIMEOUT_DEF;
+
+  uint8_t phy = PHY_LE_1M;
+  if (controller_get_interface()->supports_ble_2m_phy()) phy |= PHY_LE_2M;
+  if (controller_get_interface()->supports_ble_coded_phy()) phy |= PHY_LE_CODED;
+
+  BTM_TRACE_EVENT("%s start=%d", __func__, start);
+
+  if (start) {
+    if (p_cb->conn_state == BLE_CONN_IDLE && pendinglist_connections_pending() &&
+        btm_ble_topology_check(BTM_BLE_STATE_INIT) && l2cu_can_allocate_lcb()) {
+      p_cb->pl_state |= BTM_BLE_PL_INIT;
+
+#if (BLE_PRIVACY_SPT == TRUE)
+      btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_INIT);
+#endif
+      scan_int = (p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF)
+                     ? BTM_BLE_SCAN_SLOW_INT_1
+                     : p_cb->scan_int;
+      scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF)
+                     ? BTM_BLE_SCAN_SLOW_WIN_1
+                     : p_cb->scan_win;
+    RawAddress rem_bd_addr = get_pd_conn_pending_bdaddr();
+    tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(rem_bd_addr);
+    if (p_dev_rec == NULL) {
+        BTM_TRACE_EVENT("%s no prefered conn_params", __func__);
+    }
+    /* If there are any preferred connection parameters, set them now */
+    else if ((p_dev_rec->conn_params.min_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+                (p_dev_rec->conn_params.min_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+                (p_dev_rec->conn_params.max_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+                (p_dev_rec->conn_params.max_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+                (p_dev_rec->conn_params.slave_latency <= BTM_BLE_CONN_LATENCY_MAX) &&
+                (p_dev_rec->conn_params.supervision_tout >= BTM_BLE_CONN_SUP_TOUT_MIN) &&
+                (p_dev_rec->conn_params.supervision_tout <= BTM_BLE_CONN_SUP_TOUT_MAX)) {
+
+        conn_int_min = p_dev_rec->conn_params.min_conn_int;
+        conn_int_max = p_dev_rec->conn_params.max_conn_int;
+        conn_latency = p_dev_rec->conn_params.slave_latency;
+        conn_timeout = p_dev_rec->conn_params.supervision_tout;
+        BTM_TRACE_DEBUG(
+        "%s: min_conn_int=%d max_conn_int=%d slave_latency=%d upervision_tout=%d",
+        __func__, conn_int_min, conn_int_max, conn_latency, conn_timeout);
+    }
+#if (BLE_PRIVACY_SPT == TRUE)
+      if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE &&
+          controller_get_interface()->supports_ble_privacy()) {
+        own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
+        peer_addr_type |= BLE_ADDR_TYPE_ID_BIT;
+      }
+#endif
+      btm_send_hci_create_connection_v2(
+          scan_int,                       /* uint16_t scan_int      */
+          scan_win,                       /* uint16_t scan_win      */
+          advertising_handle,             /* uint8_t advertising_handle      */
+          subevent,                       /* uint8_t subevent*/
+          0x01,                           /* uint8_t white_list     */
+          peer_addr_type,                 /* uint8_t addr_type_peer */
+          RawAddress::kEmpty,             /* BD_ADDR bda_peer     */
+          own_addr_type,                  /* uint8_t addr_type_own */
+          conn_int_min,                   /* uint16_t conn_int_min  */
+          conn_int_max,                   /* uint16_t conn_int_max  */
+          conn_latency,                   /* uint16_t conn_latency  */
+          conn_timeout,                   /* uint16_t conn_timeout  */
+          0,                              /* uint16_t min_len       */
+          0,                              /* uint16_t max_len       */
+          phy);
+      btm_ble_set_conn_st(BLE_PD_CONN);
+    } else {
+      exec = false;
+    }
+  } else {
+    if (p_cb->conn_state == BLE_PD_CONN) {
+      btsnd_hcic_ble_create_conn_cancel();
+      btm_ble_set_conn_st(BLE_CONN_CANCEL);
+      p_cb->pl_state &= ~BTM_BLE_PL_INIT;
+    } else {
+      BTM_TRACE_DEBUG("conn_st = %d, not in auto conn state, cannot stop",
+                      p_cb->conn_state);
+      exec = false;
+    }
+  }
+  return exec;
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_suspend_pl_activity
+ *
+ * Description      This function is to suspend pending list related activity
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
+static void btm_suspend_pl_activity(tBTM_BLE_PL_STATE pl_state) {
+  if (pl_state & BTM_BLE_PL_INIT) {
+    btm_ble_start_auto_conn_v2(false);
+  }
+}
+/*******************************************************************************
+ *
+ * Function         btm_resume_pl_activity
+ *
+ * Description      This function is to resume pending list related activity
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
+static void btm_resume_pl_activity(tBTM_BLE_PL_STATE pl_state) {
+  btm_ble_resume_pl_conn();
+}
+/*******************************************************************************
+ *
+ * Function         btm_ble_resume_pl_conn
+ *
+ * Description      This function is to resume a pendinglist auto connection
+ *                  procedure.
+ *
+ * Parameters       none.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
+bool btm_ble_resume_pl_conn(void) {
+  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  if (p_cb->pd_conn_type == BTM_BLE_CONN_AUTO)
+    return btm_ble_start_auto_conn_v2(true);
+
+  return false;
+}
+#endif
+
