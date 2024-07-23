@@ -507,7 +507,8 @@ void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
       (*bta_hl_dch_action[action])(app_idx, mcl_idx, mdl_idx, p_data);
     } else {
       /* discard mas data */
-      bta_hl_discard_data(p_data->hdr.event, p_data);
+      if (p_data)
+        bta_hl_discard_data(p_data->hdr.event, p_data);
       break;
     }
   }

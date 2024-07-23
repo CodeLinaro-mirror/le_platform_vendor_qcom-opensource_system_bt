@@ -124,7 +124,8 @@ static bool process_read_multi_rsp(tGATT_SR_CMD* p_cmd, tGATT_STATUS status,
 
   /* Enqueue the response */
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(tGATTS_RSP));
-  memcpy((void*)p_buf, (const void*)p_msg, sizeof(tGATTS_RSP));
+  if(p_msg)
+    memcpy((void*)p_buf, (const void*)p_msg, sizeof(tGATTS_RSP));
   fixed_queue_enqueue(p_cmd->multi_rsp_q, p_buf);
 
   p_cmd->status = status;
