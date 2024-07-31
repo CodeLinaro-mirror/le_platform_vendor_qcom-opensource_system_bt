@@ -394,6 +394,9 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
 
     case HCI_VENDOR_SPECIFIC_EVT:
       btm_vendor_specific_evt(p, hci_evt_len);
+#ifdef SUPPORT_ESL_AP
+      hcif_vs_event_callback(p - 2, hci_evt_len + 2);
+#endif
       break;
 
     case HCI_CSB_TIMEOUT_EVT:
