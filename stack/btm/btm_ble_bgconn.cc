@@ -225,6 +225,30 @@ static int pendinglist_connections_count() {
   }
   return count;
 }
+
+bool check_device_in_pending_list(const RawAddress& address) {
+  auto map_iter = pendinglist_connections.find(address);
+  if (map_iter != pendinglist_connections.end()) {
+    if ((map_iter->second.in_controller_pl) && !(map_iter->second.pending_removal))
+      return true;
+    else
+      return false;
+  } else {
+    return false;
+  }
+}
+
+bool check_device_in_white_list(const RawAddress& address) {
+  auto map_iter = background_connections.find(address);
+  if (map_iter != background_connections.end()) {
+    if ((map_iter->second.in_controller_wl) && !(map_iter->second.pending_removal))
+      return true;
+    else
+      return false;
+  } else {
+    return false;
+  }
+}
 #endif
 
 /*******************************************************************************

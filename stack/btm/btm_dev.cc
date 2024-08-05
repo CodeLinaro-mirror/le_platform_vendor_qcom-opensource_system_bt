@@ -582,11 +582,23 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
 
     if ((p_dev_rec->sec_flags &
          (BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LE_LINK_KEY_KNOWN)) == 0) {
+#ifdef SUPPORT_ESL_AP
+      if (!BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_LE) &&
+        !check_device_in_pending_list(p_dev_rec->bd_addr) &&
+        !check_device_in_white_list(p_dev_rec->bd_addr)) {
+        // Device is not paired
+        if (p_dev_rec->timestamp < ts_oldest) {
+          p_oldest = p_dev_rec;
+          ts_oldest = p_dev_rec->timestamp;
+        }
+      }
+#else
       // Device is not paired
       if (p_dev_rec->timestamp < ts_oldest) {
         p_oldest = p_dev_rec;
         ts_oldest = p_dev_rec->timestamp;
       }
+#endif
     } else {
       // Paired device
       if (p_dev_rec->timestamp < ts_oldest_paired) {
@@ -619,7 +631,12 @@ tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
 
   if (list_length(btm_cb.sec_dev_rec) > BTM_SEC_MAX_DEVICE_RECORDS) {
     p_dev_rec = btm_find_oldest_dev_rec();
+  #ifdef SUPPORT_ESL_AP
+    if (p_dev_rec)
+      list_remove(btm_cb.sec_dev_rec, p_dev_rec);
+  #else
     list_remove(btm_cb.sec_dev_rec, p_dev_rec);
+  #endif
   }
 
   p_dev_rec =
