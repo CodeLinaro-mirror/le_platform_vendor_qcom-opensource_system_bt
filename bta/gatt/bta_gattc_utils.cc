@@ -201,6 +201,7 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB* p_clcb) {
 
     /* if the srcb is no longer needed, reset the state */
     if (p_srcb->num_clcb == 0) {
+      p_srcb->in_use = false;//can be reused, otherwise can only recycle from end of known_server
       p_srcb->connected = false;
       p_srcb->state = BTA_GATTC_SERV_IDLE;
       p_srcb->mtu = 0;
