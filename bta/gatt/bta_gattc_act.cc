@@ -49,6 +49,9 @@
 #endif
 
 using bluetooth::Uuid;
+#ifdef SUPPORT_ESL_AP
+extern uint8_t vendor_gattc_if;
+#endif
 
 /*****************************************************************************
  *  Constants
@@ -777,7 +780,40 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
 
   if (p_clcb->p_srcb->mtu == 0) p_clcb->p_srcb->mtu = GATT_DEF_BLE_MTU_SIZE;
 
-  /* start database cache if needed */
+#ifdef SUPPORT_ESL_AP
+if (gatt_if != vendor_gattc_if)
+  {
+    /* start database cache if needed */
+    if (p_clcb->p_srcb->p_srvc_cache == NULL ||
+        p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE) {
+        if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE) {
+        p_clcb->p_srcb->state = BTA_GATTC_SERV_LOAD;
+        if (bta_gattc_cache_load(p_clcb)) {
+            p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+            bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_OK);
+        } else {
+            p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
+            /* cache load failure, start discovery */
+            bta_gattc_start_discover(p_clcb, NULL);
+        }
+        } else /* cache is building */
+        p_clcb->state = BTA_GATTC_DISCOVER_ST;
+    }
+
+    else {
+        /* a pending service handle change indication */
+        if (p_clcb->p_srcb->srvc_hdl_chg) {
+        p_clcb->p_srcb->srvc_hdl_chg = false;
+        /* start discovery */
+        bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+        }
+    }
+  }
+  else {
+    BTIF_TRACE_DEBUG("%s don't do discover for GATTC_IF: 0x%x", __func__, gatt_if);
+  }
+#else
+    /* start database cache if needed */
   if (p_clcb->p_srcb->p_srvc_cache == NULL ||
       p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE) {
     if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE) {
@@ -802,6 +838,7 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
       bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
     }
   }
+#endif
 
   if (p_clcb->p_rcb) {
     /* there is no RM for GATT */
@@ -1063,6 +1100,10 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
 void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
                          UNUSED_ATTR tBTA_GATTC_DATA* p_data) {
   tBTA_GATTC_DATA* p_q_cmd = p_clcb->p_q_cmd;
+  #ifdef SUPPORT_ESL_AP
+  tBTA_GATTC_IF gatt_if;
+  tBTA_TRANSPORT transport;
+  #endif
 
   APPL_TRACE_DEBUG("%s: conn_id=%d", __func__, p_clcb->bta_conn_id);
 
@@ -1107,6 +1148,15 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
      */
     if (p_q_cmd != p_clcb->p_q_cmd) osi_free_and_reset((void**)&p_q_cmd);
   }
+#ifdef SUPPORT_ESL_AP
+  GATT_GetConnectionInfor(p_clcb->bta_conn_id, &gatt_if, p_clcb->bda,
+                            &transport);
+  if ((gatt_if == vendor_gattc_if) && p_clcb->p_rcb->p_cback && p_clcb->p_srcb) {
+    tBTA_GATTC bta_gattc;
+    bta_gattc.remote_bda = p_clcb->p_srcb->server_bda;
+    (*p_clcb->p_rcb->p_cback)(BTA_GATTC_SRVC_DISC_DONE_EVT, &bta_gattc);
+  }
+#endif
 }
 /*******************************************************************************
  *
