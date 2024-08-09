@@ -1518,6 +1518,13 @@ extern void BTA_DmBleSecurityGrant(const RawAddress& bd_addr,
  */
 extern void BTA_DmBleStartAutoConn();
 
+#ifdef SUPPORT_ESL_AP
+/**
+ * Set BLE connectable mode to auto connect
+ */
+extern void BTA_DmBleStartAutoConnV2();
+#endif
+
 /*******************************************************************************
  *
  * Function         BTA_DmBlePasskeyReply

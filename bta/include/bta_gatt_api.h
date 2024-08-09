@@ -674,6 +674,9 @@ extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handl
                            const RawAddress& remote_bda, bool is_direct,
                            tBTA_GATT_TRANSPORT transport, bool opportunistic,
                            uint8_t initiating_phys);
+extern void BTA_GATTC_Add_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
+extern void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
+extern void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle);
 #endif
 /*******************************************************************************
  *

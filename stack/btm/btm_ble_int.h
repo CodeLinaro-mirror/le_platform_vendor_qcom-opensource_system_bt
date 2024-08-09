@@ -156,6 +156,15 @@ extern void btm_send_hci_create_connection_v2(
     const RawAddress& bda_peer,uint8_t addr_type_own,uint16_t conn_int_min,
     uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
     int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys);
+extern bool btm_ble_start_auto_conn_v2(bool start);
+extern bool btm_ble_resume_pl_conn(void);
+extern bool btm_update_dev_to_pending_list(bool to_add, const RawAddress& bd_addr,
+                                           uint8_t advertising_handle, uint8_t subevent);
+extern void btm_ble_clear_pending_list(uint8_t advertising_handle);
+extern void btm_ble_add_2_pending_list_complete(uint8_t status);
+extern void btm_ble_remove_from_pending_list_complete(uint8_t* p, uint16_t evt_len);
+extern void btm_ble_clear_pending_list_complete(uint8_t* p, uint16_t evt_len);
+extern void btm_ble_pending_list_init(uint8_t white_list_size);
 #endif
 
 /* direct connection utility */

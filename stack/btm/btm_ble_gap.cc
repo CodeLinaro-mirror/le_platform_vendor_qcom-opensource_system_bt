@@ -801,6 +801,59 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
 }
 #endif
 
+#ifdef SUPPORT_ESL_AP
+/**
+ * Set BLE connectable mode to auto connect
+ */
+bool BTM_BleStartAutoConnV2() {
+  BTM_TRACE_EVENT("%s", __func__);
+  if (!controller_get_interface()->supports_ble()) return;
+
+  if (btm_cb.ble_ctr_cb.pd_conn_type != BTM_BLE_CONN_AUTO) {
+    btm_cb.ble_ctr_cb.pd_conn_type = BTM_BLE_CONN_AUTO;
+    return btm_ble_start_auto_conn_v2(true);
+  }
+}
+/*******************************************************************************
+ *
+ * Function         BTM_BleClearPdConnDev
+ *
+ * Description      This function is called to clear the pendinglist,
+ *                  end any pending pendinglist connections,
+ *                  and reset the local bg device list.
+ *
+ * Parameters       void
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTM_BleClearPdConnDev(uint8_t advertising_handle) {
+  btm_ble_start_auto_conn_v2(false);
+  btm_ble_clear_pending_list(advertising_handle);
+  gatt_reset_pddev_list();
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleUpdatePdConnDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  pending connection procedure. The pending connection
+ *                  procedure is decided by the pending connection type, it
+ *                  can be auto connection, or selective connection.
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent) {
+  BTM_TRACE_EVENT("%s() add=%d, advertising_handle=%d, subevent=%d", __func__, add_remove,advertising_handle,subevent);
+  return btm_update_dev_to_pending_list(add_remove, remote_bda, advertising_handle, subevent);
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         btm_set_conn_mode_adv_init_addr
