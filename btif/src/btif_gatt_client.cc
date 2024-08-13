@@ -347,7 +347,6 @@ void btif_gattc_open_impl_v2(int client_if, uint8_t advertising_handle, uint8_t 
         return;
       }
     }
-    BTA_DmBleStartAutoConnV2();
   }
 
   // Determine transport

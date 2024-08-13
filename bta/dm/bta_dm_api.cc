@@ -865,19 +865,6 @@ void BTA_DmBleStartAutoConn() {
   bta_sys_sendmsg(p_msg);
 }
 
-#ifdef SUPPORT_ESL_AP
-/**
- * Set BLE connectable mode to auto connect
- */
-void BTA_DmBleStartAutoConnV2() {
-  tBTA_DM_API_SET_NAME* p_msg =
-      (tBTA_DM_API_SET_NAME*)osi_calloc(sizeof(tBTA_DM_API_SET_NAME));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_SET_PD_CONN_TYPE;
-  bta_sys_sendmsg(p_msg);
-}
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_dm_discover_send_msg

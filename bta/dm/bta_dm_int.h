@@ -99,9 +99,6 @@ enum {
   BTA_DM_API_HCI_RAW_COMMAND_EVT,
   BTA_DM_API_SET_WIFI_STATE_EVT,
   BTA_DM_API_IOT_REPORT_EVT,
-#ifdef SUPPORT_ESL_AP
-  BTA_DM_API_BLE_SET_PD_CONN_TYPE,
-#endif
   BTA_DM_MAX_EVT
 };
 
@@ -884,9 +881,6 @@ extern void bta_dm_ble_config_local_privacy(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min,
                                       uint16_t adv_int_max,
                                       tBLE_BD_ADDR* p_dir_bda);
-#ifdef SUPPORT_ESL_AP
-extern void bta_dm_ble_set_pd_conn_type(tBTA_DM_MSG* p_data);
-#endif
 
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data);
 
