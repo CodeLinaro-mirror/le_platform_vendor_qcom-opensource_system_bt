@@ -1215,6 +1215,18 @@ bool GATT_Clear_Pending_List(tGATT_IF gatt_if, uint8_t advertising_handle) {
     status = gatt_clear_pd_connect_dev(gatt_if, advertising_handle);
     return status;
 }
+
+bool GATT_Add_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
+    bool status = false;
+    status = gatt_update_wl_connect_dev(gatt_if, true, bd_addr);
+    return status;
+}
+
+bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
+    bool status = false;
+    status = gatt_update_wl_connect_dev(gatt_if, false, bd_addr);
+    return status;
+}
 #endif
 
 /*******************************************************************************

@@ -383,6 +383,23 @@ void bta_gattc_process_cl_pd_list(tBTA_GATTC_DATA* p_msg) {
 
   GATT_Clear_Pending_List(p_msg->api_cl_pd.client_if, p_msg->api_cl_pd.advertising_handle);
 }
+
+void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg) {
+  if (bta_gattc_mark_bg_conn(p_msg->api_add_wl.client_if, p_msg->api_add_wl.remote_bda, true)) {
+    GATT_Add_White_List(p_msg->api_add_wl.client_if, p_msg->api_add_wl.remote_bda);
+  } else {
+    APPL_TRACE_ERROR("mark device true in wl failed.");
+  }
+}
+
+void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg) {
+  /* mark pending list device false as create connection timeout or gatt connection to remove from pending list */
+  if (bta_gattc_mark_bg_conn(p_msg->api_rm_wl.client_if, p_msg->api_rm_wl.remote_bda, false)) {
+    GATT_Remove_White_List(p_msg->api_rm_wl.client_if, p_msg->api_rm_wl.remote_bda);
+  } else {
+    APPL_TRACE_ERROR("mark device false in wl failed.");
+  }
+}
 #endif
 /*******************************************************************************
  *

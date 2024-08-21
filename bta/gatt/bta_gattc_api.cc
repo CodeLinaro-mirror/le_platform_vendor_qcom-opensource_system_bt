@@ -241,6 +241,28 @@ void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertis
 
     bta_sys_sendmsg(p_buf);
 }
+
+void BTA_GATTC_Add_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport) {
+    tBTA_GATTC_API_ADD_WL* p_buf =
+      (tBTA_GATTC_API_ADD_WL*)osi_malloc(sizeof(tBTA_GATTC_API_ADD_WL));
+    p_buf->hdr.event = BTA_GATTC_ADD_WH_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+
+    bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport) {
+    tBTA_GATTC_API_RM_WL* p_buf =
+      (tBTA_GATTC_API_RM_WL*)osi_malloc(sizeof(tBTA_GATTC_API_RM_WL));
+    p_buf->hdr.event = BTA_GATTC_RM_WH_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+
+    bta_sys_sendmsg(p_buf);
+}
 #endif
 /*******************************************************************************
  *

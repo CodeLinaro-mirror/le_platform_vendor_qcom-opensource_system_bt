@@ -165,6 +165,8 @@ extern void btm_ble_add_2_pending_list_complete(uint8_t status);
 extern void btm_ble_remove_from_pending_list_complete(uint8_t* p, uint16_t evt_len);
 extern void btm_ble_clear_pending_list_complete(uint8_t* p, uint16_t evt_len);
 extern void btm_ble_pending_list_init(uint8_t white_list_size);
+extern bool btm_update_dev_to_bg_list(bool to_add,
+                                         const RawAddress& bd_addr);
 #endif
 
 /* direct connection utility */

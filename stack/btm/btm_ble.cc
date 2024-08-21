@@ -2093,6 +2093,9 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
   }
 
   btm_ble_update_mode_operation(role, &bda, status);
+#ifdef SUPPORT_ESL_AP
+  btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
+#endif
 }
 
 /*****************************************************************************

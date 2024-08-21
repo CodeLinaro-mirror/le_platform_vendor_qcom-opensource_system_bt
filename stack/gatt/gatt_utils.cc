@@ -1421,6 +1421,7 @@ bool gatt_remove_bg_dev_from_list(tGATT_REG* p_reg, const RawAddress& bd_addr) {
   gatt_cb.bgconn_dev.erase(dev_it);
   return true;
 }
+
 /** deregister all related back ground connetion device. */
 void gatt_deregister_bgdev_list(tGATT_IF gatt_if) {
   auto it = gatt_cb.bgconn_dev.begin();
@@ -1655,4 +1656,88 @@ bool gatt_clear_pd_connect_dev(tGATT_IF gatt_if, uint8_t advertising_handle)
 bool gatt_start_auto_fast_connection() {
   return BTM_BleStartAutoConnV2();
 }
+
+/** Add a device to the background white list.  Returns true if device
+ * added to the list, or already in list, false otherwise */
+bool gatt_add_bg_dev_wl(tGATT_REG* p_reg, const RawAddress& bd_addr) {
+  tGATT_IF gatt_if = p_reg->gatt_if;
+
+  tGATT_BG_CONN_DEV* p_dev = gatt_find_bg_dev(bd_addr);
+  if (p_dev) {
+    // device already in the whitelist, just add interested app to the list
+    if (!p_dev->gatt_if.insert(gatt_if).second) {
+      LOG(ERROR) << "device already in iniator white list";
+    }
+
+    return true;
+  }
+  // the device is not in the whitelist
+
+  if (!BTM_BleUpdateWlDev(true, bd_addr)) return false;
+
+  gatt_cb.bgconn_dev.emplace_back();
+  tGATT_BG_CONN_DEV& dev = gatt_cb.bgconn_dev.back();
+  dev.remote_bda = bd_addr;
+  dev.gatt_if.insert(gatt_if);
+  return true;
+}
+
+/** Remove device from the background connection device list .  Returns true
+ * if device was on the list and was succesfully removed */
+bool gatt_remove_bg_dev_from_wl(tGATT_REG* p_reg, const RawAddress& bd_addr) {
+  tGATT_IF gatt_if = p_reg->gatt_if;
+  auto dev_it = gatt_find_bg_dev_it(bd_addr);
+  if (dev_it == gatt_cb.bgconn_dev.end()) return false;
+
+  if (!dev_it->gatt_if.erase(gatt_if)) return false;
+
+  if (!dev_it->gatt_if.empty()) return true;
+
+  // no more apps interested - remove from whitelist and delete record
+  CHECK(BTM_BleUpdateWlDev(false, dev_it->remote_bda));
+  gatt_cb.bgconn_dev.erase(dev_it);
+  return true;
+}
+
+/*******************************************************************************
+ *
+ * Function         gatt_update_wl_connect_dev
+ *
+ * Description      This function add or remove a device to or from white list
+ *                  for background connection procedure.
+ *
+ * Parameters       gatt_if: Application ID.
+ *                  add: add peer device
+ *                  bd_addr: peer device address.
+ *
+ * Returns          true if add or remove to or from white list; false otherwise.
+ *
+ ******************************************************************************/
+bool gatt_update_wl_connect_dev(tGATT_IF gatt_if, bool add,
+                                  const RawAddress& bd_addr) {
+  bool ret = false;
+  tGATT_REG* p_reg;
+  tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
+
+  VLOG(1) << __func__;
+  /* Make sure app is registered */
+  p_reg = gatt_get_regcb(gatt_if);
+  if (p_reg == NULL) {
+    LOG(ERROR) << __func__ << " gatt_if is not registered " << +gatt_if;
+    return false;
+  }
+
+  if (add) {
+    ret = gatt_add_bg_dev_wl(p_reg, bd_addr);
+
+    if (ret && p_tcb != NULL) {
+      /* if a connected device, update the link holding number */
+      gatt_update_app_use_link_flag(gatt_if, p_tcb, true, true);
+    }
+  } else {
+    ret = gatt_remove_bg_dev_from_wl(p_reg, bd_addr);
+  }
+  return ret;
+}
+
 #endif

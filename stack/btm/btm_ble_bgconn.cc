@@ -356,6 +356,7 @@ bool btm_execute_wl_dev_operation(void) {
       btsnd_hcic_ble_remove_from_white_list(connection->addr_type_in_wl,
                                             connection->address);
       map_it = background_connections.erase(map_it);
+      BTM_TRACE_DEBUG("%s btsnd_hcic_ble_remove_from_white_list", __func__);
     } else
       ++map_it;
   }
@@ -367,6 +368,7 @@ bool btm_execute_wl_dev_operation(void) {
       btsnd_hcic_ble_add_white_list(connection->addr_type, connection->address);
       connection->in_controller_wl = true;
       connection->addr_type_in_wl = connection->addr_type;
+      BTM_TRACE_DEBUG("%s btsnd_hcic_ble_add_white_list", __func__);
     } else if (connection->in_controller_wl && connected) {
       /* Bluetooth Core 4.2 as well as ESR08 disallows more than one
          connection between two LE addresses. Not all controllers handle this
@@ -374,6 +376,7 @@ bool btm_execute_wl_dev_operation(void) {
          the white list when bg connection attempt is active. */
       btsnd_hcic_ble_remove_from_white_list(connection->addr_type_in_wl,
                                             connection->address);
+     BTM_TRACE_DEBUG("%s connected, btsnd_hcic_ble_remove_from_white_list", __func__);
       connection->in_controller_wl = false;
     }
   }
@@ -403,6 +406,32 @@ bool btm_update_dev_to_white_list(bool to_add, const RawAddress& bd_addr) {
   btm_resume_wl_activity(p_cb->wl_state);
   return true;
 }
+
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         btm_update_dev_to_white_list
+ *
+ * Description      This function adds or removes a device into/from
+ *                  the background connection device list.
+ *
+ ******************************************************************************/
+bool btm_update_dev_to_bg_list(bool to_add, const RawAddress& bd_addr) {
+    BTM_TRACE_EVENT("%s() add=%d", __func__, to_add);
+  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+
+  if (to_add &&
+      background_connections_count() ==
+          controller_get_interface()->get_ble_white_list_size()) {
+    BTM_TRACE_ERROR("%s Whitelist full, unable to add device", __func__);
+    return false;
+  }
+
+  btm_suspend_wl_activity(p_cb->wl_state);
+  btm_add_dev_to_controller(to_add, bd_addr);
+  return true;
+}
+#endif
 
 /*******************************************************************************
  *
@@ -568,8 +597,6 @@ bool btm_ble_start_auto_conn(bool start) {
   if (controller_get_interface()->supports_ble_2m_phy()) phy |= PHY_LE_2M;
   if (controller_get_interface()->supports_ble_coded_phy()) phy |= PHY_LE_CODED;
 
-  BTM_TRACE_EVENT("%s start=%d", __func__, start);
-
   if (start) {
     if (p_cb->conn_state == BLE_CONN_IDLE && background_connections_pending() &&
         btm_ble_topology_check(BTM_BLE_STATE_INIT) && l2cu_can_allocate_lcb()) {
@@ -672,8 +699,6 @@ bool btm_ble_start_auto_conn(bool start) {
  *
  ******************************************************************************/
 bool btm_ble_suspend_bg_conn(void) {
-  BTM_TRACE_EVENT("%s", __func__);
-
   if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO)
     return btm_ble_start_auto_conn(false);
 

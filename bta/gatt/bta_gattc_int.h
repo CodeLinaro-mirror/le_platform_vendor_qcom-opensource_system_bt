@@ -66,7 +66,9 @@ enum {
 #ifdef SUPPORT_ESL_AP
   BTA_GATTC_ADD_PD_LIST,
   BTA_GATTC_RM_PD_LIST,
-  BTA_GATTC_CL_PD_LIST
+  BTA_GATTC_CL_PD_LIST,
+  BTA_GATTC_ADD_WH_LIST,
+  BTA_GATTC_RM_WH_LIST
 #endif
 };
 typedef uint16_t tBTA_GATTC_INT_EVT;
@@ -78,10 +80,18 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 #define BTA_GATTC_CL_MAX 32
 #endif
 
+#ifdef SUPPORT_ESL_AP
+/* max known devices GATTC can support */
+#ifndef BTA_GATTC_KNOWN_SR_MAX
+#define BTA_GATTC_KNOWN_SR_MAX 128
+#endif
+#else
 /* max known devices GATTC can support */
 #ifndef BTA_GATTC_KNOWN_SR_MAX
 #define BTA_GATTC_KNOWN_SR_MAX 10
 #endif
+#endif
+
 
 /* max known devices for fast connection can support
    as pending list max number is 128*/
@@ -147,6 +157,20 @@ typedef struct {
   tBTA_TRANSPORT transport;
   uint8_t advertising_handle;
 } tBTA_GATTC_API_CL_PD;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+} tBTA_GATTC_API_ADD_WL;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+} tBTA_GATTC_API_RM_WL;
 #endif
 
 typedef tBTA_GATTC_API_OPEN tBTA_GATTC_API_CANCEL_OPEN;
@@ -233,6 +257,8 @@ typedef union {
   tBTA_GATTC_API_ADD_PD api_add_pd;
   tBTA_GATTC_API_RM_PD api_rm_pd;
   tBTA_GATTC_API_CL_PD api_cl_pd;
+  tBTA_GATTC_API_ADD_WL api_add_wl;
+  tBTA_GATTC_API_RM_WL api_rm_wl;
 #endif
   tBTA_GATTC_API_CANCEL_OPEN api_cancel_conn;
   tBTA_GATTC_API_READ api_read;
@@ -486,6 +512,8 @@ extern void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data, tBTA_GATTC_RC
 extern void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data);
 extern bool bta_gattc_mark_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, bool add);
 extern bool bta_gattc_check_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, uint8_t role);
+extern void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg);
 #endif
 
 /* utility functions */

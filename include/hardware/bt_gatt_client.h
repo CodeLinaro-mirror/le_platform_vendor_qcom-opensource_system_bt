@@ -317,6 +317,10 @@ typedef struct {
   bt_status_t (*remove_pendinglist)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
   /** Clear device from pending list*/
   bt_status_t (*clear_pendinglist)(int client_if, int transport, uint8_t advertising_handle);
+  /** Add device to white list*/
+  bt_status_t (*add_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
+  /** Remove device from white list*/
+  bt_status_t (*remove_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
 #endif
 } btgatt_client_interface_t;
 

@@ -716,7 +716,6 @@ bool BTM_BleLocalPrivacyEnabled(void) {
  * Set BLE connectable mode to auto connect
  */
 void BTM_BleStartAutoConn() {
-  BTM_TRACE_EVENT("%s", __func__);
   if (!controller_get_interface()->supports_ble()) return;
 
   if (btm_cb.ble_ctr_cb.bg_conn_type != BTM_BLE_CONN_AUTO) {
@@ -760,7 +759,6 @@ void BTM_BleClearBgConnDev(void) {
  *
  ******************************************************************************/
 bool BTM_BleUpdateBgConnDev(bool add_remove, const RawAddress& remote_bda) {
-  BTM_TRACE_EVENT("%s() add=%d", __func__, add_remove);
   return btm_update_dev_to_white_list(add_remove, remote_bda);
 }
 
@@ -851,6 +849,23 @@ void BTM_BleClearPdConnDev(uint8_t advertising_handle) {
 bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent) {
   BTM_TRACE_EVENT("%s() add=%d, advertising_handle=%d, subevent=%d", __func__, add_remove,advertising_handle,subevent);
   return btm_update_dev_to_pending_list(add_remove, remote_bda, advertising_handle, subevent);
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleUpdateWlDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  white list.
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda) {
+  return btm_update_dev_to_bg_list(add_remove, remote_bda);
 }
 #endif
 

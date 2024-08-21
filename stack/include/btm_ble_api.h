@@ -448,6 +448,8 @@ extern bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda
  *
  ******************************************************************************/
 extern void BTM_BleClearPdConnDev(uint8_t advertising_handle);
+
+extern bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda);
 #endif
 /*******************************************************************************
  *

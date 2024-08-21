@@ -500,6 +500,8 @@ extern uint8_t gatt_clear_pd_dev_for_addr(const RawAddress& bd_addr, uint8_t adv
 extern tGATT_PD_CONN_DEV* gatt_find_pd_dev(const RawAddress& remote_bda);
 extern void gatt_deregister_pddev_list(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent);
 extern bool gatt_clear_pd_connect_dev(tGATT_IF gatt_if, uint8_t advertising_handle);
+extern bool gatt_update_wl_connect_dev(tGATT_IF gatt_if, bool add,
+                                         const RawAddress& bd_addr);
 #endif
 
 /* server function */
