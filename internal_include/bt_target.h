@@ -448,7 +448,11 @@
 
 /* The number of security records for peer devices. */
 #ifndef BTM_SEC_MAX_DEVICE_RECORDS
+#ifdef SUPPORT_ESL_AP
+#define BTM_SEC_MAX_DEVICE_RECORDS 128
+#else
 #define BTM_SEC_MAX_DEVICE_RECORDS 100
+#endif
 #endif
 
 /* The number of security records for services. */
@@ -748,11 +752,7 @@
  * Enables or disables support for local privacy (ex. address rotation)
  */
 #ifndef BLE_LOCAL_PRIVACY_ENABLED
-#ifndef SUPPORT_ESL_AP
 #define BLE_LOCAL_PRIVACY_ENABLED TRUE
-#else
-#define BLE_LOCAL_PRIVACY_ENABLED FALSE
-#endif
 #endif
 
 /*
@@ -1392,7 +1392,7 @@
  *****************************************************************************/
 
 #ifndef AAC_DECODER_INCLUDED
-#define AAC_DECODER_INCLUDED        TRUE
+#define AAC_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef MP3_DECODER_INCLUDED
@@ -1400,15 +1400,15 @@
 #endif
 
 #ifndef APTX_CLASSIC_DECODER_INCLUDED
-#define APTX_CLASSIC_DECODER_INCLUDED        TRUE
+#define APTX_CLASSIC_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef APTX_HD_DECODER_INCLUDED
-#define APTX_HD_DECODER_INCLUDED        TRUE
+#define APTX_HD_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef APTX_AD_DECODER_INCLUDED
-#define APTX_AD_DECODER_INCLUDED        TRUE
+#define APTX_AD_DECODER_INCLUDED        FALSE
 #endif
 
 #ifndef A2D_M24_INCLUDED

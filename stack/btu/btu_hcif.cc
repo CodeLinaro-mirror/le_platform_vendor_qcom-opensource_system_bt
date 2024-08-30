@@ -394,6 +394,9 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
 
     case HCI_VENDOR_SPECIFIC_EVT:
       btm_vendor_specific_evt(p, hci_evt_len);
+#ifdef SUPPORT_ESL_AP
+      hcif_vs_event_callback(p - 2, hci_evt_len + 2);
+#endif
       break;
 
     case HCI_CSB_TIMEOUT_EVT:
@@ -1394,6 +1397,12 @@ static void btu_hcif_command_status_evt_on_task(uint8_t status, BT_HDR* event,
   command_opcode_t opcode;
   uint8_t* stream = event->data + event->offset;
   STREAM_TO_UINT16(opcode, stream);
+
+#ifdef SUPPORT_ESL_AP
+  if (opcode == HCI_LE_EXTENDED_CREATE_CONNECTION || opcode == HCI_LE_EXTENDED_CREATE_CONNECTION_V2
+    ||opcode == HCI_CREATE_CONNECTION_CANCEL || opcode == HCI_DISCONNECT)
+    btm_hci_status (opcode, status);
+#endif
 
   btu_hcif_hdl_command_status(opcode, status, stream, context);
   osi_free(event);

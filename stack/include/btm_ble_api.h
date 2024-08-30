@@ -410,6 +410,47 @@ extern void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key);
  */
 extern void BTM_BleStartAutoConn();
 
+#ifdef SUPPORT_ESL_AP
+/**
+ * Set BLE connectable mode to auto connect
+ */
+extern bool BTM_BleStartAutoConnV2();
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleUpdatePdConnDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  pending list connection procedure. The pending list connection
+*                   procedure is decided by the pending list connection type, it
+*can be
+*                   auto connection, or selective connection.
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleClearPdConnDev
+ *
+ * Description      This function is called to clear the pendinglist,
+ *                  end any pending pendinglist connections,
+ *                  and reset the local pd device list.
+ *
+ * Parameters       void
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTM_BleClearPdConnDev(uint8_t advertising_handle);
+
+extern bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda);
+#endif
 /*******************************************************************************
  *
  * Function         BTM_BleUpdateBgConnDev

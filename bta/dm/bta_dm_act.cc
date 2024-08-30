@@ -4604,6 +4604,7 @@ void bta_dm_ble_set_bg_conn_type(tBTA_DM_MSG* p_data) {
   BTM_BleStartAutoConn();
 }
 
+
 /*******************************************************************************
  *
  * Function         bta_dm_ble_set_conn_params

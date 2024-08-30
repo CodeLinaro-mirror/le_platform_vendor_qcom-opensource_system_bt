@@ -716,7 +716,6 @@ bool BTM_BleLocalPrivacyEnabled(void) {
  * Set BLE connectable mode to auto connect
  */
 void BTM_BleStartAutoConn() {
-  BTM_TRACE_EVENT("%s", __func__);
   if (!controller_get_interface()->supports_ble()) return;
 
   if (btm_cb.ble_ctr_cb.bg_conn_type != BTM_BLE_CONN_AUTO) {
@@ -760,7 +759,6 @@ void BTM_BleClearBgConnDev(void) {
  *
  ******************************************************************************/
 bool BTM_BleUpdateBgConnDev(bool add_remove, const RawAddress& remote_bda) {
-  BTM_TRACE_EVENT("%s() add=%d", __func__, add_remove);
   return btm_update_dev_to_white_list(add_remove, remote_bda);
 }
 
@@ -798,6 +796,76 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
     return false;
 
   return true;
+}
+#endif
+
+#ifdef SUPPORT_ESL_AP
+/**
+ * Set BLE connectable mode to auto connect
+ */
+bool BTM_BleStartAutoConnV2() {
+  BTM_TRACE_EVENT("%s", __func__);
+  if (!controller_get_interface()->supports_ble()) return;
+
+  if (btm_cb.ble_ctr_cb.pd_conn_type != BTM_BLE_CONN_AUTO) {
+    btm_cb.ble_ctr_cb.pd_conn_type = BTM_BLE_CONN_AUTO;
+    return btm_ble_start_auto_conn_v2(true);
+  }
+}
+/*******************************************************************************
+ *
+ * Function         BTM_BleClearPdConnDev
+ *
+ * Description      This function is called to clear the pendinglist,
+ *                  end any pending pendinglist connections,
+ *                  and reset the local bg device list.
+ *
+ * Parameters       void
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTM_BleClearPdConnDev(uint8_t advertising_handle) {
+  btm_ble_start_auto_conn_v2(false);
+  btm_ble_clear_pending_list(advertising_handle);
+  gatt_reset_pddev_list();
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleUpdatePdConnDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  pending connection procedure. The pending connection
+ *                  procedure is decided by the pending connection type, it
+ *                  can be auto connection, or selective connection.
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent) {
+  BTM_TRACE_EVENT("%s() add=%d, advertising_handle=%d, subevent=%d", __func__, add_remove,advertising_handle,subevent);
+  return btm_update_dev_to_pending_list(add_remove, remote_bda, advertising_handle, subevent);
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleUpdateWlDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  white list.
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda) {
+  return btm_update_dev_to_bg_list(add_remove, remote_bda);
 }
 #endif
 
@@ -2847,20 +2915,17 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
 }
 
 #ifdef SUPPORT_ESL_AP
-void BTM_GetScanStatus(base::Callback<void(bool, uint8_t)> cb) {
-
-  //if (BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
-  //  BTM_TRACE_WARNING("%s: scan_activity= %x, active ", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity);
-  //  cb.Run(true, BTM_BLE_SCAN_MODE_ACTI);
-  //}
+void BTM_GetScanStatus(bool *running, uint8_t *scan_type) {
 
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {
-        tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
-        BTM_TRACE_WARNING("%s: scan_activity= %x, obs, type:%d", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity, p_inq->scan_type);
-        cb.Run(true, p_inq->scan_type);
+    tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
+    BTM_TRACE_WARNING("%s: scan_activity= %x, obs, type:%d", __FUNCTION__, btm_cb.ble_ctr_cb.scan_activity, p_inq->scan_type);
+    *running = true;
+    *scan_type = p_inq->scan_type;
   }
   else {
-    cb.Run(false, 0xff);
+    *running = false;
+    *scan_type = 0xff;
   }
 }
 
@@ -2903,4 +2968,10 @@ void BTM_StartEncryption(RawAddress address, uint8_t *rand, uint16_t ediv, const
     BTM_TRACE_WARNING("%s: send start enc", __FUNCTION__);
     btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, rand, ediv, ltk);
 }
+
+void BTM_Deregister_Bgdev_List(tGATT_IF gatt_if) {
+    BTM_TRACE_WARNING("%s: gatt_if = %d", __FUNCTION__, gatt_if);
+    gatt_deregister_bgdev_list(gatt_if);
+}
+
 #endif

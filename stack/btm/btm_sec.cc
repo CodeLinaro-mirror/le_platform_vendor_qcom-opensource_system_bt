@@ -2806,6 +2806,15 @@ void btm_create_conn_cancel_complete(uint8_t* p) {
         btm_cb.api.p_bond_cancel_cmpl_callback(BTM_ERR_PROCESSING);
       break;
   }
+#ifdef SUPPORT_ESL_AP // send cancel connection complete event to AP daemon.
+  tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
+  tBTM_RAW_STATUS  raw_status_params;
+  if (status != HCI_SUCCESS && p_devcb->p_hci_status_cb) {
+    raw_status_params.opcode = HCI_CREATE_CONNECTION_CANCEL;
+    raw_status_params.status = status;
+    (p_devcb->p_hci_status_cb) (&raw_status_params);
+  }
+#endif
 }
 
 /*******************************************************************************

@@ -201,6 +201,7 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB* p_clcb) {
 
     /* if the srcb is no longer needed, reset the state */
     if (p_srcb->num_clcb == 0) {
+      p_srcb->in_use = false;//can be reused, otherwise can only recycle from end of known_server
       p_srcb->connected = false;
       p_srcb->state = BTA_GATTC_SERV_IDLE;
       p_srcb->mtu = 0;
@@ -518,6 +519,94 @@ bool bta_gattc_check_bg_conn(tBTA_GATTC_IF client_if,
   }
   return is_bg_conn;
 }
+
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         bta_gattc_mark_pd_conn
+ *
+ * Description      mark pending list connection status when a pd connection is
+ *                  initiated or terminated.
+ *
+ * Returns          true if success; false otherwise.
+ *
+ ******************************************************************************/
+bool bta_gattc_mark_pd_conn(tBTA_GATTC_IF client_if,
+                            const RawAddress& remote_bda_ptr, bool add) {
+  tBTA_GATTC_PD_TCK* p_pd_tck = &bta_gattc_cb.pd_track[0];
+  uint8_t i = 0;
+  tBTA_GATTC_CIF_MASK* p_cif_mask;
+
+  for (i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX; i++, p_pd_tck++) {
+    if (p_pd_tck->in_use && ((p_pd_tck->remote_bda == remote_bda_ptr) ||
+                             (p_pd_tck->remote_bda.IsEmpty()))) {
+      p_cif_mask = &p_pd_tck->cif_mask;
+
+      if (add) /* mask on the cif bit */
+        *p_cif_mask |= (1 << (client_if - 1));
+      else {
+        if (client_if != 0)
+          *p_cif_mask &= (~(1 << (client_if - 1)));
+        else
+          *p_cif_mask = 0;
+      }
+      /* no PD connection for this device, make it available */
+      if (p_pd_tck->cif_mask == 0) {
+        memset(p_pd_tck, 0, sizeof(tBTA_GATTC_PD_TCK));
+      }
+      return true;
+    }
+  }
+  if (!add) {
+    LOG(ERROR) << __func__ << " unable to find the pd connection mask for: "
+               << remote_bda_ptr;
+    return false;
+  } else /* adding a new device mask */
+  {
+    for (i = 0, p_pd_tck = &bta_gattc_cb.pd_track[0];
+         i < BTA_GATTC_KNOWN_PD_SR_MAX; i++, p_pd_tck++) {
+      if (!p_pd_tck->in_use) {
+        p_pd_tck->in_use = true;
+        p_pd_tck->remote_bda = remote_bda_ptr;
+
+        p_cif_mask = &p_pd_tck->cif_mask;
+
+        *p_cif_mask = (1 << (client_if - 1));
+        return true;
+      }
+    }
+    APPL_TRACE_ERROR("no available space to mark the pd connection status");
+    return false;
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_check_pd_conn
+ *
+ * Description      check if this is a pending list connection.
+ *
+ * Returns          true if success; false otherwise.
+ *
+ ******************************************************************************/
+bool bta_gattc_check_pd_conn(tBTA_GATTC_IF client_if,
+                             const RawAddress& remote_bda, uint8_t role) {
+  tBTA_GATTC_PD_TCK* p_pd_tck = &bta_gattc_cb.pd_track[0];
+  uint8_t i = 0;
+  bool is_pd_conn = false;
+
+  for (i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX && !is_pd_conn; i++, p_pd_tck++) {
+    if (p_pd_tck->in_use && (p_pd_tck->remote_bda == remote_bda ||
+                             p_pd_tck->remote_bda.IsEmpty())) {
+      if (((p_pd_tck->cif_mask & (1 << (client_if - 1))) != 0) &&
+          role == HCI_ROLE_MASTER)
+        is_pd_conn = true;
+    }
+  }
+  return is_pd_conn;
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         bta_gattc_send_open_cback
@@ -666,6 +755,20 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA* p_msg) {
                                     p_msg->int_conn.remote_bda,
                                     p_msg->int_conn.transport);
     }
+#ifdef SUPPORT_ESL_AP
+    /* for a pendinglist connection or listening connection */
+    if (/*p_msg->int_conn.role == HCI_ROLE_SLAVE ||  */
+        bta_gattc_check_pd_conn(p_msg->int_conn.client_if,
+                                p_msg->int_conn.remote_bda,
+                                p_msg->int_conn.role)) {
+      /* allocate a new channel */
+      p_clcb = bta_gattc_clcb_alloc(p_msg->int_conn.client_if,
+                                    p_msg->int_conn.remote_bda,
+                                    p_msg->int_conn.transport);
+      /* remove from pending list as connection has completed mean while to mark pending list device false*/
+      bta_gattc_process_rm_pd_list(p_msg);
+    }
+#endif
   }
   return p_clcb;
 }
@@ -694,6 +797,10 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg) {
   if (p_clcb == NULL) {
     APPL_TRACE_DEBUG(" disconnection ID: [%d] not used by BTA",
                      p_msg->int_conn.hdr.layer_specific);
+#ifdef SUPPORT_ESL_AP
+    /* remove from pending list as connected but not established mean while to mark pending list device false*/
+    bta_gattc_process_rm_pd_list(p_msg);
+#endif
   }
   return p_clcb;
 }

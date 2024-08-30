@@ -40,6 +40,10 @@
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 
+#ifdef SUPPORT_ESL_AP
+#include "stack/btm/btm_int.h"
+#endif
+
 using bluetooth::Uuid;
 
 /*****************************************************************************
@@ -146,16 +150,27 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
 }
 
 #ifdef SUPPORT_ESL_AP
+
+void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
+                    bool is_direct, tBTA_GATT_TRANSPORT transport,
+                    bool opportunistic, uint8_t initiating_phys, tBTM_RAW_STATUS_CB *p_status_cb) {
+  tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
+  if (p_status_cb != NULL && p_status_cb != (p_devcb->p_hci_status_cb)) {
+    p_devcb->p_hci_status_cb = p_status_cb;
+  }
+  BTA_GATTC_Open(client_if, remote_bda, is_direct, transport, opportunistic, initiating_phys);
+}
+
 /*******************************************************************************
  *
  * Function         BTA_GATTC_Open_v2
  *
- * Description      Open a direct connection or add a background auto connection
+ * Description      Open a direct connection or add a pending list auto connection
  *                  bd address
  *
  * Parameters       client_if: server interface.
  *                  remote_bda: remote device BD address.
- *                  is_direct: direct connection or background auto connection
+ *                  is_direct: direct connection or pending list auto connection
  *                  transport: Transport to be used for GATT connection
  *                             (BREDR/LE)
  *                  initiating_phys: LE PHY to use, optional
@@ -188,6 +203,65 @@ void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint
   p_buf->subevent = subevent;
 
   bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Add_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
+    tBTA_GATTC_API_ADD_PD* p_buf =
+      (tBTA_GATTC_API_ADD_PD*)osi_malloc(sizeof(tBTA_GATTC_API_ADD_PD));
+    p_buf->hdr.event = BTA_GATTC_ADD_PD_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+    p_buf->advertising_handle = advertising_handle;
+    p_buf->subevent = subevent;
+
+    bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
+    tBTA_GATTC_API_RM_PD* p_buf =
+      (tBTA_GATTC_API_RM_PD*)osi_malloc(sizeof(tBTA_GATTC_API_RM_PD));
+    p_buf->hdr.event = BTA_GATTC_RM_PD_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+    p_buf->advertising_handle = advertising_handle;
+    p_buf->subevent = subevent;
+
+    bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle) {
+    tBTA_GATTC_API_CL_PD* p_buf =
+      (tBTA_GATTC_API_CL_PD*)osi_malloc(sizeof(tBTA_GATTC_API_CL_PD));
+    p_buf->hdr.event = BTA_GATTC_CL_PD_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->advertising_handle = advertising_handle;
+
+    bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Add_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport) {
+    tBTA_GATTC_API_ADD_WL* p_buf =
+      (tBTA_GATTC_API_ADD_WL*)osi_malloc(sizeof(tBTA_GATTC_API_ADD_WL));
+    p_buf->hdr.event = BTA_GATTC_ADD_WH_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+
+    bta_sys_sendmsg(p_buf);
+}
+
+void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport) {
+    tBTA_GATTC_API_RM_WL* p_buf =
+      (tBTA_GATTC_API_RM_WL*)osi_malloc(sizeof(tBTA_GATTC_API_RM_WL));
+    p_buf->hdr.event = BTA_GATTC_RM_WH_LIST;
+    p_buf->client_if = client_if;
+    p_buf->transport = transport;
+    p_buf->remote_bda = remote_bda;
+
+    bta_sys_sendmsg(p_buf);
 }
 #endif
 /*******************************************************************************

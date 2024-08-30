@@ -2085,7 +2085,6 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
     }
 #else
     l2cu_find_lcb_by_bd_addr_to_clean(bda, BT_TRANSPORT_LE);
-    BTM_TRACE_EVENT("zhoz debug set p_clb as null as receive error connection complete event");
     btm_ble_set_conn_st(BLE_CONN_IDLE);
   #if (BLE_PRIVACY_SPT == TRUE)
       btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
@@ -2094,6 +2093,9 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
   }
 
   btm_ble_update_mode_operation(role, &bda, status);
+#ifdef SUPPORT_ESL_AP
+  btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
+#endif
 }
 
 /*****************************************************************************

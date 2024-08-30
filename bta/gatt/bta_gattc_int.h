@@ -62,7 +62,14 @@ enum {
   BTA_GATTC_INT_DISCOVER_EVT,
   BTA_GATTC_DISCOVER_CMPL_EVT,
   BTA_GATTC_OP_CMPL_EVT,
-  BTA_GATTC_INT_DISCONN_EVT
+  BTA_GATTC_INT_DISCONN_EVT,
+#ifdef SUPPORT_ESL_AP
+  BTA_GATTC_ADD_PD_LIST,
+  BTA_GATTC_RM_PD_LIST,
+  BTA_GATTC_CL_PD_LIST,
+  BTA_GATTC_ADD_WH_LIST,
+  BTA_GATTC_RM_WH_LIST
+#endif
 };
 typedef uint16_t tBTA_GATTC_INT_EVT;
 
@@ -73,9 +80,25 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 #define BTA_GATTC_CL_MAX 32
 #endif
 
+#ifdef SUPPORT_ESL_AP
+/* max known devices GATTC can support */
+#ifndef BTA_GATTC_KNOWN_SR_MAX
+#define BTA_GATTC_KNOWN_SR_MAX 128
+#endif
+#else
 /* max known devices GATTC can support */
 #ifndef BTA_GATTC_KNOWN_SR_MAX
 #define BTA_GATTC_KNOWN_SR_MAX 10
+#endif
+#endif
+
+
+/* max known devices for fast connection can support
+   as pending list max number is 128*/
+#ifdef SUPPORT_ESL_AP
+  #ifndef BTA_GATTC_KNOWN_PD_SR_MAX
+  #define BTA_GATTC_KNOWN_PD_SR_MAX 128
+  #endif
 #endif
 
 #define BTA_GATTC_CONN_MAX GATT_MAX_PHY_CHANNEL
@@ -109,6 +132,45 @@ typedef struct {
   uint8_t advertising_handle;
   uint8_t subevent;
 } tBTA_GATTC_API_OPEN_V2;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+  uint8_t advertising_handle;
+  uint8_t subevent;
+} tBTA_GATTC_API_ADD_PD;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+  uint8_t advertising_handle;
+  uint8_t subevent;
+} tBTA_GATTC_API_RM_PD;
+
+typedef struct {
+  BT_HDR hdr;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+  uint8_t advertising_handle;
+} tBTA_GATTC_API_CL_PD;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+} tBTA_GATTC_API_ADD_WL;
+
+typedef struct {
+  BT_HDR hdr;
+  RawAddress remote_bda;
+  tBTA_GATTC_IF client_if;
+  tBTA_TRANSPORT transport;
+} tBTA_GATTC_API_RM_WL;
 #endif
 
 typedef tBTA_GATTC_API_OPEN tBTA_GATTC_API_CANCEL_OPEN;
@@ -192,6 +254,11 @@ typedef union {
   tBTA_GATTC_API_OPEN api_conn;
 #ifdef SUPPORT_ESL_AP
   tBTA_GATTC_API_OPEN_V2 api_conn_v2;
+  tBTA_GATTC_API_ADD_PD api_add_pd;
+  tBTA_GATTC_API_RM_PD api_rm_pd;
+  tBTA_GATTC_API_CL_PD api_cl_pd;
+  tBTA_GATTC_API_ADD_WL api_add_wl;
+  tBTA_GATTC_API_RM_WL api_rm_wl;
 #endif
   tBTA_GATTC_API_CANCEL_OPEN api_cancel_conn;
   tBTA_GATTC_API_READ api_read;
@@ -322,6 +389,15 @@ typedef struct {
 
 } tBTA_GATTC_BG_TCK;
 
+#ifdef SUPPORT_ESL_AP
+typedef struct {
+  bool in_use;
+  RawAddress remote_bda;
+  tBTA_GATTC_CIF_MASK cif_mask;
+
+} tBTA_GATTC_PD_TCK;
+#endif
+
 typedef struct {
   bool in_use;
   RawAddress remote_bda;
@@ -343,6 +419,9 @@ typedef struct {
 
   tBTA_GATTC_CLCB clcb[BTA_GATTC_CLCB_MAX];
   tBTA_GATTC_SERV known_server[BTA_GATTC_KNOWN_SR_MAX];
+#ifdef SUPPORT_ESL_AP
+  tBTA_GATTC_PD_TCK pd_track[BTA_GATTC_KNOWN_PD_SR_MAX];
+#endif
 } tBTA_GATTC_CB;
 
 /*****************************************************************************
@@ -426,6 +505,15 @@ extern void bta_gattc_broadcast(tBTA_GATTC_DATA* p_msg);
 #ifdef SUPPORT_ESL_AP
 extern void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
+extern void bta_gattc_process_add_pd_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_rm_pd_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_cl_pd_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data, tBTA_GATTC_RCB* p_clreg);
+extern void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data);
+extern bool bta_gattc_mark_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, bool add);
+extern bool bta_gattc_check_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, uint8_t role);
+extern void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg);
 #endif
 
 /* utility functions */

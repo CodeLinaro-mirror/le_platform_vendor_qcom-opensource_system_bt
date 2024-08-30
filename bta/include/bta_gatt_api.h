@@ -114,6 +114,7 @@ typedef uint8_t tBTA_GATT_STATUS;
 #define BTA_GATTC_CLOSE_EVT 5        /* GATTC  close request status event */
 #define BTA_GATTC_SEARCH_CMPL_EVT 6  /* GATT discovery complete event */
 #define BTA_GATTC_SEARCH_RES_EVT 7   /* GATT discovery result event */
+#define BTA_GATTC_SRVC_DISC_DONE_EVT 8 /* GATT service discovery done event */
 #define BTA_GATTC_NOTIF_EVT 10       /* GATT attribute notification event */
 #define BTA_GATTC_EXEC_EVT 12        /* execute write complete event */
 #define BTA_GATTC_ACL_EVT 13         /* ACL up event */
@@ -650,6 +651,10 @@ extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if,
                            uint8_t initiating_phys);
 
 #ifdef SUPPORT_ESL_AP
+extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
+                          bool is_direct, tBTA_GATT_TRANSPORT transport,
+                          bool opportunistic, uint8_t initiating_phys, tBTM_RAW_STATUS_CB *p_status_cb);
+
 /*******************************************************************************
  *
  * Function         BTA_GATTC_Open_v2
@@ -670,6 +675,11 @@ extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handl
                            const RawAddress& remote_bda, bool is_direct,
                            tBTA_GATT_TRANSPORT transport, bool opportunistic,
                            uint8_t initiating_phys);
+extern void BTA_GATTC_Add_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
+extern void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
+extern void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle);
+extern void BTA_GATTC_Add_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
+extern void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
 #endif
 /*******************************************************************************
  *

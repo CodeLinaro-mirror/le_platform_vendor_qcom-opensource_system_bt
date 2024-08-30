@@ -1189,13 +1189,43 @@ bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subev
                               initiating_phys);
   else {
     if (transport == BT_TRANSPORT_LE)
-      status = gatt_update_auto_connect_dev(gatt_if, true, bd_addr);
+      status = gatt_start_auto_fast_connection();
     else {
       LOG(ERROR) << "Unsupported transport for background connection";
     }
   }
 
   return status;
+}
+
+bool GATT_Add_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+    bool status = false;
+    status = gatt_update_pd_connect_dev(gatt_if, true, bd_addr, advertising_handle, subevent);
+    return status;
+}
+
+bool GATT_Remove_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+    bool status = false;
+    status = gatt_update_pd_connect_dev(gatt_if, false, bd_addr, advertising_handle, subevent);
+    return status;
+}
+
+bool GATT_Clear_Pending_List(tGATT_IF gatt_if, uint8_t advertising_handle) {
+    bool status = false;
+    status = gatt_clear_pd_connect_dev(gatt_if, advertising_handle);
+    return status;
+}
+
+bool GATT_Add_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
+    bool status = false;
+    status = gatt_update_wl_connect_dev(gatt_if, true, bd_addr);
+    return status;
+}
+
+bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
+    bool status = false;
+    status = gatt_update_wl_connect_dev(gatt_if, false, bd_addr);
+    return status;
 }
 #endif
 

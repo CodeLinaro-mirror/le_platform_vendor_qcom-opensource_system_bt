@@ -392,6 +392,21 @@ bool bta_gattc_hdl_event(BT_HDR* p_msg) {
     case BTA_GATTC_API_OPEN_EVT_V2:
       bta_gattc_process_api_open_v2((tBTA_GATTC_DATA*)p_msg);
       break;
+    case BTA_GATTC_ADD_PD_LIST:
+      bta_gattc_process_add_pd_list((tBTA_GATTC_DATA*)p_msg);
+      break;
+    case BTA_GATTC_RM_PD_LIST:
+      bta_gattc_process_rm_pd_list((tBTA_GATTC_DATA*)p_msg);
+      break;
+    case BTA_GATTC_CL_PD_LIST:
+      bta_gattc_process_cl_pd_list((tBTA_GATTC_DATA*)p_msg);
+      break;
+    case BTA_GATTC_ADD_WH_LIST:
+      bta_gattc_process_add_wh_list((tBTA_GATTC_DATA*)p_msg);
+      break;
+    case BTA_GATTC_RM_WH_LIST:
+      bta_gattc_process_rm_wh_list((tBTA_GATTC_DATA*)p_msg);
+      break;
 #endif
 
     case BTA_GATTC_API_CANCEL_OPEN_EVT:

@@ -1014,6 +1014,13 @@ extern bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_
 extern bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
                          const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport,
                          bool opportunistic, uint8_t initiating_phys);
+extern bool GATT_Add_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                         uint8_t advertising_handle, uint8_t subevent);
+extern bool GATT_Remove_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                         uint8_t advertising_handle, uint8_t subevent);
+extern bool GATT_Clear_Pending_List(tGATT_IF gatt_if, uint8_t advertising_handle);
+extern bool GATT_Add_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr);
+extern bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr);
 #endif
 /*******************************************************************************
  *
@@ -1114,5 +1121,10 @@ extern void gatt_notify_enc_cmpl(const RawAddress& bd_addr);
 
 // Reset bg device list.
 extern void gatt_reset_bgdev_list(void);
+
+#ifdef SUPPORT_ESL_AP
+// Reset pd device list.
+extern void gatt_reset_pddev_list(void);
+#endif
 
 #endif /* GATT_API_H */
