@@ -100,6 +100,10 @@ inline bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x) {
 #define BTM_VSC_CHIP_CAPABILITY_L_VERSION 55
 #define BTM_VSC_CHIP_CAPABILITY_M_VERSION 95
 
+#ifdef SUPPORT_ESL_AP
+#define BTM_BLE_MAX_PENDING_LIST_SIZE 128
+#endif
+
 typedef struct {
   uint16_t data_mask;
   uint8_t* p_flags;
