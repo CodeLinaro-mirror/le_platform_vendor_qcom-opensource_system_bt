@@ -20,6 +20,7 @@
 
 #include <string>
 #include <cstring>
+#include <stdint.h>
 
 /** Bluetooth Address */
 class RawAddress final {
