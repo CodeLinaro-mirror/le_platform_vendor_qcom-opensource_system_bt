@@ -806,6 +806,13 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
             p_ccb->peer_conn_cfg.mps < L2CAP_LE_MIN_MPS ||
             p_ccb->peer_conn_cfg.mps > L2CAP_LE_MAX_MPS) {
           L2CAP_TRACE_ERROR("L2CAP don't like the params");
+          PTS_TRACE_INFO(
+              "l2cap connect fail due to params, peer mtu:%d, "
+              "peer mps:%d, "
+              "remote_cid = %d, "
+              "result code:%d\n",
+              p_ccb->peer_conn_cfg.mtu, p_ccb->peer_conn_cfg.mps,
+              con_info.remote_cid, con_info.l2cap_result);
           con_info.l2cap_result = L2CAP_LE_NO_RESOURCES;
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_NEG, &con_info);
           break;
