@@ -107,6 +107,9 @@ struct alarm_t {
 
   bool for_msg_loop;  // True, if the alarm should be processed on message loop
   CancelableClosureInStruct closure;  // posted to message loop for processing
+#ifdef SUPPORT_ESL_AP
+  bool is_posted;
+#endif
 };
 
 // If the next wakeup time is less than this threshold, we should acquire
@@ -420,7 +423,10 @@ static void remove_pending_alarm(alarm_t* alarm) {
   list_remove(alarms, alarm);
 
   if (alarm->for_msg_loop) {
-    alarm->closure.i.Cancel();
+#ifdef SUPPORT_ESL_AP
+    if (!alarm->is_posted)
+#endif
+      alarm->closure.i.Cancel();
   } else {
     while (fixed_queue_try_remove_from_queue(alarm->queue, alarm) != NULL) {
       // Remove all repeated alarm instances from the queue.
@@ -578,6 +584,9 @@ static void alarm_ready_generic(alarm_t* alarm,
   // some of its internal state. This is useful to distinguish between expired
   // alarms and active ones.
   //
+#ifdef SUPPORT_ESL_AP
+  alarm->is_posted = false;
+#endif
   alarm_callback_t callback = alarm->callback;
   void* data = alarm->data;
   period_ms_t deadline = alarm->deadline;
@@ -599,7 +608,9 @@ static void alarm_ready_generic(alarm_t* alarm,
 
   lock.unlock();
 
-  callback(data);
+  if (callback) {
+    callback(data);
+  }
 }
 
 static void alarm_ready_mloop(alarm_t* alarm) {
@@ -659,6 +670,9 @@ static void callback_dispatch(UNUSED_ATTR void* context) {
       }
 
       alarm->closure.i.Reset(Bind(alarm_ready_mloop, alarm));
+#ifdef SUPPORT_ESL_AP
+      alarm->is_posted = true;
+#endif
       get_message_loop()->task_runner()->PostTask(FROM_HERE, alarm->closure.i.callback()); // gghai
     } else {
       fixed_queue_enqueue(alarm->queue, alarm);
