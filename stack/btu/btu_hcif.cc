@@ -1399,8 +1399,7 @@ static void btu_hcif_command_status_evt_on_task(uint8_t status, BT_HDR* event,
   STREAM_TO_UINT16(opcode, stream);
 
 #ifdef SUPPORT_ESL_AP
-  if (opcode == HCI_LE_EXTENDED_CREATE_CONNECTION || opcode == HCI_LE_EXTENDED_CREATE_CONNECTION_V2
-    ||opcode == HCI_CREATE_CONNECTION_CANCEL || opcode == HCI_DISCONNECT)
+  if (opcode == HCI_LE_EXTENDED_CREATE_CONNECTION || opcode == HCI_LE_EXTENDED_CREATE_CONNECTION_V2 || opcode == HCI_DISCONNECT)
     btm_hci_status (opcode, status);
 #endif
 
