@@ -173,6 +173,8 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, const RawAddress& src,
                                        BT_HDR* p_buf, bool ext, bool forward) {
   tBTA_PAN_SCB* p_scb = bta_pan_scb_by_handle(handle);
   if (p_scb == NULL) {
+    APPL_TRACE_ERROR("%s: p_scb is nullptr", __func__);
+    osi_free(p_buf);
     return;
   }
 
@@ -181,6 +183,7 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, const RawAddress& src,
     android_errorWriteLog(0x534e4554, "63146237");
     APPL_TRACE_ERROR("%s: received buffer length too large: %d", __func__,
                      p_buf->len);
+    osi_free(p_buf);
     return;
   }
 
@@ -202,6 +205,8 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, const RawAddress& src,
   p_event->layer_specific = handle;
   p_event->event = BTA_PAN_RX_FROM_BNEP_READY_EVT;
   bta_sys_sendmsg(p_event);
+
+  osi_free(p_buf);
 }
 
 /*******************************************************************************
