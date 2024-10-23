@@ -37,4 +37,4 @@ libbt_qcom_sbc_decoder_la_CC = @CC@
 libbt_qcom_sbc_decoder_la_SOURCES = $(c_sources)
 libbt_qcom_sbc_decoder_la_CPPFLAGS =$(AM_CPPFLAGS) -DHAS_NO_BDROID_BUILDCFG
 libbt_qcom_sbc_decoder_la_CFLAGS = $(common_CFLAGS)
-libbt_qcom_sbc_decoder_la_LDFLAGS := $(common_LDFLAGS) -static
+libbt_qcom_sbc_decoder_la_LDFLAGS := $(common_LDFLAGS) -static -version-number @LT_VERSION_NUMBER@

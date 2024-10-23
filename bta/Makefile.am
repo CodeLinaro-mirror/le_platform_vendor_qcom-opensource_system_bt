@@ -149,4 +149,4 @@ libbtbta_la_CC = @CC@
 libbtbta_la_SOURCES = $(cpp_sources)
 libbtbta_la_CPPFLAGS =$(AM_CPPFLAGS) -std=c++11 -DHAS_NO_BDROID_BUILDCFG -Wall -fPIC
 libbtbta_la_CFLAGS = $(common_CFLAGS)
-libbtbta_la_LDFLAGS := $(common_LDFLAGS) -static -lbttypes
+libbtbta_la_LDFLAGS := $(common_LDFLAGS) -static -lbttypes -version-number @LT_VERSION_NUMBER@
