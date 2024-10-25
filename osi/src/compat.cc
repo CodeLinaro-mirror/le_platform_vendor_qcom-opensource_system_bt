@@ -61,6 +61,7 @@ pid_t gettid(void) { return syscall(SYS_gettid); }
  * will be copied.  Always NUL terminates (unless siz == 0).
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
+#if 0
 size_t strlcpy(char* dst, const char* src, size_t siz) {
   char* d = dst;
   const char* s = src;
@@ -82,6 +83,7 @@ size_t strlcpy(char* dst, const char* src, size_t siz) {
 
   return (s - src - 1); /* count does not include NUL */
 }
+#endif
 #endif
 
 #if __GLIBC__
