@@ -4547,14 +4547,18 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
                                                p_dev_rec->sec_bd_name, status);
       }
     }
-
-    if (status == HCI_ERR_CONNECTION_TOUT ||
-        status == HCI_ERR_LMP_RESPONSE_TIMEOUT ||
-        status == HCI_ERR_UNSPECIFIED || status == HCI_ERR_PAGE_TIMEOUT)
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, false);
-    else
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, false);
-
+    // Because in btm_cb.api.p_auth_complete_callback, p_dev_rec has been removed from btm_cb.sec_dev_rec.
+    // But p_dev_rec doesn't point to NULL, calling p_dev_rec  again will produce Segmentation fault,
+    // So finding p_dev_rec in btm_cb.sec_dev_rec again determines whether A is available
+    p_dev_rec = btm_find_dev(bda);
+    if(p_dev_rec) {
+      if (status == HCI_ERR_CONNECTION_TOUT ||
+          status == HCI_ERR_LMP_RESPONSE_TIMEOUT ||
+          status == HCI_ERR_UNSPECIFIED || status == HCI_ERR_PAGE_TIMEOUT)
+        btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, false);
+      else
+        btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, false);
+    }
     return;
   }
 
