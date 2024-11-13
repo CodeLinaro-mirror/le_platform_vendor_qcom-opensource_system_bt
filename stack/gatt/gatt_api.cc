@@ -1227,6 +1227,44 @@ bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
     status = gatt_update_wl_connect_dev(gatt_if, false, bd_addr);
     return status;
 }
+
+bool GATT_CancelConnect_v2(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                        bool is_direct) {
+  LOG(INFO) << __func__ << ": gatt_if=" << +gatt_if;
+
+  if (gatt_if && !gatt_get_regcb(gatt_if)) {
+    LOG(ERROR) << "gatt_if =" << +gatt_if << " is not registered";
+    return false;
+  }
+
+  if (is_direct) {
+    if (gatt_if) {
+      return gatt_cancel_open(gatt_if, bd_addr);
+    }
+
+    VLOG(1) << " unconditional";
+    /* only LE connection can be cancelled */
+    tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
+    if (!p_tcb || p_tcb->app_hold_link.empty()) {
+      LOG(ERROR) << __func__ << " no app found";
+      return false;
+    }
+
+    for (auto it = p_tcb->app_hold_link.begin();
+         it != p_tcb->app_hold_link.end();) {
+      auto next = std::next(it);
+      // gatt_cancel_open modifies the app_hold_link.
+      if (!gatt_cancel_open(*it, bd_addr)) return false;
+
+      it = next;
+    }
+
+    return true;
+  }
+  // is not direct
+  // send cancel command
+  return btm_ble_suspend_pl_conn();
+}
 #endif
 
 /*******************************************************************************

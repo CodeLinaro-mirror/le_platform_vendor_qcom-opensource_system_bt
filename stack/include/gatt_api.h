@@ -1021,6 +1021,8 @@ extern bool GATT_Remove_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr
 extern bool GATT_Clear_Pending_List(tGATT_IF gatt_if, uint8_t advertising_handle);
 extern bool GATT_Add_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr);
 extern bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr);
+extern bool GATT_CancelConnect_v2(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                               bool is_direct);
 #endif
 /*******************************************************************************
  *

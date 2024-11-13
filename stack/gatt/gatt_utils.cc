@@ -1573,7 +1573,7 @@ bool gatt_remove_pd_dev_from_list(tGATT_REG* p_reg, const RawAddress& bd_addr , 
   if (dev_it == gatt_cb.pdconn_dev.end()) return false;
   if (!dev_it->gatt_if.erase(gatt_if)) return false;
   if (!dev_it->gatt_if.empty()) return true;
-  // no more apps interested - remove from whitelist and delete record
+  // no more apps interested - remove from pending list and delete record
   CHECK(BTM_BleUpdatePdConnDev(false, dev_it->remote_bda, advertising_handle, subevent));
   gatt_cb.pdconn_dev.erase(dev_it);
   return true;

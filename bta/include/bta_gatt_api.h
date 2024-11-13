@@ -680,6 +680,8 @@ extern void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remot
 extern void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle);
 extern void BTA_GATTC_Add_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
 extern void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
+extern void BTA_GATTC_CancelOpen_v2(tBTA_GATTC_IF client_if,
+                                 const RawAddress& remote_bda, bool is_direct);
 #endif
 /*******************************************************************************
  *

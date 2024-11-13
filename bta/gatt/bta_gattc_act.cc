@@ -249,7 +249,7 @@ void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
             (1 << (p_clreg->client_if - 1))) {
           bta_gattc_mark_pd_conn(p_clreg->client_if,
                                  bta_gattc_cb.pd_track[i].remote_bda, false);
-          GATT_CancelConnect(p_clreg->client_if,
+          GATT_CancelConnect_v2(p_clreg->client_if,
                              bta_gattc_cb.pd_track[i].remote_bda, false);
         }
       }
@@ -398,6 +398,42 @@ void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg) {
     GATT_Remove_White_List(p_msg->api_rm_wl.client_if, p_msg->api_rm_wl.remote_bda);
   } else {
     APPL_TRACE_ERROR("mark device false in wl failed.");
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_process_api_open_cancel
+ *
+ * Description      process connect API request of fast connection using pending list.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_gattc_process_api_open_cancel_v2(tBTA_GATTC_DATA* p_msg) {
+  uint16_t event = ((BT_HDR*)p_msg)->event;
+  tBTA_GATTC_CLCB* p_clcb = NULL;
+  tBTA_GATTC_RCB* p_clreg;
+  tBTA_GATTC cb_data;
+
+  if (p_msg->api_cancel_conn.is_direct) {
+    p_clcb = bta_gattc_find_clcb_by_cif(p_msg->api_cancel_conn.client_if,
+                                        p_msg->api_cancel_conn.remote_bda,
+                                        BTA_GATT_TRANSPORT_LE);
+    if (p_clcb != NULL) {
+      bta_gattc_sm_execute(p_clcb, event, p_msg);
+    } else {
+      APPL_TRACE_ERROR("No such connection need to be cancelled");
+
+      p_clreg = bta_gattc_cl_get_regcb(p_msg->api_cancel_conn.client_if);
+
+      if (p_clreg && p_clreg->p_cback) {
+        cb_data.status = BTA_GATT_ERROR;
+        (*p_clreg->p_cback)(BTA_GATTC_CANCEL_OPEN_EVT, &cb_data);
+      }
+    }
+  } else {
+    bta_gattc_cancel_pd_conn(&p_msg->api_cancel_conn);
   }
 }
 #endif
@@ -715,7 +751,7 @@ void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
 
   /* remove the device from the bg connection mask */
   if (bta_gattc_mark_pd_conn(p_data->client_if, p_data->remote_bda, false)) {
-    if (GATT_CancelConnect(p_data->client_if, p_data->remote_bda, false)) {
+    if (GATT_CancelConnect_v2(p_data->client_if, p_data->remote_bda, false)) {
       cb_data.status = BTA_GATT_OK;
     } else {
       APPL_TRACE_ERROR("%s: failed", __func__);
