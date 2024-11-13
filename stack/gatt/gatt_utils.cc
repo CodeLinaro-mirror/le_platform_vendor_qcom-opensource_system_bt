@@ -182,7 +182,7 @@ tGATT_VALUE* gatt_add_pending_ind(tGATT_TCB* p_tcb, tGATT_VALUE* p_ind) {
  *
  * Function     gatt_add_srv_chg_clt
  *
- * Description  Add a service chnage client to the service change client queue
+ * Description  Add a service change client to the service change client queue
  *
  * Returns    Pointer to the service change client buffer; Null no buffer
  *            available
@@ -324,7 +324,6 @@ bool gatt_is_srv_chg_ind_pending(tGATT_TCB* p_tcb) {
  *
  ******************************************************************************/
 tGATTS_SRV_CHG* gatt_is_bda_in_the_srv_chg_clt_list(const RawAddress& bda) {
-  tGATTS_SRV_CHG* p_buf = NULL;
 
   VLOG(1) << __func__ << ": " << bda;
 
@@ -336,11 +335,11 @@ tGATTS_SRV_CHG* gatt_is_bda_in_the_srv_chg_clt_list(const RawAddress& bda) {
     tGATTS_SRV_CHG* p_buf = (tGATTS_SRV_CHG*)list_node(node);
     if (bda == p_buf->bda) {
       VLOG(1) << "bda is in the srv chg clt list";
-      break;
+      return p_buf;
     }
   }
 
-  return p_buf;
+  return NULL;
 }
 
 /*******************************************************************************

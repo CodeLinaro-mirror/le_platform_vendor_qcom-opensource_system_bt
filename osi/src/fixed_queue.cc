@@ -42,14 +42,14 @@ typedef struct fixed_queue_t {
 
 static void internal_dequeue_ready(void* context);
 
-fixed_queue_t* fixed_queue_new(size_t capacity) {
+fixed_queue_t* fixed_queue_new_internal(size_t capacity, fixed_queue_free_cb free_cb) {
   fixed_queue_t* ret =
       static_cast<fixed_queue_t*>(osi_calloc(sizeof(fixed_queue_t)));
 
   ret->mutex = new std::mutex;
   ret->capacity = capacity;
 
-  ret->list = list_new(NULL);
+  ret->list = list_new(free_cb);
   if (!ret->list) goto error;
 
   ret->enqueue_sem = semaphore_new(capacity);
@@ -63,6 +63,14 @@ fixed_queue_t* fixed_queue_new(size_t capacity) {
 error:
   fixed_queue_free(ret, NULL);
   return NULL;
+}
+
+fixed_queue_t* fixed_queue_new(size_t capacity) {
+  return fixed_queue_new_internal(capacity, NULL);
+}
+
+fixed_queue_t* fixed_queue_new(size_t capacity, fixed_queue_free_cb free_cb) {
+  return fixed_queue_new_internal(capacity, free_cb);
 }
 
 void fixed_queue_free(fixed_queue_t* queue, fixed_queue_free_cb free_cb) {
