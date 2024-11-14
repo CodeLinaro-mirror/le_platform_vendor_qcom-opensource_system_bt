@@ -1176,6 +1176,11 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
       break;
 #endif
+#ifdef SUPPORT_ESL_AP
+    case HCI_BLE_CREATE_CONN_CANCEL:
+      btm_ble_create_connection_cancel_complete(p);
+    break;
+#endif
     default:
       if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
         btm_vsc_complete(p, opcode, evt_len, (tBTM_VSC_CMPL_CB*)p_cplt_cback);

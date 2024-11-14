@@ -243,6 +243,9 @@ extern tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
 extern void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc);
 extern  tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec);
 extern void btm_create_conn_cancel_complete(uint8_t* p);
+#ifdef SUPPORT_ESL_AP
+extern void btm_ble_create_connection_cancel_complete(uint8_t* p);
+#endif
 
 extern void btm_read_inq_tx_power_timeout(void* data);
 extern void btm_read_inq_tx_power_complete(uint8_t* p);
