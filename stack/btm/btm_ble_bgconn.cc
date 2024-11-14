@@ -1284,6 +1284,26 @@ static void btm_suspend_pl_activity(tBTM_BLE_PL_STATE pl_state) {
 static void btm_resume_pl_activity(tBTM_BLE_PL_STATE pl_state) {
   btm_ble_resume_pl_conn();
 }
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_suspend_bg_conn
+ *
+ * Description      This function is to suspend an pendinglist auto connection
+ *                  procedure.
+ *
+ * Parameters       none.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
+bool btm_ble_suspend_pl_conn(void) {
+  if (btm_cb.ble_ctr_cb.pd_conn_type == BTM_BLE_CONN_AUTO)
+    return btm_ble_start_auto_conn_v2(false);
+
+  return false;
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_resume_pl_conn

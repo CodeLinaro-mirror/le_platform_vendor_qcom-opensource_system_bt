@@ -45,6 +45,9 @@ enum {
 #endif
   BTA_GATTC_INT_OPEN_FAIL_EVT,
   BTA_GATTC_API_CANCEL_OPEN_EVT,
+#ifdef SUPPORT_ESL_AP
+  BTA_GATTC_API_CANCEL_OPEN_EVT_v2,
+#endif
   BTA_GATTC_INT_CANCEL_OPEN_OK_EVT,
 
   BTA_GATTC_API_READ_EVT,
@@ -514,6 +517,7 @@ extern bool bta_gattc_mark_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& re
 extern bool bta_gattc_check_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, uint8_t role);
 extern void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_api_open_cancel_v2(tBTA_GATTC_DATA* p_msg);
 #endif
 
 /* utility functions */

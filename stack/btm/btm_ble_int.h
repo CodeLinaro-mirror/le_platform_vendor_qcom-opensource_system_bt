@@ -159,6 +159,7 @@ extern void btm_send_hci_create_connection_v2(
     uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
     int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys);
 extern bool btm_ble_start_auto_conn_v2(bool start);
+extern bool btm_ble_suspend_pl_conn(void);
 extern bool btm_ble_resume_pl_conn(void);
 extern bool btm_update_dev_to_pending_list(bool to_add, const RawAddress& bd_addr,
                                            uint8_t advertising_handle, uint8_t subevent);
