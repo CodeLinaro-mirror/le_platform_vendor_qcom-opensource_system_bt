@@ -36,6 +36,12 @@ typedef void (*fixed_queue_cb)(fixed_queue_t* queue, void* context);
 // the returned queue with |fixed_queue_free|.
 fixed_queue_t* fixed_queue_new(size_t capacity);
 
+// Creates a new fixed queue with the given |capacity|with free_cb used to free node->data of list. If more elements than
+// |capacity| are added to the queue, the caller is blocked until space is
+// made available in the queue. Returns NULL on failure. The caller must free
+// the returned queue with |fixed_queue_free|.
+fixed_queue_t* fixed_queue_new(size_t capacity, fixed_queue_free_cb free_cb);
+
 // Frees a queue and (optionally) the enqueued elements.
 // |queue| is the queue to free. If the |free_cb| callback is not null,
 // it is called on each queue element to free it.
