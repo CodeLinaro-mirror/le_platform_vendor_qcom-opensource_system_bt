@@ -125,4 +125,4 @@ libbtif_la_CC = @CC@
 libbtif_la_SOURCES = $(cpp_sources)
 libbtif_la_CPPFLAGS = $(AM_CPPFLAGS) -std=c++14 -Wall -DHAS_NO_BDROID_BUILDCFG
 libbtif_la_CFLAGS = $(common_CFLAGS)
-libbtif_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes
+libbtif_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes -version-number @LT_VERSION_NUMBER@

@@ -27,7 +27,7 @@ libbttypes_la_SOURCES = $(cpp_sources)
 libbttypes_la_CPPFLAGS = $(AM_CPPFLAGS) -std=c++11 -Wall -fPIC
 libbttypes_la_CPPFLAGS += $(AM_CFLAGS)
 libbttypes_la_CFLAGS = $(common_CFLAGS)
-libbttypes_la_LDFLAGS = $(common_LDFLAGS) -static
+libbttypes_la_LDFLAGS = $(common_LDFLAGS) -static -version-number @LT_VERSION_NUMBER@
 
 fluoridetypesincludesdir = $(includedir)/fluoride/types
 fluoridetypesbluetoothincludesdir = $(includedir)/fluoride/bluetooth

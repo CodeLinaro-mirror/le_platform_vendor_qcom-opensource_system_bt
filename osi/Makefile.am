@@ -56,4 +56,4 @@ libbtosi_la_SOURCES = $(cpp_sources)
 libbtosi_la_CPPFLAGS = $(AM_CPPFLAGS)
 libbtosi_la_CPPFLAGS += $(common_CFLAGS) @GLIB_CFLAGS@
 libbtosi_la_CFLAGS = $(common_CFLAGS)
-libbtosi_la_LDFLAGS = $(common_LDFLAGS) @GLIB_LIBS@ -lpropertyvault -static
+libbtosi_la_LDFLAGS = $(common_LDFLAGS) @GLIB_LIBS@ -lpropertyvault -static  -version-number @LT_VERSION_NUMBER@

@@ -96,4 +96,4 @@ libbthci_la_CC = @CC@
 libbthci_la_SOURCES = $(cpp_sources)
 libbthci_la_CPPFLAGS = $(AM_CPPFLAGS) -std=c++11 $(common_CPPFLAGS)
 libbthci_la_CFLAGS = $(common_CFLAGS)
-libbthci_la_LDFLAGS := $(common_LDFLAGS) -static
+libbthci_la_LDFLAGS := $(common_LDFLAGS) -static -version-number @LT_VERSION_NUMBER@

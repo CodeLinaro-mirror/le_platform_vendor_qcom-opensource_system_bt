@@ -29,4 +29,4 @@ libbtcore_la_CC = @CC@
 libbtcore_la_SOURCES = $(cpp_sources)
 libbtcore_la_CPPFLAGS = $(AM_CPPFLAGS) -std=c++11 -Wall -fPIC -D_GNU_SOURCE -DHAS_NO_BDROID_BUILDCFG
 libbtcore_la_CFLAGS = $(common_CFLAGS)
-libbtcore_la_LDFLAGS = $(common_LDFLAGS) -static
+libbtcore_la_LDFLAGS = $(common_LDFLAGS) -static -version-number @LT_VERSION_NUMBER@
