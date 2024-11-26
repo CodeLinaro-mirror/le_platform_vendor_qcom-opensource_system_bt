@@ -39,4 +39,4 @@ libbtdevice_la_SOURCES = $(cpp_sources)
 libbtdevice_la_CPPFLAGS = $(AM_CPPFLAGS) -DHAS_NO_BDROID_BUILDCFG -fPIC
 libbtdevice_la_CPPFLAGS += $(AM_CFLAGS)
 libbtdevice_la_CFLAGS = $(common_CFLAGS)
-libbtdevice_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes
+libbtdevice_la_LDFLAGS = $(common_LDFLAGS) -static -lbttypes -version-number @LT_VERSION_NUMBER@

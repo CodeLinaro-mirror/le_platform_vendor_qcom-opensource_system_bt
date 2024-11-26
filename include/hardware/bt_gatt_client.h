@@ -321,6 +321,7 @@ typedef struct {
   bt_status_t (*add_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
   /** Remove device from white list*/
   bt_status_t (*remove_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
+  bt_status_t (*disconnect_v2)(int client_if, const RawAddress& bd_addr, int conn_id);
 #endif
 } btgatt_client_interface_t;
 

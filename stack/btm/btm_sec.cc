@@ -2806,17 +2806,46 @@ void btm_create_conn_cancel_complete(uint8_t* p) {
         btm_cb.api.p_bond_cancel_cmpl_callback(BTM_ERR_PROCESSING);
       break;
   }
-#ifdef SUPPORT_ESL_AP // send cancel connection complete event to AP daemon.
+}
+
+#ifdef SUPPORT_ESL_AP
+/*******************************************************************************
+ *
+ * Function         btm_ble_create_connection_cancel_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the ble create connection cancel
+ *                  command.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void btm_ble_create_connection_cancel_complete(uint8_t* p) {
+  uint8_t status;
+
+  STREAM_TO_UINT8(status, p);
+  BTM_TRACE_EVENT("btm_ble_create_connection_cancel_complete():status:%d", status);
+
+  switch (status) {
+    case HCI_SUCCESS:
+      BTM_TRACE_EVENT("btm_ble_create_connection_cancel successful");
+      break;
+    case HCI_ERR_CONNECTION_EXISTS:
+    case HCI_ERR_NO_CONNECTION:
+    default:
+      BTM_TRACE_EVENT("btm_ble_create_connection_cancel error, change btm connect state to IDLE");
+      btm_ble_set_conn_st(BLE_CONN_IDLE);
+      break;
+  }
   tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
   tBTM_RAW_STATUS  raw_status_params;
   if (status != HCI_SUCCESS && p_devcb->p_hci_status_cb) {
-    raw_status_params.opcode = HCI_CREATE_CONNECTION_CANCEL;
+    raw_status_params.opcode = HCI_BLE_CREATE_CONN_CANCEL;
     raw_status_params.status = status;
     (p_devcb->p_hci_status_cb) (&raw_status_params);
   }
-#endif
 }
-
+#endif
 /*******************************************************************************
  *
  * Function         btm_sec_check_pending_reqs
@@ -4556,14 +4585,18 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
                                                p_dev_rec->sec_bd_name, status);
       }
     }
-
-    if (status == HCI_ERR_CONNECTION_TOUT ||
-        status == HCI_ERR_LMP_RESPONSE_TIMEOUT ||
-        status == HCI_ERR_UNSPECIFIED || status == HCI_ERR_PAGE_TIMEOUT)
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, false);
-    else
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, false);
-
+    // Because in btm_cb.api.p_auth_complete_callback, p_dev_rec has been removed from btm_cb.sec_dev_rec.
+    // But p_dev_rec doesn't point to NULL, calling p_dev_rec  again will produce Segmentation fault,
+    // So finding p_dev_rec in btm_cb.sec_dev_rec again determines whether A is available
+    p_dev_rec = btm_find_dev(bda);
+    if(p_dev_rec) {
+      if (status == HCI_ERR_CONNECTION_TOUT ||
+          status == HCI_ERR_LMP_RESPONSE_TIMEOUT ||
+          status == HCI_ERR_UNSPECIFIED || status == HCI_ERR_PAGE_TIMEOUT)
+        btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, false);
+      else
+        btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, false);
+    }
     return;
   }
 

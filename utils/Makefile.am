@@ -66,4 +66,4 @@ libbtutils_la_CC = @CC@
 libbtutils_la_SOURCES = $(cpp_sources)
 libbtutils_la_CPPFLAGS =$(AM_CPPFLAGS) -std=c++11 -Wall -DHAS_NO_BDROID_BUILDCFG -fPIC
 libbtutils_la_CFLAGS = $(common_CFLAGS)
-libbtutils_la_LDFLAGS = $(common_LDFLAGS) -static
+libbtutils_la_LDFLAGS = $(common_LDFLAGS) -static -version-number @LT_VERSION_NUMBER@

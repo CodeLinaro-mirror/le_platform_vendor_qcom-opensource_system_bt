@@ -263,6 +263,19 @@ void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, 
 
     bta_sys_sendmsg(p_buf);
 }
+
+void BTA_GATTC_CancelOpen_v2(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
+                          bool is_direct) {
+  tBTA_GATTC_API_CANCEL_OPEN* p_buf = (tBTA_GATTC_API_CANCEL_OPEN*)osi_malloc(
+      sizeof(tBTA_GATTC_API_CANCEL_OPEN));
+
+  p_buf->hdr.event = BTA_GATTC_API_CANCEL_OPEN_EVT_v2;
+  p_buf->client_if = client_if;
+  p_buf->is_direct = is_direct;
+  p_buf->remote_bda = remote_bda;
+
+  bta_sys_sendmsg(p_buf);
+}
 #endif
 /*******************************************************************************
  *

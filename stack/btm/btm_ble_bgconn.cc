@@ -1058,9 +1058,14 @@ bool btm_execute_pl_dev_operation(void) {
     const bool connected =
         BTM_IsAclConnectionUp(connection->address, BT_TRANSPORT_LE);
     if (!connection->in_controller_pl && !connected) {
-      btm_ble_add_pending_list(connection->addr_type, connection->address, connection->advertising_handle, connection->subevent);
-      connection->in_controller_pl = true;
-      connection->addr_type_in_pl = connection->addr_type;
+      if (pendinglist_connections_count() == BTM_BLE_MAX_PENDING_LIST_SIZE) {
+        BTM_TRACE_ERROR("%s Pendinglist full, unable to add device", __func__);
+        return false;
+      } else {
+        btm_ble_add_pending_list(connection->addr_type, connection->address, connection->advertising_handle, connection->subevent);
+        connection->in_controller_pl = true;
+        connection->addr_type_in_pl = connection->addr_type;
+      }
     } else if (connection->in_controller_pl && connected) {
       connection->pending_removal = true;
     }
@@ -1077,11 +1082,6 @@ bool btm_execute_pl_dev_operation(void) {
  ******************************************************************************/
 bool btm_update_dev_to_pending_list(bool to_add, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
   tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
-  if (to_add &&
-      pendinglist_connections_count() == 128) {
-    BTM_TRACE_ERROR("%s Pendinglist full, unable to add device", __func__);
-    return false;
-  }
 
   btm_add_dev_to_controller_pd_list(to_add, bd_addr, advertising_handle, subevent);
   btm_execute_pl_dev_operation();
@@ -1284,6 +1284,26 @@ static void btm_suspend_pl_activity(tBTM_BLE_PL_STATE pl_state) {
 static void btm_resume_pl_activity(tBTM_BLE_PL_STATE pl_state) {
   btm_ble_resume_pl_conn();
 }
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_suspend_bg_conn
+ *
+ * Description      This function is to suspend an pendinglist auto connection
+ *                  procedure.
+ *
+ * Parameters       none.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
+bool btm_ble_suspend_pl_conn(void) {
+  if (btm_cb.ble_ctr_cb.pd_conn_type == BTM_BLE_CONN_AUTO)
+    return btm_ble_start_auto_conn_v2(false);
+
+  return false;
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_resume_pl_conn
