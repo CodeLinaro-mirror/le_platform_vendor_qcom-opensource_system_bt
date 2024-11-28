@@ -708,6 +708,12 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         break;
       }
 
+      if (l2cb.cert_failure) { // incase some pts test case send connection req with unknown psm.
+        L2CAP_TRACE_ERROR("%s PTS FAILURE MODE IN EFFECT (CASE %d) ", __func__, l2cb.cert_failure);
+        l2cu_reject_ble_connection(p_lcb, id, l2cb.cert_failure);
+        break;
+      }
+
       p_rcb = l2cu_find_ble_rcb_by_psm(con_info.psm);
       if (p_rcb == NULL) {
         L2CAP_TRACE_WARNING("L2CAP - rcvd conn req for unknown PSM: 0x%04x",
