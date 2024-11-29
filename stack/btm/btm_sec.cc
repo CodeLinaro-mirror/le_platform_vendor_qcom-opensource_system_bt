@@ -2833,8 +2833,7 @@ void btm_ble_create_connection_cancel_complete(uint8_t* p) {
     case HCI_ERR_CONNECTION_EXISTS:
     case HCI_ERR_NO_CONNECTION:
     default:
-      BTM_TRACE_EVENT("btm_ble_create_connection_cancel error, change btm connect state to IDLE");
-      btm_ble_set_conn_st(BLE_CONN_IDLE);
+      BTM_TRACE_EVENT("btm_ble_create_connection_cancel error");
       break;
   }
   tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
