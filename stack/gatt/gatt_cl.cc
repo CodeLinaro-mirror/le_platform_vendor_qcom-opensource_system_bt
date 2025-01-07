@@ -669,6 +669,10 @@ void gatt_process_notification(tGATT_TCB& tcb, uint8_t op_code, uint16_t len,
   }
 
   encrypt_status = gatt_get_link_encrypt_status(tcb);
+  PTS_TRACE_INFO("Receive GATT handle 0x%04x value %s, link encrypted: %s\n", value.handle,
+                  (event == GATTC_OPTYPE_INDICATION)?"indication":"notification",
+                  (encrypt_status == GATT_ENCRYPED_NO_MITM || encrypt_status == GATT_ENCRYPED_MITM)?"true":"false");
+
   tGATT_CL_COMPLETE gatt_cl_complete;
   gatt_cl_complete.att_value = value;
   for (i = 0, p_reg = gatt_cb.cl_rcb; i < GATT_MAX_APPS; i++, p_reg++) {
