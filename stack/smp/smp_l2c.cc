@@ -94,7 +94,7 @@ static void smp_connect_callback(uint16_t channel, const RawAddress& bd_addr,
   tSMP_CB* p_cb = &smp_cb;
   tSMP_INT_DATA int_data;
 
-  SMP_TRACE_EVENT("SMDBG l2c %s", __func__);
+  SMP_TRACE_EVENT("SMDBG l2c %s transport: %d", __func__, transport);
 
   if (transport == BT_TRANSPORT_BR_EDR || bd_addr.IsEmpty()) return;
 
