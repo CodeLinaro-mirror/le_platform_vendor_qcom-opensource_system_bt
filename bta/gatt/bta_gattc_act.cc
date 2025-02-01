@@ -749,13 +749,10 @@ void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
   tBTA_GATTC cb_data;
   cb_data.status = BTA_GATT_ERROR;
 
-  /* remove the device from the bg connection mask */
-  if (bta_gattc_mark_pd_conn(p_data->client_if, p_data->remote_bda, false)) {
-    if (GATT_CancelConnect_v2(p_data->client_if, p_data->remote_bda, false)) {
-      cb_data.status = BTA_GATT_OK;
-    } else {
-      APPL_TRACE_ERROR("%s: failed", __func__);
-    }
+  if (GATT_CancelConnect_v2(p_data->client_if, p_data->remote_bda, false)) {
+    cb_data.status = BTA_GATT_OK;
+  } else {
+    APPL_TRACE_ERROR("%s: failed", __func__);
   }
   p_clreg = bta_gattc_cl_get_regcb(p_data->client_if);
 

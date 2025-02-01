@@ -549,13 +549,29 @@ static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN* p_open, uint32_t id) {
   }
 }
 
+static bool send_app_disconnect_signal(int fd, int status, int channel, bool apsync, int send_fd) {
+  sock_disconnect_signal_t ds;
+  ds.size = sizeof(ds);
+  ds.channel = channel;
+  ds.status = status;
+  ds.apsync = apsync;
+  if (send_fd == INVALID_FD)
+    return sock_send_all(fd, (const uint8_t*)&ds, sizeof(ds)) == sizeof(ds);
+
+  return sock_send_fd(fd, (const uint8_t*)&ds, sizeof(ds), send_fd) ==
+         sizeof(ds);
+}
+
 static void on_rfc_close(UNUSED_ATTR tBTA_JV_RFCOMM_CLOSE* p_close,
                          uint32_t id) {
   std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   // rfc_handle already closed when receiving rfcomm close event from stack.
   rfc_slot_t* slot = find_rfc_slot_by_id(id);
-  if (slot) cleanup_rfc_slot(slot);
+  if (slot){
+    send_app_disconnect_signal(slot->fd, 0, slot->scn, false, slot->app_fd);
+    cleanup_rfc_slot(slot);
+  }
 }
 
 static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE* p, uint32_t id) {

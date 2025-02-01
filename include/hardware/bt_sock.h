@@ -48,6 +48,15 @@ typedef struct {
   unsigned short max_rx_packet_size;
 } __attribute__((packed)) sock_connect_signal_t;
 
+/** Represents the standard BT SOCKET interface. */
+typedef struct {
+  short size;
+  int status;
+  int port_status;
+  int channel;
+  bool apsync;
+} __attribute__((packed)) sock_disconnect_signal_t;
+
 typedef struct {
   /** set to size of this struct*/
   size_t size;
