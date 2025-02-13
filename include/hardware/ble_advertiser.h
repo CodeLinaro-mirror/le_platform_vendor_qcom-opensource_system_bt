@@ -105,6 +105,9 @@ class BleAdvertiserInterface {
 
   virtual void SetPeriodicAdvertisingEnable(int advertiser_id, bool enable,
                                             StatusCallback cb) = 0;
+
+  virtual void PeriodicAdvSetInfoTransfer(const RawAddress& bd_addr, uint16_t service_data,
+                                  uint8_t advertiser_id, StatusCallback cb) = 0;
 };
 
 #endif /* ANDROID_INCLUDE_BLE_ADVERTISER_H */

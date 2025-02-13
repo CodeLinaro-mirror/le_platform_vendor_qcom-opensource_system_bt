@@ -915,6 +915,17 @@ class BleAdvertisingManagerImpl
                                                     std::move(enable_cb));
   }
 
+  void PeriodicAdvSetInfoTransfer(uint16_t acl_handle, uint16_t service_data,
+                                  uint8_t inst_id, MultiAdvCb cb) override {
+    AdvertisingInstance* p_inst = &adv_inst[inst_id];
+    if (!p_inst->in_use) {
+      cb.Run(BTM_BLE_MULTI_ADV_FAILURE);
+      return;
+    }
+    GetHciInterface()->PeriodicAdvSetInfoTransfer(acl_handle, service_data, inst_id,
+                                                  cb);
+  }
+
   void Unregister(uint8_t inst_id) override {
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
 

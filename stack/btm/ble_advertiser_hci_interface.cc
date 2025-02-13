@@ -668,6 +668,21 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
                command_complete);
   }
 
+  void PeriodicAdvSetInfoTransfer(uint16_t acl_handle, uint16_t service_data,
+                                  uint8_t adv_handle, status_cb command_complete) override {
+
+    const uint16_t cmd_length = 5;
+    uint8_t param[cmd_length];
+    memset(param, 0, cmd_length);
+
+    uint8_t* pp = param;
+    UINT16_TO_STREAM(pp, acl_handle);
+    UINT16_TO_STREAM(pp, service_data);
+    UINT8_TO_STREAM(pp, adv_handle);
+    SendAdvCmd(FROM_HERE, HCI_LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER, param, cmd_length,
+               command_complete);
+  }
+
  public:
   void OnAdvertisingSetTerminated(uint8_t length, uint8_t* p) {
     VLOG(1) << __func__;
