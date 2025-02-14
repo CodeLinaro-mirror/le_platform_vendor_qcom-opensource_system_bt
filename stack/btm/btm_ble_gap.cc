@@ -805,12 +805,13 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
  */
 bool BTM_BleStartAutoConnV2() {
   BTM_TRACE_EVENT("%s", __func__);
-  if (!controller_get_interface()->supports_ble()) return;
-
+  if (!controller_get_interface()->supports_ble()) {
+    return false;
+  }
   if (btm_cb.ble_ctr_cb.pd_conn_type != BTM_BLE_CONN_AUTO) {
     btm_cb.ble_ctr_cb.pd_conn_type = BTM_BLE_CONN_AUTO;
-    return btm_ble_start_auto_conn_v2(true);
   }
+  return btm_ble_start_auto_conn_v2(true);
 }
 /*******************************************************************************
  *
