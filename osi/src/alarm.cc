@@ -100,6 +100,7 @@ struct alarm_t {
   period_ms_t prev_deadline;  // Previous deadline - used for accounting of
                               // periodic timers
   bool is_periodic;
+  bool is_posted;
   fixed_queue_t* queue;  // The processing queue to add this alarm to
   alarm_callback_t callback;
   void* data;
@@ -413,7 +414,8 @@ static void remove_pending_alarm(alarm_t* alarm) {
   list_remove(alarms, alarm);
 
   if (alarm->for_msg_loop) {
-    alarm->closure.i.Cancel();
+    if (!alarm->is_posted)
+      alarm->closure.i.Cancel();
   } else {
     while (fixed_queue_try_remove_from_queue(alarm->queue, alarm) != NULL) {
       // Remove all repeated alarm instances from the queue.
@@ -570,7 +572,8 @@ static void alarm_ready_generic(alarm_t* alarm,
   // If the alarm is not periodic, we've fully serviced it now, and can reset
   // some of its internal state. This is useful to distinguish between expired
   // alarms and active ones.
-  //
+
+  alarm->is_posted = false;
   alarm_callback_t callback = alarm->callback;
   void* data = alarm->data;
   period_ms_t deadline = alarm->deadline;
@@ -591,7 +594,9 @@ static void alarm_ready_generic(alarm_t* alarm,
   std::lock_guard<std::recursive_mutex> cb_lock(*local_mutex_ref);
   lock.unlock();
 
-  callback(data);
+  if (callback) {
+    callback(data);
+  }
 }
 
 static void alarm_ready_mloop(alarm_t* alarm) {
@@ -652,6 +657,7 @@ static void callback_dispatch(UNUSED_ATTR void* context) {
 
       alarm->closure.i.Reset(Bind(alarm_ready_mloop, alarm));
       get_message_loop()->task_runner()->PostTask(FROM_HERE, alarm->closure.i.callback()); // gghai
+      alarm->is_posted = true;
     } else {
       fixed_queue_enqueue(alarm->queue, alarm);
     }
