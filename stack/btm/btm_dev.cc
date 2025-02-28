@@ -579,26 +579,39 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
        node = list_next(node)) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
-
+    VLOG(2) << __func__ << ": pair addr: " <<  p_dev_rec->bd_addr << " device type: " << p_dev_rec->device_type << " true? " << (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE);
+#ifdef SUPPORT_ESL_AP
+    if ((p_dev_rec->device_type & BT_DEVICE_TYPE_BLE)) {
+      // Only remove LE device
+      if (!BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_LE) &&
+          !BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR) && // dumo device may create BR/EDR acl connection
+          !check_device_in_pending_list(p_dev_rec->bd_addr) &&
+          !check_device_in_white_list(p_dev_rec->bd_addr)) {
+          // device which has finished connection
+          if ((p_dev_rec->sec_flags &
+            (BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LE_LINK_KEY_KNOWN)) == 0) {
+            // LE unpaired device
+            if (p_dev_rec->timestamp < ts_oldest) {
+              p_oldest = p_dev_rec;
+              ts_oldest = p_dev_rec->timestamp;
+            }
+          } else {
+            // LE Paired device
+            if (p_dev_rec->timestamp < ts_oldest_paired) {
+              p_oldest_paired = p_dev_rec;
+              ts_oldest_paired = p_dev_rec->timestamp;
+            }
+          }
+      }
+    }
+#else
     if ((p_dev_rec->sec_flags &
          (BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LE_LINK_KEY_KNOWN)) == 0) {
-#ifdef SUPPORT_ESL_AP
-      if (!BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_LE) &&
-        !check_device_in_pending_list(p_dev_rec->bd_addr) &&
-        !check_device_in_white_list(p_dev_rec->bd_addr)) {
-        // Device is not paired
-        if (p_dev_rec->timestamp < ts_oldest) {
-          p_oldest = p_dev_rec;
-          ts_oldest = p_dev_rec->timestamp;
-        }
-      }
-#else
       // Device is not paired
       if (p_dev_rec->timestamp < ts_oldest) {
         p_oldest = p_dev_rec;
         ts_oldest = p_dev_rec->timestamp;
       }
-#endif
     } else {
       // Paired device
       if (p_dev_rec->timestamp < ts_oldest_paired) {
@@ -606,6 +619,7 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
         ts_oldest_paired = p_dev_rec->timestamp;
       }
     }
+#endif
   }
 
   // If we did not find any non-paired devices, use the oldest paired one...
@@ -628,12 +642,14 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
   tBTM_SEC_DEV_REC* p_dev_rec = NULL;
-
+  BTM_TRACE_DEBUG("%s list_length(btm_cb.sec_dev_rec) %d", __func__, list_length(btm_cb.sec_dev_rec));
   if (list_length(btm_cb.sec_dev_rec) > BTM_SEC_MAX_DEVICE_RECORDS) {
     p_dev_rec = btm_find_oldest_dev_rec();
   #ifdef SUPPORT_ESL_AP
-    if (p_dev_rec)
+    if (p_dev_rec) {
+      BTM_TRACE_DEBUG("%s remove oldest dev_rec: %s", __func__, p_dev_rec->bd_addr.ToString().c_str());
       list_remove(btm_cb.sec_dev_rec, p_dev_rec);
+    }
   #else
     list_remove(btm_cb.sec_dev_rec, p_dev_rec);
   #endif
