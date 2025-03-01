@@ -465,9 +465,20 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void StartSync(uint8_t sid, RawAddress address, uint16_t skip,
                  uint16_t timeout, StartSyncCb start_cb, SyncReportCb report_cb,
-                 SyncLostCb lost_cb) override {}
+                 SyncLostCb lost_cb) override {
+    do_in_bta_thread(FROM_HERE,
+                     base::Bind(&BTM_BleStartPeriodicSync, sid, address, skip,
+                     timeout, jni_thread_wrapper(FROM_HERE, std::move(start_cb)),
+                     jni_thread_wrapper(FROM_HERE, std::move(report_cb)),
+                     jni_thread_wrapper(FROM_HERE, std::move(lost_cb))));
+  }
 
-  void StopSync(uint16_t handle) override {}
+  void StopSync(uint16_t handle) override {
+    BTIF_TRACE_DEBUG("%s: handle: %d", __func__, handle);
+    do_in_bta_thread(FROM_HERE,
+                     base::Bind(&BTM_BleStopPeriodicSync, handle));
+  }
+
 };
 
 BleScannerInterface* btLeScannerInstance = nullptr;

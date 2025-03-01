@@ -886,4 +886,65 @@ extern void btm_ble_multi_adv_cleanup(void);
  ******************************************************************************/
 extern bool BTM_GetRemoteDeviceName(const RawAddress& bd_addr, BD_NAME bdname);
 
+using StartSyncCb =
+               base::Callback<void(uint8_t /*status*/, uint16_t /*sync_handle*/,
+                                   uint8_t /*advertising_sid*/, uint8_t /*address_type*/,
+                                   RawAddress /*address*/, uint8_t /*phy*/, uint16_t /*interval*/)>;
+using SyncReportCb =
+                base::Callback<void(uint16_t /*sync_handle*/, int8_t /*tx_power*/, int8_t /*rssi*/,
+                                    uint8_t /*status*/, std::vector<uint8_t> /*data*/)>;
+using SyncLostCb = base::Callback<void(uint16_t /*sync_handle*/)>;
+
+extern void btm_ble_periodic_adv_sync_established(uint8_t *param, uint16_t param_len);
+extern void btm_ble_periodic_adv_report(uint8_t *param, uint16_t param_len);
+extern void btm_ble_periodic_adv_sync_lost(uint8_t *param, uint16_t param_len);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleStartPeriodicSync
+ *
+ * Description      This function is called to invoke HCI Command
+ *                  HCI_LE_PERIODIC_ADVERTISING_CREATE_SYNC to synchronize to
+ *                  PA train specified in input parameters.
+ *
+ * Parameters       PA train info corresponding to particualr PA train and
+ *                  callbacks to sync established, pa report and sync lost events
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
+                                     uint16_t skip, uint16_t timeout,
+                                     StartSyncCb syncCb,
+                                     SyncReportCb reportCb,
+                                     SyncLostCb lostCb);
+/*******************************************************************************
+ *
+ * Function         BTM_BleStopPeriodicSync
+ *
+ * Description      This function is called to invoke HCI Command
+ *                  HCI_LE_PERIODIC_ADVERTISING_TERMINATE_SYNC to stop synchronising
+ *                  to PA train.
+ *
+ * Parameters       sync handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTM_BleStopPeriodicSync(uint16_t handle);
+/*******************************************************************************
+ *
+ * Function         BTM_BleCancelPeriodicSync
+ *
+ * Description      This function is called to invoke HCI Command
+ *                  HCI_LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL to
+ *                  cancel pending sync to PA train.
+ *
+ * Parameters       adv sid, address corrosponds to PA train
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTM_BleCancelPeriodicSync(uint8_t adv_sid, RawAddress address);
+
 #endif
