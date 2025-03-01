@@ -917,6 +917,10 @@ void btm_ble_start_sync_request(uint8_t sid, RawAddress addr, uint16_t skip, uin
   uint8_t address_type = BLE_ADDR_RANDOM;
   tINQ_DB_ENT* p_i = btm_inq_db_find(addr);
   int index = btm_ble_get_psync_index(sid, addr);
+  if (index == MAX_SYNC_TRANSACTION) {
+    BTM_TRACE_ERROR("[PSync]%s: index not found", __func__);
+    return;
+  }
   tBTM_BLE_PERIODIC_SYNC *p = &btm_ble_pa_sync_cb.p_sync[index];
   if (p_i) {
     address_type = p_i->inq_info.results.ble_addr_type;
@@ -1002,6 +1006,10 @@ static void btm_ble_start_sync_timeout(void *data) {
   RawAddress address = p_head->address;
 
   int index = btm_ble_get_psync_index(adv_sid, address);
+  if (index == MAX_SYNC_TRANSACTION) {
+      BTM_TRACE_ERROR("[PSync]%s: index not found", __func__);
+      return;
+  }
 
   tBTM_BLE_PERIODIC_SYNC *p = &btm_ble_pa_sync_cb.p_sync[index];
 
@@ -1156,8 +1164,10 @@ void btm_ble_periodic_adv_sync_lost(uint8_t *param, uint16_t param_len) {
   uint16_t sync_handle;
   if (param_len != SYNC_LOST_EVT_LEN) {
     BTM_TRACE_ERROR("[PSync]%s: Invalid event length",__func__);
+    return;
   }
   STREAM_TO_UINT16(sync_handle, param);
+  BTM_TRACE_DEBUG("[PSync]%s: sync_handle = %d", __func__, sync_handle);
   int index = btm_ble_get_psync_index_from_handle(sync_handle);
   if (index == MAX_SYNC_TRANSACTION) {
     BTM_TRACE_ERROR("[PSync]%s: invalid index",__func__);
