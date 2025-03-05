@@ -4550,7 +4550,11 @@ static void handle_notification_response(tBTA_AV_META_MSG* pmeta_msg,
          * if the play state is playing.
          */
         if (p_rsp->param.play_status == AVRC_PLAYSTATE_PLAYING) {
-          rc_start_play_status_timer(p_dev);
+          char get_play_status[PROPERTY_VALUE_MAX] = {0};
+          osi_property_get("persist.bluetooth.enable_get_play_status", get_play_status, "false");
+          if (strncmp(get_play_status, "true", 4) == 0) {
+            rc_start_play_status_timer(p_dev);
+          }
         }
         HAL_CBACK(bt_rc_ctrl_callbacks, play_status_changed_cb, &rc_addr,
                   (btrc_play_status_t)p_rsp->param.play_status);
@@ -4649,7 +4653,11 @@ static void handle_notification_response(tBTA_AV_META_MSG* pmeta_msg,
          * if the play state is playing.
          */
         if (p_rsp->param.play_status == AVRC_PLAYSTATE_PLAYING) {
-          rc_start_play_status_timer(p_dev);
+          char get_play_status[PROPERTY_VALUE_MAX] = {0};
+          osi_property_get("persist.bluetooth.enable_get_play_status", get_play_status, "false");
+          if (strncmp(get_play_status, "true", 4) == 0) {
+            rc_start_play_status_timer(p_dev);
+          }
           get_element_attribute_cmd(AVRC_MAX_NUM_MEDIA_ATTR_ID, attr_list,
                                     p_dev);
         } else {
