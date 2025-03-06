@@ -599,6 +599,9 @@ void gatt_rsp_timeout(void* data) {
       gatt_act_discovery(p_clcb);
       return;
     }
+  } else if ((p_clcb->operation >= GATTC_OPTYPE_READ) || (p_clcb->operation == GATTC_OPTYPE_EXE_WRITE) ||
+             ((p_clcb->operation == GATTC_OPTYPE_WRITE) && (p_clcb->op_subtype != GATT_WRITE_NO_RSP))) {
+    PTS_TRACE_INFO("%s:: gatt %s timeout\n", __FUNCTION__, (p_clcb->operation == GATTC_OPTYPE_READ)?"read":"write");
   }
 
   // LOG(WARNING) << __func__ << " disconnecting...";
