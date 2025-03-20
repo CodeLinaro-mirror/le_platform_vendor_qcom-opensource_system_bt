@@ -604,6 +604,8 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
                    (p_cfg->recov_mnmp > AVDT_RECOV_MNMP_MAX)) {
           err = AVDT_ERR_RECOV_FMT;
         }
+        if(!err) /*Used for PTS case test*/
+          PTS_TRACE_INFO("Remote device supports recovery capability\n");
         break;
 
       case AVDT_CAT_PROTECT:
@@ -613,6 +615,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
           //android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
+        PTS_TRACE_INFO("Remote device supports content protection capability\n");
         if ((elem_len + protect_offset) < AVDT_PROTECT_SIZE) {
           p_cfg->num_protect++;
           p_cfg->protect_info[protect_offset] = elem_len;
@@ -628,6 +631,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
           err = AVDT_ERR_PAYLOAD;
           break;
         }
+        PTS_TRACE_INFO("Remote device supports header compression capability\n");
         p_cfg->hdrcmp_mask = *p++;
         break;
 
@@ -642,6 +646,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
           //android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
+        PTS_TRACE_INFO("Remote device supports media codec capability\n");
         p_cfg->num_codec++;
         p_cfg->codec_info[0] = elem_len;
         memcpy(&p_cfg->codec_info[1], p, tmp);
@@ -649,6 +654,7 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG* p_cfg, uint8_t* p, uint16_t len,
         break;
 
       case AVDT_CAT_DELAY_RPT:
+        PTS_TRACE_INFO("Remote device supports delay capability\n");
         AVDT_TRACE_DEBUG("%s: Remote device supports delay reporting",
                          __func__);
         break;
