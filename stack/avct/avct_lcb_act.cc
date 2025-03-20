@@ -676,6 +676,11 @@ void avct_lcb_msg_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
     /* PID found; send msg up, adjust bt hdr and call msg callback */
     p_data->p_buf->offset += AVCT_HDR_LEN_SINGLE;
     p_data->p_buf->len -= AVCT_HDR_LEN_SINGLE;
+
+    /* Print some indicatoin message to help certification test */
+    std::string addrstr = p_lcb->peer_addr.ToString();
+    PTS_TRACE_INFO("Address:%s Transaction lable:%d, Type:%d Data Length:%d\n", addrstr.c_str(), label, type, p_data->p_buf->len);
+
     (*p_ccb->cc.p_msg_cback)(avct_ccb_to_idx(p_ccb), label, cr_ipid,
                              p_data->p_buf);
     return;
