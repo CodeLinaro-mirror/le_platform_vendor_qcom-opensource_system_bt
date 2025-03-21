@@ -622,6 +622,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     L2CAP_TRACE_WARNING(
         "L2CAP - LE - format error, pkt_len: %d  cmd_len: %d  code: %d",
         pkt_len, cmd_len, cmd_code);
+    PTS_TRACE_INFO("Not processed PDU due to format error, pkt_len: %d  cmd_len: %d  code: %d",
+        pkt_len, cmd_len, cmd_code);
     return;
   }
 
