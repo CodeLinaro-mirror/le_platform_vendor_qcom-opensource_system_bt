@@ -843,6 +843,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       if (p_ccb == NULL) {
         L2CAP_TRACE_DEBUG("%s Credit received for unknown channel id %d",
                           __func__, lcid);
+        // required for L2CAP/LE/REJ/BI-02-C
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
         break;
       }
 
