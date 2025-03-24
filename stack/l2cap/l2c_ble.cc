@@ -694,6 +694,13 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       STREAM_TO_UINT16(mps, p);
       STREAM_TO_UINT16(initial_credit, p);
 
+      /*L2CAP/COS/CED/BI-16-C requires rejecting packets of illegal length*/
+      if(p != p_pkt_end) {
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
+        PTS_TRACE_INFO("Received a command with an illegal length and discarded it.\n");
+        break;
+      }
+
       L2CAP_TRACE_DEBUG(
           "Recv L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ with "
           "mtu = %d, "
