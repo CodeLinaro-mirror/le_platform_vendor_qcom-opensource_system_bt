@@ -55,6 +55,7 @@
 #include "gattdefs.h"
 #include "l2c_int.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 
 #define BTM_BLE_NAME_SHORT 0x01
 #define BTM_BLE_NAME_CMPL 0x02
@@ -1543,7 +1544,10 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t mode, uint8_t duration) {
 
   uint8_t scan_phy = SCAN_PHY_LE_1M;
   if (controller_get_interface()->supports_ble_coded_phy()) scan_phy |= SCAN_PHY_LE_CODED;
-
+  char value[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get("vendor.bt.pts.certification", value, "false");
+  if(strcmp(value, "true") == 0)
+    mode |= 0x10; // enable LE general inquiry
   BTM_TRACE_DEBUG("btm_ble_start_inquiry: mode = %02x inq_active = 0x%02x",
                   mode, btm_cb.btm_inq_vars.inq_active);
 
@@ -1759,14 +1763,15 @@ uint8_t btm_ble_is_discoverable(const RawAddress& bda,
         adv_data, BTM_BLE_AD_TYPE_FLAG, &data_len);
     if (p_flag != NULL) {
       flag = *p_flag;
-
-      if ((btm_cb.btm_inq_vars.inq_active & BTM_BLE_GENERAL_INQUIRY) &&
+      char value[PROPERTY_VALUE_MAX] = {0};
+      osi_property_get("vendor.bt.pts.certification", value, "false");
+      if (((btm_cb.btm_inq_vars.inq_active & BTM_BLE_GENERAL_INQUIRY) || strcmp(value, "true") == 0) &&
           (flag & (BTM_BLE_LIMIT_DISC_FLAG | BTM_BLE_GEN_DISC_FLAG)) != 0) {
         BTM_TRACE_DEBUG("Find Generable Discoverable device");
         rt |= BTM_BLE_INQ_RESULT;
       }
 
-      else if (btm_cb.btm_inq_vars.inq_active & BTM_BLE_LIMITED_INQUIRY &&
+      else if (((btm_cb.btm_inq_vars.inq_active & BTM_BLE_LIMITED_INQUIRY) || strcmp(value, "true") == 0) &&
                (flag & BTM_BLE_LIMIT_DISC_FLAG) != 0) {
         BTM_TRACE_DEBUG("Find limited discoverable device");
         rt |= BTM_BLE_INQ_RESULT;
