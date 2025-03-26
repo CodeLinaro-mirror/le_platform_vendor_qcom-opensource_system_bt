@@ -685,6 +685,7 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, uint16_t event,
     case L2CEVT_L2CAP_INFO_RSP:
       /* Need to have at least one compatible channel to continue */
       if (!l2c_fcr_chk_chan_modes(p_ccb)) {
+        PTS_TRACE_INFO("Create connection fail due to channel is not compatible\n");
         l2cu_release_ccb(p_ccb);
         if (connect_cfm) {
           (*connect_cfm)(local_cid, L2CAP_CONN_NO_LINK);
