@@ -857,6 +857,11 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       STREAM_TO_UINT16(lcid, p);
       STREAM_TO_UINT16(rcid, p);
 
+      // required for L2CAP/COS/CED/BI-11-C
+      if(p != p_pkt_end) {
+        PTS_TRACE_INFO("Receive a incorrect length L2CAP_DISCONNECTION_REQ PDU\n");
+      }
+
       p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
       if (p_ccb != NULL) {
         if (p_ccb->remote_cid == rcid) {
