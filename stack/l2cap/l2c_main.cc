@@ -713,6 +713,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       case L2CAP_CMD_DISC_REQ:
         if (p + 4 > p_next_cmd) {
           //android_errorWriteLog(0x534e4554, "74202041");
+          PTS_TRACE_INFO("An illegal L2CAP_DISCONNECTION_REQ PDU was received (possibly"
+                          " missing Destination CID/SourceCID fields) ,drop it.\n");
           return;
         }
         STREAM_TO_UINT16(lcid, p);
