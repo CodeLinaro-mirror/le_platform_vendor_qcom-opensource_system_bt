@@ -605,6 +605,7 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   uint8_t* p_pkt_end;
   uint8_t cmd_code, id;
   uint16_t cmd_len;
+  uint16_t reason;
   uint16_t min_interval, max_interval, latency, timeout;
   tL2C_CONN_INFO con_info;
   uint16_t lcid = 0, rcid = 0, mtu = 0, mps = 0, initial_credit = 0;
@@ -629,7 +630,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
   switch (cmd_code) {
     case L2CAP_CMD_REJECT:
-      p += 2;
+      STREAM_TO_UINT16(reason, p);
+      PTS_TRACE_INFO("l2cap received the reject command, reason code:%d.\n",reason);
       break;
 
     case L2CAP_CMD_ECHO_REQ:
