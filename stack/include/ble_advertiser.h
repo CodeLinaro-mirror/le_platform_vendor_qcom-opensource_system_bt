@@ -143,6 +143,8 @@ class BleAdvertisingManager {
   virtual void SetPeriodicAdvertisingEnable(uint8_t inst_id, uint8_t enable,
                                             MultiAdvCb cb) = 0;
 
+  virtual void PeriodicAdvSetInfoTransfer(uint16_t acl_handle, uint16_t service_data,
+                                  uint8_t inst_id, MultiAdvCb cb) = 0;
   /*  This function disable a Multi-ADV instance */
   virtual void Unregister(uint8_t inst_id) = 0;
 

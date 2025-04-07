@@ -250,6 +250,22 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
              enable, jni_thread_wrapper(FROM_HERE, cb)));
   }
+
+  void PeriodicAdvSetInfoTransfer(const RawAddress& bd_addr, uint16_t service_data,
+                                  uint8_t advertiser_id, StatusCallback cb) override {
+    VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id;
+    uint16_t acl_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
+    if (acl_handle == HCI_INVALID_HANDLE) {
+      LOG(ERROR) << "no LE link exist or LE not supported";
+      return;
+    }
+    if (!BleAdvertisingManager::IsInitialized()) return;
+    do_in_bta_thread(
+        FROM_HERE,
+                     Bind(&BleAdvertisingManager::PeriodicAdvSetInfoTransfer,
+             base::Unretained(BleAdvertisingManager::Get()), acl_handle, service_data,
+             advertiser_id, jni_thread_wrapper(FROM_HERE, cb)));
+  }
 };
 
 BleAdvertiserInterface* btLeAdvertiserInstance = nullptr;
