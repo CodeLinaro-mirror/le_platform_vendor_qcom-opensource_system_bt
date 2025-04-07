@@ -846,6 +846,7 @@ void smp_cb_cleanup(tSMP_CB* p_cb) {
   uint8_t trace_level = p_cb->trace_level;
   alarm_t* smp_rsp_timer_ent = p_cb->smp_rsp_timer_ent;
   alarm_t* delayed_auth_timer_ent = p_cb->delayed_auth_timer_ent;
+  uint8_t cert_failure = p_cb->cert_failure;
 
   SMP_TRACE_EVENT("smp_cb_cleanup");
 
@@ -856,6 +857,7 @@ void smp_cb_cleanup(tSMP_CB* p_cb) {
   p_cb->trace_level = trace_level;
   p_cb->smp_rsp_timer_ent = smp_rsp_timer_ent;
   p_cb->delayed_auth_timer_ent = delayed_auth_timer_ent;
+  p_cb->cert_failure = cert_failure; // keep pts cert configuration unless restart btapp.
 }
 
 /*******************************************************************************
