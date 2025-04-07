@@ -31,6 +31,7 @@
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "l2c_int.h"
+
 #define GATT_MTU_REQ_MIN_LEN 2
 
 using base::StringPrintf;
@@ -158,6 +159,13 @@ static bool process_read_multi_rsp(tGATT_SR_CMD* p_cmd, tGATT_STATUS status,
           else
             node = list_next(node);
           if (node != list_end(list)) p_rsp = (tGATTS_RSP*)list_node(node);
+          if (p_rsp && trace_pts_info) {
+              printf("gatt read multi rsp %d: handle = 0x%04x len = %d data:", ii+1, p_rsp->attr_value.handle, p_rsp->attr_value.len);
+              for (int i = 0; i < p_rsp->attr_value.len; i++) {
+                printf("%02x", p_rsp->attr_value.value[i]);
+              }
+              printf("\n");
+          }
         }
 
         if (p_rsp != NULL) {
@@ -252,6 +260,12 @@ tGATT_STATUS gatt_sr_process_app_rsp(tGATT_TCB& tcb, tGATT_IF gatt_if,
       if (tcb.sr_cmd.p_rsp_msg == NULL) {
         tcb.sr_cmd.p_rsp_msg = attp_build_sr_msg(tcb, (uint8_t)(op_code + 1),
                                                  (tGATT_SR_MSG*)p_msg);
+        if (p_msg && p_msg->attr_value.len && trace_pts_info) {
+          printf("gatt read response handle=0x%04x len = %d data:", p_msg->attr_value.handle, p_msg->attr_value.len);
+          for (int i = 0; i < p_msg->attr_value.len; i++)
+            printf("%02x", p_msg->attr_value.value[i]);
+          printf("\n");
+        }
       } else {
         LOG(ERROR) << "Exception!!! already has respond message";
       }
