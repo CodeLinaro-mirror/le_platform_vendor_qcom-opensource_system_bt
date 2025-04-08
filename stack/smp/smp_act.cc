@@ -25,6 +25,7 @@
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
 #include "utils/include/bt_utils.h"
+#include "osi/include/properties.h"
 
 #define SMP_KEY_DIST_TYPE_MAX 4
 
@@ -778,7 +779,10 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   }
 
   /* erase all keys if it is slave proc pairing req*/
-  if (p_dev_rec && (p_cb->role == HCI_ROLE_SLAVE))
+  char value[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get("vendor.bt.pts.certification", value, "false");
+
+  if (p_dev_rec && (p_cb->role == HCI_ROLE_SLAVE) && strcmp(value, "true"))
     btm_sec_clear_ble_keys(p_dev_rec);
 
   p_cb->flags |= SMP_PAIR_FLAG_ENC_AFTER_PAIR;
@@ -2011,10 +2015,12 @@ void smp_br_process_link_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   } else {
     SMP_TRACE_ERROR("%s failed to find Security Record", __func__);
   }
-
-  SMP_TRACE_DEBUG("%s: LTK derivation from LK successfully completed",
-                  __func__);
-  smp_save_secure_connections_long_term_key(p_cb);
+  char value[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get("vendor.bt.pts.certification", value, "false");
+  if (strcmp(value, "true")) {
+    SMP_TRACE_DEBUG("%s: LTK derivation from LK successfully completed", __func__);
+    smp_save_secure_connections_long_term_key(p_cb);
+  }
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_ENC, false);
   smp_br_select_next_key(p_cb, NULL);
 }
