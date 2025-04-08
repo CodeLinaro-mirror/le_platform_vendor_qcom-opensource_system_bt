@@ -2251,6 +2251,8 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
   if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
       btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
       btm_cb.security_mode == BTM_SEC_MODE_SC) {
+    char value[PROPERTY_VALUE_MAX] = {0};
+    osi_property_get("vendor.bt.pts.certification", value, "false");
     if (BTM_SEC_IS_SM4(p_dev_rec->sm4)) {
       if (is_originator) {
         /* SM4 to SM4 -> always authenticate & encrypt */
@@ -2271,6 +2273,14 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
 
       p_dev_rec->sm4 |= BTM_SM4_REQ_PEND;
       return (BTM_CMD_STARTED);
+    } else if (BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4) && !strcmp(value, "true")) {
+      BTM_TRACE_DEBUG("%s enable authentication and encryption when remote doesn't support secure simple pairing for some PTS case.", __func__);
+      if (is_originator) {
+        security_required |= (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT);
+      } else /* acceptor */
+      {
+        security_required |= (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT);
+      }
     }
   }
 
