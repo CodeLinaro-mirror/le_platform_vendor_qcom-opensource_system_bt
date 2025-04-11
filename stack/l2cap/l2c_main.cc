@@ -321,6 +321,7 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     if (p_next_cmd > p_pkt_end) {
       L2CAP_TRACE_WARNING("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
                           pkt_len, cmd_len, cmd_code);
+      PTS_TRACE_INFO("Command len bad pkt_len: %d  cmd_len: %d\n",pkt_len, cmd_len);
       break;
     }
 
