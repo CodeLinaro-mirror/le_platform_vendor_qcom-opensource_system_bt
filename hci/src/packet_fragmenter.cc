@@ -30,6 +30,7 @@
 #include "hci_internals.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 
 #define APPLY_CONTINUATION_FLAG(handle) (((handle)&0xCFFF) | 0x1000)
 #define APPLY_START_FLAG(handle) (((handle)&0xCFFF) | 0x2000)
@@ -210,10 +211,21 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR* packet) {
           partial_packet->offset + (packet->len - HCI_ACL_PREAMBLE_SIZE);
       if (projected_offset >
           partial_packet->len) {  // len stores the expected length
+        // L2CAP/COS/CED/BI-06-C requires IUT should discard the frame when
+        // received the packets with incorrect PDU Length.
+        char value[PROPERTY_VALUE_MAX] = {0};
+        osi_property_get("vendor.bt.pts.certification", value, "false");
+        if (!(strcmp(value,"true"))) {
+          PTS_TRACE_INFO("drop the packet due to projected_offset biger than len size\n");
+          buffer_allocator->free(packet);
+          partial_packets.erase(handle);
+          return;
+        }
+
         LOG_WARN(LOG_TAG, ""
-                 "%s got packet which would exceed expected length of %d. "
-                 "Truncating.",
-                 __func__, partial_packet->len);
+              "%s got packet which would exceed expected length of %d. "
+              "Truncating.",
+              __func__, partial_packet->len);
         packet->len = (partial_packet->len - partial_packet->offset) + packet->offset;
         projected_offset = partial_packet->len;
       }
