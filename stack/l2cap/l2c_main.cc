@@ -169,7 +169,8 @@ void l2c_rcv_acl_data(BT_HDR* p_msg) {
   if (l2cap_len != p_msg->len) {
     L2CAP_TRACE_WARNING("L2CAP - bad length in pkt. Exp: %d  Act: %d",
                         l2cap_len, p_msg->len);
-
+    PTS_TRACE_INFO("discard the frame due to l2cap received bad length in pkt. Exp: %d  Act: %d\n",
+                        l2cap_len, p_msg->len);
     osi_free(p_msg);
     return;
   }

@@ -289,7 +289,7 @@ static void load_levels_from_config(const config_t* config) {
 
 static void load_certification_trace_from_config(void) {
   // enable or disable PTS certification log
-  if (stack_config_get_interface()->get_pts_trace_info_enable) {
+  if (stack_config_get_interface()->get_pts_trace_info_enable()) {
     extern bool trace_pts_info;
     trace_pts_info = true;
   }
