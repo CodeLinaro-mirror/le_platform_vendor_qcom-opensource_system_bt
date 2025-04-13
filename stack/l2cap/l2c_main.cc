@@ -278,6 +278,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   uint16_t cfg_rej_len, cmd_len;
   uint16_t result;
   tL2C_CONN_INFO ci;
+  uint8_t last_id = 0;
+  bool first_cmd = true;
 
   /* if l2cap command received in CID 1 on top of an LE link, ignore this
    * command */
@@ -305,11 +307,24 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   while (true) {
     /* Smallest command is 4 bytes */
     p = p_next_cmd;
-    if (p > (p_pkt_end - 4)) break;
+    if (p > (p_pkt_end - 4)) {
+      /* Reject to the previous endpoint if reliable channel is being used.
+       * This is required in L2CAP/COS/CED/BI-12-C */
+      if (!first_cmd &&
+          (cfg_info.fcr.mode == L2CAP_FCR_BASIC_MODE ||
+           cfg_info.fcr.mode == L2CAP_FCR_ERTM_MODE) &&
+          p != p_pkt_end)
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, last_id,
+                                  0, 0);
+      break;
+    }
 
     STREAM_TO_UINT8(cmd_code, p);
     STREAM_TO_UINT8(id, p);
     STREAM_TO_UINT16(cmd_len, p);
+
+    last_id = id;
+    first_cmd = false;
 
     if (cmd_len > BT_SMALL_BUFFER_SIZE) {
       L2CAP_TRACE_WARNING("L2CAP - Invalid MTU Size");
