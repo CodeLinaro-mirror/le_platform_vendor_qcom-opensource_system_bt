@@ -842,6 +842,8 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
       return;
     }
 
+    p_buf->len -= sizeof(sdu_length);
+    p_buf->offset += sizeof(sdu_length);
     if (sdu_length < p_buf->len) {
       L2CAP_TRACE_ERROR("%s: Invalid sdu_length: %d", __func__, sdu_length);
       //android_errorWriteWithInfoLog(0x534e4554, "112321180", -1, NULL, 0);
@@ -850,7 +852,7 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
       return;
     }
 
-    p_data = (BT_HDR*)osi_malloc(L2CAP_MAX_BUF_SIZE);
+    p_data = (BT_HDR*)osi_malloc(BT_HDR_SIZE+ sdu_length);
     if (p_data == NULL) {
       osi_free(p_buf);
       return;
@@ -860,8 +862,6 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
     p_data->len = 0;
     p_ccb->ble_sdu_length = sdu_length;
     L2CAP_TRACE_DEBUG("%s SDU Length = %d", __func__, sdu_length);
-    p_buf->len -= sizeof(sdu_length);
-    p_buf->offset += sizeof(sdu_length);
     p_data->offset = 0;
 
   } else {
