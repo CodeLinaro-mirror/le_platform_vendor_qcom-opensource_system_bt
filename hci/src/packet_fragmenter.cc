@@ -201,6 +201,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR* packet) {
         LOG_WARN(LOG_TAG, ""
                  "%s got continuation for unknown packet. Dropping it.",
                  __func__);
+        PTS_TRACE_INFO("got continuation for unknown packet. Dropping it.\n");
         buffer_allocator->free(packet);
         return;
       }
