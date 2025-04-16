@@ -516,6 +516,9 @@ void smp_proc_pair_cmd(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(p_cb->pairing_bda);
 
   SMP_TRACE_DEBUG("%s", __func__);
+  /* report bonding lost if it is a bonded device */
+  if (btm_sec_is_a_bonded_dev(p_cb->pairing_bda))
+    PTS_TRACE_INFO("Bonding lost, start pairing again.\n");
   /* erase all keys if it is slave proc pairing req */
   if (p_dev_rec && (p_cb->role == HCI_ROLE_SLAVE))
     btm_sec_clear_ble_keys(p_dev_rec);
