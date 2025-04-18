@@ -35,6 +35,7 @@
 #include "l2c_api.h"
 #include "stack_config.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 
 #define SYSTEM_APP_GATT_IF 3
 
@@ -169,6 +170,12 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
   }
 
   uint16_t num_handles = compute_service_size(service, count);
+  char value[PROPERTY_VALUE_MAX] = {'\0'};
+  bool log_for_certification = false;
+  osi_property_get("vendor.bt.pts.certification", value, "false");
+  if (!(strcmp(value,"true"))) {
+    log_for_certification = true;
+  }
 
   if (svc_uuid == Uuid::From16Bit(UUID_SERVCLASS_GATT_SERVER)) {
     s_hdl = gatt_cb.hdl_cfg.gatt_start_hdl;
@@ -206,8 +213,9 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
   }
 
   gatts_init_service_db(list.svc_db, svc_uuid, is_pri, s_hdl, num_handles);
-  PTS_TRACE_INFO("GATTS_AddService: %s_SERVICE UUID = %s s_handle = 0x%04x e_handle = 0x%04x\n", (is_pri)?"PRIMARY":"SECONDARY", svc_uuid.ToString().c_str(), s_hdl, s_hdl + num_handles - 1);
-
+  if (log_for_certification) {
+    printf("GATTS_AddService: %s_SERVICE UUID = %s s_handle = 0x%04x e_handle = 0x%04x\n", (is_pri)?"PRIMARY":"SECONDARY", svc_uuid.ToString().c_str(), s_hdl, s_hdl + num_handles - 1);
+  }
   VLOG(1) << StringPrintf(
       "%s: handles needed:%u s_hdl=%u e_hdl=%u %s is_primary=%d", __func__,
       num_handles, list.asgn_range.s_handle, list.asgn_range.e_handle,
@@ -241,7 +249,10 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
 
       el->attribute_handle = gatts_add_characteristic(
           list.svc_db, el->permissions, el->properties, uuid);
-      PTS_TRACE_INFO("GATTS_AddService:add characteristic handle=0x%04x value handle=0x%04x uuid=%s \n", el->attribute_handle - 1, el->attribute_handle, el->uuid.ToString().c_str());
+      if (log_for_certification) {
+        //el->attribute_handle characteristic value handle, characteristic - 1 is characteristic handle
+        printf("GATTS_AddService:add characteristic handle=0x%04x value handle=0x%04x uuid=%s \n", el->attribute_handle - 1, el->attribute_handle, el->uuid.ToString().c_str());
+      }
     } else if (el->type == BTGATT_DB_DESCRIPTOR) {
       if (is_gatt_attr_type(uuid)) {
         LOG(ERROR) << StringPrintf(
@@ -253,7 +264,9 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
 
       el->attribute_handle =
           gatts_add_char_descr(list.svc_db, el->permissions, uuid);
-      PTS_TRACE_INFO("GATTS_AddService:add descriptor handle=0x%04x uuid=%s \n", el->attribute_handle, uuid.ToString().c_str());
+      if (log_for_certification) {
+        printf("GATTS_AddService:add descriptor handle=0x%04x uuid=%s \n", el->attribute_handle, uuid.ToString().c_str());
+      }
     } else if (el->type == BTGATT_DB_INCLUDED_SERVICE) {
       tGATT_HDL_LIST_ELEM* p_incl_decl;
       p_incl_decl = gatt_find_hdl_buffer_by_handle(el->attribute_handle);
@@ -265,7 +278,9 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
       el->attribute_handle = gatts_add_included_service(
           list.svc_db, p_incl_decl->asgn_range.s_handle,
           p_incl_decl->asgn_range.e_handle, p_incl_decl->asgn_range.svc_uuid);
-      PTS_TRACE_INFO("GATTS_AddService:add included_service s_handle=0x%04x e_handle=0x%04x uuid=%s \n", p_incl_decl->asgn_range.s_handle, p_incl_decl->asgn_range.e_handle, p_incl_decl->asgn_range.svc_uuid.ToString().c_str());
+      if (log_for_certification) {
+        printf("GATTS_AddService:add included_service s_handle=0x%04x e_handle=0x%04x uuid=%s \n", p_incl_decl->asgn_range.s_handle, p_incl_decl->asgn_range.e_handle, p_incl_decl->asgn_range.svc_uuid.ToString().c_str());
+      }
     }
   }
 
