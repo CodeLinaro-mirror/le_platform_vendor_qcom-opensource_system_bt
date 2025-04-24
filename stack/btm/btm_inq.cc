@@ -34,6 +34,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/time.h"
+#include "osi/include/properties.h"
 
 #include "advertise_data_parser.h"
 #include "bt_common.h"
@@ -814,8 +815,10 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_PARMS* p_inqparms,
   }
 #endif
 
+  char value[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get("vendor.bt.pts.certification", value, "false");
   /* start LE inquiry here if requested */
-  if ((p_inqparms->mode & BTM_BLE_INQUIRY_MASK)
+  if (((p_inqparms->mode & BTM_BLE_INQUIRY_MASK) || strcmp(value, "true") == 0)
 #if (BTA_HOST_INTERLEAVE_SEARCH == TRUE)
       &&
       (p_inq->next_state == BTM_BLE_ONE || p_inq->next_state == BTM_BLE_TWO ||
