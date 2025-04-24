@@ -1426,7 +1426,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         pairing_cb.static_bdaddr = bd_addr;
         is_crosskey = true;
       }
-      if (!is_crosskey ||
+      if (!is_crosskey &&
           !(stack_config_get_interface()->get_pts_crosskey_sdp_disable())) {
         // Ensure inquiry is stopped before attempting service discovery
         btif_dm_cancel_discovery();
@@ -1434,6 +1434,10 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         /* Trigger SDP on the device */
         pairing_cb.sdp_attempts = 1;
         btif_dm_get_remote_services_by_transport(&bd_addr, BT_TRANSPORT_BR_EDR);
+      } else {
+        LOG_INFO(LOG_TAG,
+               "%s calling bond state callback when skipping SDP.", __func__);
+        HAL_CBACK(bt_hal_cbacks, bond_state_changed_cb, BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
       }
     }
     // Do not call bond_state_changed_cb yet. Wait until remote service
