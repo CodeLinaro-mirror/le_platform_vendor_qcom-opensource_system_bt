@@ -413,7 +413,7 @@ static void l2c_csm_orig_w4_sec_comp(tL2C_CCB* p_ccb, uint16_t event,
       L2CAP_TRACE_API(
           "L2CAP - Calling ConnectCfm_Cb(), CID: 0x%04x  Status: %d",
           p_ccb->local_cid, HCI_ERR_AUTH_FAILURE);
-
+      PTS_TRACE_INFO("Channel establishment failed due to authentication failure.\n");
       /* If last channel immediately disconnect the ACL for better security.
          Also prevents a race condition between BTM and L2CAP */
       if ((p_ccb == p_ccb->p_lcb->ccb_queue.p_first_ccb) &&
