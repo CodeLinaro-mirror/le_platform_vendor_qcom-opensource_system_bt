@@ -588,6 +588,7 @@ tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS dev_class) {
   if (!memcmp(btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN))
     return (BTM_SUCCESS);
 
+  PTS_TRACE_INFO("ClassOfDevice:service_class=0x%x major=0x%x minor=0x%x\n", dev_class[0], dev_class[1], dev_class[2]);
   memcpy(btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN);
 
   if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
