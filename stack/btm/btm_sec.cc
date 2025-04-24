@@ -33,6 +33,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/time.h"
+#include "osi/include/properties.h"
 #include "stack_config.h"
 
 #include "bt_types.h"
@@ -4130,8 +4131,10 @@ void btm_sec_auth_complete(uint16_t handle, uint8_t status) {
                                     p_dev_rec->hci_handle);
     } else {
       BTM_TRACE_DEBUG("TRYING TO DECIDE IF CAN USE SMP_BR_CHNL");
-      if (p_dev_rec->new_encryption_key_is_p256 &&
-          (btm_sec_use_smp_br_chnl(p_dev_rec))
+      char value[PROPERTY_VALUE_MAX] = {0};
+      osi_property_get("vendor.bt.pts.certification", value, "false");
+      if (((p_dev_rec->new_encryption_key_is_p256 &&
+          (btm_sec_use_smp_br_chnl(p_dev_rec))) || !strcmp(value, "true"))
           /* no LE keys are available, do deriving */
           && (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN) ||
               /* or BR key is higher security than existing LE keys */
