@@ -3570,9 +3570,7 @@ void btif_dm_get_ble_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
 
 void btif_dm_save_ble_bonding_keys(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
-  char value[PROPERTY_VALUE_MAX] = {0};
-  osi_property_get("vendor.bt.pts.certification", value, "false");
-  if( (pairing_cb.auth_req & BTM_LE_AUTH_REQ_BOND) == 0 && strcmp(value, "true")) {
+  if( (pairing_cb.auth_req & BTM_LE_AUTH_REQ_BOND) == 0 && !stack_config_get_interface()->get_pts_disable_auth_check()) {
       return;
   }
 
