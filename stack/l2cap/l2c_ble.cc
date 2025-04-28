@@ -828,8 +828,10 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
         if (con_info.l2cap_result == L2CAP_LE_CONN_OK)
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP, &con_info);
-        else
+        else {
+          PTS_TRACE_INFO("l2cap connect fail, remote_cid = %d, result code:%d\n", con_info.remote_cid, con_info.l2cap_result);
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_NEG, &con_info);
+        }
       } else {
         L2CAP_TRACE_DEBUG("I DO NOT remember the connection req");
         con_info.l2cap_result = L2CAP_LE_INVALID_SOURCE_CID;
