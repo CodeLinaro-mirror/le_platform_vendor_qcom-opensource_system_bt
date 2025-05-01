@@ -91,7 +91,7 @@ AC_ARG_ENABLE(rome,
 
 AM_CONDITIONAL([MDM_ROME], [test "x$TARGET" = "xmdm9607" -o "x$TARGET" = "xmdm9635" -o "x$TARGET" = "xmdm9640" -o "x$TARGET" = "xmdm9650" -o "x$TARGET" = "xapq8096" -o "x$TARGET" = "xsdx20" -o "x$ROME" = "xqsap" -o "x$ROME" = "xrobot-rome"])
 AM_CONDITIONAL([MDM_PRONTO], [test "x$TARGET" = "xapq8009" -o "x$TARGET" = "xapq8017" -o "x$TARGET" = "xapq8053" -o "x$TARGET" = "xapq8016"])
-AM_CONDITIONAL([MDM_CHEROKEE], [test "x$TARGET" = "xapq8098" -o "x$TARGET" = "xsdmsteppe"])
+AM_CONDITIONAL([MDM_CHEROKEE], [test "x$TARGET" = "xapq8098" -o "x$TARGET" = "xsdmsteppe" -o "x$TARGET" = "xqcm4325-mtp"])
 AM_CONDITIONAL([MDM_HASTINGS], [test "x$TARGET" = "xqrb5165" -o "x$TARGET" = "xsxr2130"])
 AM_CONDITIONAL([MDM_MOSELLE], [test "x$TARGET" = "xneo"])
 AM_CONDITIONAL([MDM_HAMILTON], [test "x$TARGET" = "xneo"] -o "x$TARGET" = "xkalama" -o "x$TARGET" = "xpineapple" -o "x$TARGET" = "xqcm2290-mtp"])
