@@ -921,4 +921,11 @@ extern void btsnd_hcic_set_csb(uint8_t enable, uint8_t lt_addr, uint8_t lpo_allo
 extern void btsnd_hcic_start_synch_train();
 extern void btsnd_hcic_delete_reserved_lt_addr(uint8_t lt_addr);
 extern void btsnd_hcic_set_reserved_lt_addr(uint8_t lt_addr);
+/*******PAST & PS **********************************/
+extern void btsnd_hcic_ble_create_periodic_sync(uint8_t options, uint8_t adv_sid,
+                                                uint8_t address_type, const RawAddress& bda_peer,
+                                                uint16_t skip, uint16_t sync_timeout,
+                                                uint8_t sync_cte_type);
+extern void btsnd_hcic_ble_terminate_periodic_sync(uint16_t sync_handle);
+extern void btsnd_hci_ble_cancel_period_sync(void);
 #endif
