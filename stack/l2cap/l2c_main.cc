@@ -736,9 +736,13 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         STREAM_TO_UINT16(rcid, p);
 
         // L2CAP/COS/CED/BI-10-C requires issues a warning when received
-        // a incorrect Signaling Command Packets.
-        if(p != p_next_cmd)
+        // a incorrect Signaling Command Packets.Currently it only works
+        // for certification to ensure that it does not affect normal cases.
+        if(p != p_next_cmd && trace_pts_info) {
           PTS_TRACE_INFO("Receive a incorrect length L2CAP_DISCONNECTION_REQ PDU\n");
+          l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
+          break;
+        }
 
         p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
         if (p_ccb != NULL) {
