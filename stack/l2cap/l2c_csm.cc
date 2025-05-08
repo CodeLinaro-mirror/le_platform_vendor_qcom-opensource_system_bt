@@ -227,6 +227,7 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
       if (!p_ccb->p_lcb->w4_info_rsp) {
         /* Need to have at least one compatible channel to continue */
         if (!l2c_fcr_chk_chan_modes(p_ccb)) {
+          PTS_TRACE_INFO("Create connection fail due to channel is not compatible\n");
           l2cu_release_ccb(p_ccb);
           (*p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb)(local_cid,
                                                    L2CAP_CONN_NO_LINK);
