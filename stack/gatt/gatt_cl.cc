@@ -31,6 +31,7 @@
 #include "l2c_int.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 
 #define GATT_WRITE_LONG_HDR_SIZE 5 /* 1 opcode + 2 handle + 2 offset */
 #define GATT_READ_CHAR_VALUE_HDL (GATT_READ_CHAR_VALUE | 0x80)
@@ -669,6 +670,17 @@ void gatt_process_notification(tGATT_TCB& tcb, uint8_t op_code, uint16_t len,
   }
 
   encrypt_status = gatt_get_link_encrypt_status(tcb);
+  char cert_flag[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get("vendor.bt.pts.certification", cert_flag, "false");
+  if(strcmp(cert_flag, "true") == 0) {
+    if(encrypt_status == GATT_ENCRYPED_NO_MITM || encrypt_status == GATT_ENCRYPED_MITM)
+      PTS_TRACE_INFO("Receive GATT handle 0x%04x value %s\n", value.handle,
+                  (event == GATTC_OPTYPE_INDICATION)?"indication":"notification");
+  } else {
+    PTS_TRACE_INFO("Receive GATT handle 0x%04x value %s\n", value.handle,
+                  (event == GATTC_OPTYPE_INDICATION)?"indication":"notification");
+  }
+
   tGATT_CL_COMPLETE gatt_cl_complete;
   gatt_cl_complete.att_value = value;
   for (i = 0, p_reg = gatt_cb.cl_rcb; i < GATT_MAX_APPS; i++, p_reg++) {
@@ -845,11 +857,19 @@ void gatt_process_read_by_type_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
       }
 
       /* UUID not matching */
-      if (!p_clcb->uuid.IsEmpty() &&
+      /*Please send all characteristics of service UUID= '180A'O,  Service start handle = '0060'O, end handle = '0079'O
+      For this case, they are not equal(p_clcb->uuid is service UUID, other is characteristic UUID of the service)
+
+      Please send discover characteristics by UUID. Range start from handle = '0060'O end handle = '0086'O characteristics UUID = 0x2A19'O.
+      For this case, they are equal
+
+      So For two cases, should remove these lines
+      */
+      if (!trace_pts_info && !p_clcb->uuid.IsEmpty() &&
           !record_value.dclr_value.char_uuid.IsEmpty() &&
           record_value.dclr_value.char_uuid != p_clcb->uuid) {
         len -= (value_len + 2);
-        continue; /* skip the result, and look for next one */
+        continue; // skip the result, and look for next one
       }
 
       if (p_clcb->operation == GATTC_OPTYPE_READ)

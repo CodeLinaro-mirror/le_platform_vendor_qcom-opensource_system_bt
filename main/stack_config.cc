@@ -42,8 +42,11 @@ const char* PTS_LE_DISABLE_ENCRYP = "PTS_LeDisableEncryp";
 const char* PTS_SMP_DISABLE_H7_SUPPORT = "PTS_DisableH7Support";
 const char* PTS_L2CAP_LE_INSUFF_ENCRYP = "PTS_L2capLeInsuffEnc";
 const char* PTS_BREDR_INVALID_ENCRYPTION_KEYSIZE = "PTS_BredrInvalidEncryKeysize";
+const char* PTS_TRACE_INFO_ENABLE = "PTS_TraceInfoEnable";
+const char* PTS_DISABLE_AUTH_CHECK = "PTS_DisableAuthCheck";
 
 static config_t* config;
+bool trace_pts_info = false; // use for certification test
 
 // Module lifecycle functions
 
@@ -169,6 +172,16 @@ static int get_pts_bredr_invalid_encryption_keysize(void) {
                         PTS_BREDR_INVALID_ENCRYPTION_KEYSIZE, 0);
 }
 
+static bool get_pts_trace_info_enable(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_TRACE_INFO_ENABLE, false);
+}
+
+static bool get_pts_disable_auth_check(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_DISABLE_AUTH_CHECK, false);
+}
+
 static config_t* get_all(void) { return config; }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -188,6 +201,8 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_smp_disable_h7_support,
                                   get_pts_l2cap_le_insuff_enc_result,
                                   get_pts_bredr_invalid_encryption_keysize,
+                                  get_pts_trace_info_enable,
+                                  get_pts_disable_auth_check,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }

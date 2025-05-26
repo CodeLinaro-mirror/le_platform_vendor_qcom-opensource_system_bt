@@ -1037,6 +1037,7 @@ uint16_t AVRC_Open(uint8_t* p_handle, tAVRC_CONN_CB* p_ccb,
   }
   BTIF_TRACE_IMP("%s role: %d, control:%d status:%d, handle:%d", __func__,
                    cc.role, cc.control, status, *p_handle);
+  PTS_TRACE_INFO("AVCTP Event reigster result:%d\n",status);
 
   return status;
 }

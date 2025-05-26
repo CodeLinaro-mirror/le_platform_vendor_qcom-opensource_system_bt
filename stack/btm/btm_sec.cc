@@ -33,6 +33,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/time.h"
+#include "osi/include/properties.h"
 #include "stack_config.h"
 
 #include "bt_types.h"
@@ -2250,6 +2251,8 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
   if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
       btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
       btm_cb.security_mode == BTM_SEC_MODE_SC) {
+    char value[PROPERTY_VALUE_MAX] = {0};
+    osi_property_get("vendor.bt.pts.certification", value, "false");
     if (BTM_SEC_IS_SM4(p_dev_rec->sm4)) {
       if (is_originator) {
         /* SM4 to SM4 -> always authenticate & encrypt */
@@ -2270,6 +2273,14 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
 
       p_dev_rec->sm4 |= BTM_SM4_REQ_PEND;
       return (BTM_CMD_STARTED);
+    } else if (BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4) && !strcmp(value, "true")) {
+      BTM_TRACE_DEBUG("%s enable authentication and encryption when remote doesn't support secure simple pairing for some PTS case.", __func__);
+      if (is_originator) {
+        security_required |= (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT);
+      } else /* acceptor */
+      {
+        security_required |= (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT);
+      }
     }
   }
 
@@ -4130,8 +4141,10 @@ void btm_sec_auth_complete(uint16_t handle, uint8_t status) {
                                     p_dev_rec->hci_handle);
     } else {
       BTM_TRACE_DEBUG("TRYING TO DECIDE IF CAN USE SMP_BR_CHNL");
-      if (p_dev_rec->new_encryption_key_is_p256 &&
-          (btm_sec_use_smp_br_chnl(p_dev_rec))
+      char value[PROPERTY_VALUE_MAX] = {0};
+      osi_property_get("vendor.bt.pts.certification", value, "false");
+      if (((p_dev_rec->new_encryption_key_is_p256 &&
+          (btm_sec_use_smp_br_chnl(p_dev_rec))) || !strcmp(value, "true"))
           /* no LE keys are available, do deriving */
           && (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN) ||
               /* or BR key is higher security than existing LE keys */

@@ -605,6 +605,7 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   uint8_t* p_pkt_end;
   uint8_t cmd_code, id;
   uint16_t cmd_len;
+  uint16_t reason;
   uint16_t min_interval, max_interval, latency, timeout;
   tL2C_CONN_INFO con_info;
   uint16_t lcid = 0, rcid = 0, mtu = 0, mps = 0, initial_credit = 0;
@@ -622,12 +623,15 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     L2CAP_TRACE_WARNING(
         "L2CAP - LE - format error, pkt_len: %d  cmd_len: %d  code: %d",
         pkt_len, cmd_len, cmd_code);
+    PTS_TRACE_INFO("Not processed PDU due to format error, pkt_len: %d  cmd_len: %d  code: %d",
+        pkt_len, cmd_len, cmd_code);
     return;
   }
 
   switch (cmd_code) {
     case L2CAP_CMD_REJECT:
-      p += 2;
+      STREAM_TO_UINT16(reason, p);
+      PTS_TRACE_INFO("l2cap received the reject command, reason code:%d.\n",reason);
       break;
 
     case L2CAP_CMD_ECHO_REQ:
@@ -692,6 +696,13 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       STREAM_TO_UINT16(mps, p);
       STREAM_TO_UINT16(initial_credit, p);
 
+      /*L2CAP/COS/CED/BI-16-C requires rejecting packets of illegal length*/
+      if(p != p_pkt_end) {
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
+        PTS_TRACE_INFO("Received a command with an illegal length and discarded it.\n");
+        break;
+      }
+
       L2CAP_TRACE_DEBUG(
           "Recv L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ with "
           "mtu = %d, "
@@ -705,6 +716,12 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
                             rcid);
         l2cu_reject_ble_connection(p_lcb, id,
                                    L2CAP_LE_SOURCE_CID_ALREADY_ALLOCATED);
+        break;
+      }
+
+      if (l2cb.cert_failure) { // incase some pts test case send connection req with unknown psm.
+        L2CAP_TRACE_ERROR("%s PTS FAILURE MODE IN EFFECT (CASE %d) ", __func__, l2cb.cert_failure);
+        l2cu_reject_ble_connection(p_lcb, id, l2cb.cert_failure);
         break;
       }
 
@@ -791,6 +808,13 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
             p_ccb->peer_conn_cfg.mps < L2CAP_LE_MIN_MPS ||
             p_ccb->peer_conn_cfg.mps > L2CAP_LE_MAX_MPS) {
           L2CAP_TRACE_ERROR("L2CAP don't like the params");
+          PTS_TRACE_INFO(
+              "l2cap connect fail due to params, peer mtu:%d, "
+              "peer mps:%d, "
+              "remote_cid = %d, "
+              "result code:%d\n",
+              p_ccb->peer_conn_cfg.mtu, p_ccb->peer_conn_cfg.mps,
+              con_info.remote_cid, con_info.l2cap_result);
           con_info.l2cap_result = L2CAP_LE_NO_RESOURCES;
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_NEG, &con_info);
           break;
@@ -804,8 +828,10 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
         if (con_info.l2cap_result == L2CAP_LE_CONN_OK)
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP, &con_info);
-        else
+        else {
+          PTS_TRACE_INFO("l2cap connect fail, remote_cid = %d, result code:%d\n", con_info.remote_cid, con_info.l2cap_result);
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_NEG, &con_info);
+        }
       } else {
         L2CAP_TRACE_DEBUG("I DO NOT remember the connection req");
         con_info.l2cap_result = L2CAP_LE_INVALID_SOURCE_CID;
@@ -819,6 +845,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       if (p_ccb == NULL) {
         L2CAP_TRACE_DEBUG("%s Credit received for unknown channel id %d",
                           __func__, lcid);
+        // required for L2CAP/LE/REJ/BI-02-C
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
         break;
       }
 
@@ -830,6 +858,11 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     case L2CAP_CMD_DISC_REQ:
       STREAM_TO_UINT16(lcid, p);
       STREAM_TO_UINT16(rcid, p);
+
+      // required for L2CAP/COS/CED/BI-11-C
+      if(p != p_pkt_end) {
+        PTS_TRACE_INFO("Receive a incorrect length L2CAP_DISCONNECTION_REQ PDU\n");
+      }
 
       p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
       if (p_ccb != NULL) {

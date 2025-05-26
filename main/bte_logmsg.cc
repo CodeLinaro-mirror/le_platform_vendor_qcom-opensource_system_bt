@@ -287,6 +287,14 @@ static void load_levels_from_config(const config_t* config) {
   }
 }
 
+static void load_certification_trace_from_config(void) {
+  // enable or disable PTS certification log
+  if (stack_config_get_interface()->get_pts_trace_info_enable()) {
+    extern bool trace_pts_info;
+    trace_pts_info = true;
+  }
+}
+
 static future_t* init(void) {
   const stack_config_t* stack_config = stack_config_get_interface();
   if (!stack_config->get_trace_config_enabled()) {
@@ -297,6 +305,8 @@ static future_t* init(void) {
   init_cpp_logging(stack_config->get_all());
 
   load_levels_from_config(stack_config->get_all());
+
+  load_certification_trace_from_config();
   return NULL;
 }
 

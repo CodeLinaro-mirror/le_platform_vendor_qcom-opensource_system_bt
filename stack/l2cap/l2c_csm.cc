@@ -227,6 +227,7 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
       if (!p_ccb->p_lcb->w4_info_rsp) {
         /* Need to have at least one compatible channel to continue */
         if (!l2c_fcr_chk_chan_modes(p_ccb)) {
+          PTS_TRACE_INFO("Create connection fail due to channel is not compatible\n");
           l2cu_release_ccb(p_ccb);
           (*p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb)(local_cid,
                                                    L2CAP_CONN_NO_LINK);
@@ -413,7 +414,7 @@ static void l2c_csm_orig_w4_sec_comp(tL2C_CCB* p_ccb, uint16_t event,
       L2CAP_TRACE_API(
           "L2CAP - Calling ConnectCfm_Cb(), CID: 0x%04x  Status: %d",
           p_ccb->local_cid, HCI_ERR_AUTH_FAILURE);
-
+      PTS_TRACE_INFO("Channel establishment failed due to authentication failure.\n");
       /* If last channel immediately disconnect the ACL for better security.
          Also prevents a race condition between BTM and L2CAP */
       if ((p_ccb == p_ccb->p_lcb->ccb_queue.p_first_ccb) &&
@@ -685,6 +686,7 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, uint16_t event,
     case L2CEVT_L2CAP_INFO_RSP:
       /* Need to have at least one compatible channel to continue */
       if (!l2c_fcr_chk_chan_modes(p_ccb)) {
+        PTS_TRACE_INFO("Create connection fail due to channel is not compatible\n");
         l2cu_release_ccb(p_ccb);
         if (connect_cfm) {
           (*connect_cfm)(local_cid, L2CAP_CONN_NO_LINK);

@@ -973,6 +973,14 @@ extern uint8_t audio_latency_trace_level;
     LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL |   \
             TRACE_TYPE_DEBUG, ##__VA_ARGS__);                         \
 }
+
+/* Define tracing for the certification test */
+#define PTS_TRACE_INFO(fmt, ...)                                      \
+{                                                                     \
+    if (trace_pts_info)                                               \
+      printf(fmt, ##__VA_ARGS__);                                     \
+}
+
 typedef uint8_t tBTTRC_LAYER_ID;
 typedef uint8_t(tBTTRC_SET_TRACE_LEVEL)(uint8_t);
 
@@ -987,6 +995,7 @@ typedef struct {
 /* External declaration for appl_trace_level here to avoid to add the
  * declaration in all the files using APPL_TRACExxx macros */
 extern uint8_t appl_trace_level;
+extern bool trace_pts_info;
 
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...);
 void vnd_LogMsg (uint32_t trace_set_mask, const char *fmt_str, ...);

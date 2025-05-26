@@ -331,6 +331,9 @@ typedef struct {
   uint16_t attr_index;  /* cahce NV saving/loading attribute index */
 
   uint16_t mtu;
+#ifdef SUPPORT_ESL_AP
+  uint8_t include_service_data[255];
+#endif
 } tBTA_GATTC_SERV;
 
 #ifndef BTA_GATTC_NOTIF_REG_MAX

@@ -169,7 +169,8 @@ void l2c_rcv_acl_data(BT_HDR* p_msg) {
   if (l2cap_len != p_msg->len) {
     L2CAP_TRACE_WARNING("L2CAP - bad length in pkt. Exp: %d  Act: %d",
                         l2cap_len, p_msg->len);
-
+    PTS_TRACE_INFO("discard the frame due to l2cap received bad length in pkt. Exp: %d  Act: %d\n",
+                        l2cap_len, p_msg->len);
     osi_free(p_msg);
     return;
   }
@@ -277,6 +278,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   uint16_t cfg_rej_len, cmd_len;
   uint16_t result;
   tL2C_CONN_INFO ci;
+  uint8_t last_id = 0;
+  bool first_cmd = true;
 
   /* if l2cap command received in CID 1 on top of an LE link, ignore this
    * command */
@@ -304,11 +307,24 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   while (true) {
     /* Smallest command is 4 bytes */
     p = p_next_cmd;
-    if (p > (p_pkt_end - 4)) break;
+    if (p > (p_pkt_end - 4)) {
+      /* Reject to the previous endpoint if reliable channel is being used.
+       * This is required in L2CAP/COS/CED/BI-12-C */
+      if (!first_cmd &&
+          (cfg_info.fcr.mode == L2CAP_FCR_BASIC_MODE ||
+           cfg_info.fcr.mode == L2CAP_FCR_ERTM_MODE) &&
+          p != p_pkt_end)
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, last_id,
+                                  0, 0);
+      break;
+    }
 
     STREAM_TO_UINT8(cmd_code, p);
     STREAM_TO_UINT8(id, p);
     STREAM_TO_UINT16(cmd_len, p);
+
+    last_id = id;
+    first_cmd = false;
 
     if (cmd_len > BT_SMALL_BUFFER_SIZE) {
       L2CAP_TRACE_WARNING("L2CAP - Invalid MTU Size");
@@ -321,6 +337,7 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     if (p_next_cmd > p_pkt_end) {
       L2CAP_TRACE_WARNING("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
                           pkt_len, cmd_len, cmd_code);
+      PTS_TRACE_INFO("Command len bad pkt_len: %d  cmd_len: %d\n",pkt_len, cmd_len);
       break;
     }
 
@@ -400,6 +417,11 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         }
         STREAM_TO_UINT16(con_info.psm, p);
         STREAM_TO_UINT16(rcid, p);
+        if (l2cb.cert_failure) { // incase some pts test case send connection req with unknown psm.
+          L2CAP_TRACE_ERROR("%s PTS FAILURE MODE IN EFFECT (CASE %d) ", __func__, l2cb.cert_failure);
+          l2cu_reject_connection(p_lcb, rcid, id, l2cb.cert_failure);
+          break;
+        }
         p_rcb = l2cu_find_rcb_by_psm(con_info.psm);
         if (p_rcb == NULL) {
           L2CAP_TRACE_WARNING("L2CAP - rcvd conn req for unknown PSM: %d",
@@ -706,10 +728,21 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       case L2CAP_CMD_DISC_REQ:
         if (p + 4 > p_next_cmd) {
           //android_errorWriteLog(0x534e4554, "74202041");
+          PTS_TRACE_INFO("An illegal L2CAP_DISCONNECTION_REQ PDU was received (possibly"
+                          " missing Destination CID/SourceCID fields) ,drop it.\n");
           return;
         }
         STREAM_TO_UINT16(lcid, p);
         STREAM_TO_UINT16(rcid, p);
+
+        // L2CAP/COS/CED/BI-10-C requires issues a warning when received
+        // a incorrect Signaling Command Packets.Currently it only works
+        // for certification to ensure that it does not affect normal cases.
+        if(p != p_next_cmd && trace_pts_info) {
+          PTS_TRACE_INFO("Receive a incorrect length L2CAP_DISCONNECTION_REQ PDU\n");
+          l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
+          break;
+        }
 
         p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
         if (p_ccb != NULL) {

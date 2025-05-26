@@ -833,14 +833,18 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
   tBTA_GATTC_SERV* p_srvc_cb = NULL;
   bool pri_srvc;
   tBTA_GATTC_CLCB* p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
-#ifdef SUPPORT_ESL_AP
-  static uint8_t include_service_data[255];
-#endif
 
   p_srvc_cb = bta_gattc_find_scb_by_cid(conn_id);
 
   if (p_srvc_cb != NULL && p_clcb != NULL &&
       p_clcb->state == BTA_GATTC_DISCOVER_ST) {
+#ifdef SUPPORT_ESL_AP
+        if(p_data->handle == ((((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.e_handle))) {
+          bta_gattc_add_attr_to_cache(
+            p_srvc_cb, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->handle, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.service_type,
+            false, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.s_handle,BTA_GATTC_ATTR_TYPE_INCL_SRVC);
+        }
+#endif
     switch (disc_type) {
       case GATT_DISC_SRVC_ALL:
         /* discover services result, add services into a service list */
@@ -881,7 +885,7 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
               p_srvc_cb, p_data->value.incl_service.s_handle,
               p_data->value.incl_service.e_handle,
               p_data->value.incl_service.service_type, false);
-              memcpy(include_service_data, p_data, 255);
+              memcpy(p_srvc_cb->include_service_data, p_data, 255);
         }
 #endif
         break;
@@ -892,13 +896,6 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                                    p_data->value.dclr_value.val_handle,
                                    p_data->value.dclr_value.char_uuid,
                                    p_data->value.dclr_value.char_prop);
-#ifdef SUPPORT_ESL_AP
-        if(p_data->handle == ((((tGATT_DISC_RES*)include_service_data)->value.incl_service.e_handle) - 2)) {
-          bta_gattc_add_attr_to_cache(
-            p_srvc_cb, ((tGATT_DISC_RES*)include_service_data)->handle, ((tGATT_DISC_RES*)include_service_data)->value.incl_service.service_type,
-            false, ((tGATT_DISC_RES*)include_service_data)->value.incl_service.s_handle,BTA_GATTC_ATTR_TYPE_INCL_SRVC);
-        }
-#endif
         break;
 
       case GATT_DISC_CHAR_DSCPT:
