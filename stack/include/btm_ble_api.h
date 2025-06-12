@@ -418,11 +418,11 @@ extern bool BTM_BleStartAutoConnV2();
 
 /*******************************************************************************
  *
- * Function         BTM_BleUpdatePdConnDev
+ * Function         BTM_BleUpdateFcConnDev
  *
  * Description      This function is called to add or remove a device into/from
- *                  pending list connection procedure. The pending list connection
-*                   procedure is decided by the pending list connection type, it
+ *                  fast device connection procedure. The fast device connection
+*                   procedure is decided by the fast device connection type, it
 *can be
 *                   auto connection, or selective connection.
  *
@@ -432,22 +432,22 @@ extern bool BTM_BleStartAutoConnV2();
  * Returns          void
  *
  ******************************************************************************/
-extern bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent);
+extern bool BTM_BleUpdateFcConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent);
 
 /*******************************************************************************
  *
- * Function         BTM_BleClearPdConnDev
+ * Function         BTM_BleClearFcConnDev
  *
- * Description      This function is called to clear the pendinglist,
- *                  end any pending pendinglist connections,
- *                  and reset the local pd device list.
+ * Description      This function is called to clear the fastdevice,
+ *                  end any pending fast connections,
+ *                  and reset the local fc device list.
  *
  * Parameters       void
  *
  * Returns          void
  *
  ******************************************************************************/
-extern void BTM_BleClearPdConnDev(uint8_t advertising_handle);
+extern void BTM_BleClearFcConnDev(uint8_t advertising_handle);
 
 extern bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda);
 #endif

@@ -150,7 +150,7 @@ extern bool btm_execute_wl_dev_operation(void);
 extern void btm_ble_update_link_topology_mask(uint8_t role, bool increase);
 extern void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr);
 #ifdef SUPPORT_ESL_AP
-extern bool check_device_in_pending_list(const RawAddress& address);
+extern bool check_device_in_fast_dev(const RawAddress& address);
 extern bool check_device_in_white_list(const RawAddress& address);
 extern void btm_send_hci_create_connection_v2(
     uint16_t scan_int, uint16_t scan_win, uint8_t advertising_handle,
@@ -159,15 +159,15 @@ extern void btm_send_hci_create_connection_v2(
     uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
     int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys);
 extern bool btm_ble_start_auto_conn_v2(bool start);
-extern bool btm_ble_suspend_pl_conn(void);
-extern bool btm_ble_resume_pl_conn(void);
-extern bool btm_update_dev_to_pending_list(bool to_add, const RawAddress& bd_addr,
+extern bool btm_ble_suspend_fc_conn(void);
+extern bool btm_ble_resume_fc_conn(void);
+extern bool btm_update_dev_to_fast_dev(bool to_add, const RawAddress& bd_addr,
                                            uint8_t advertising_handle, uint8_t subevent);
-extern void btm_ble_clear_pending_list(uint8_t advertising_handle);
-extern void btm_ble_add_2_pending_list_complete(uint8_t status);
-extern void btm_ble_remove_from_pending_list_complete(uint8_t* p, uint16_t evt_len);
-extern void btm_ble_clear_pending_list_complete(uint8_t* p, uint16_t evt_len);
-extern void btm_ble_pending_list_init(uint8_t white_list_size);
+extern void btm_ble_clear_fast_dev(uint8_t advertising_handle);
+extern void btm_ble_add_2_fast_dev_complete(uint8_t status);
+extern void btm_ble_remove_from_fast_dev_complete(uint8_t* p, uint16_t evt_len);
+extern void btm_ble_clear_fast_dev_complete(uint8_t* p, uint16_t evt_len);
+extern void btm_ble_fast_dev_init(uint8_t white_list_size);
 extern bool btm_update_dev_to_bg_list(bool to_add,
                                          const RawAddress& bd_addr);
 #endif
