@@ -1053,7 +1053,7 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
 
   tGATT_BG_CONN_DEV* p_bg_dev = gatt_find_bg_dev(p_tcb->peer_bda);
 #ifdef SUPPORT_ESL_AP
-  tGATT_PD_CONN_DEV* p_pd_dev = gatt_find_pd_dev(p_tcb->peer_bda);
+  tGATT_FC_CONN_DEV* p_fc_dev = gatt_find_fc_dev(p_tcb->peer_bda);
 #endif
 
   /* notifying all applications for the connection up event */
@@ -1063,7 +1063,7 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
         gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, true);
 
 #ifdef SUPPORT_ESL_AP
-      if (p_pd_dev && gatt_is_pd_dev_for_app(p_pd_dev, p_reg->gatt_if))
+      if (p_fc_dev && gatt_is_fc_dev_for_app(p_fc_dev, p_reg->gatt_if))
         gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, true);
 #endif
 

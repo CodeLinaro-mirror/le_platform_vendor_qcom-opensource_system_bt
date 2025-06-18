@@ -585,7 +585,7 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
       // Only remove LE device
       if (!BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_LE) &&
           !BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR) && // dumo device may create BR/EDR acl connection
-          !check_device_in_pending_list(p_dev_rec->bd_addr) &&
+          !check_device_in_fast_dev(p_dev_rec->bd_addr) &&
           !check_device_in_white_list(p_dev_rec->bd_addr)) {
           // device which has finished connection
           if ((p_dev_rec->sec_flags &

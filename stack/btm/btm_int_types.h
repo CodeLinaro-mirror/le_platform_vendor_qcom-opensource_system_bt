@@ -484,9 +484,9 @@ typedef struct {
   RawAddress cur_rand_addr; /* current random address */
 
 #ifdef SUPPORT_ESL_AP
-#define BTM_PENDING_LIST_BIT 0x01
-  uint8_t in_controller_pd_list; /* in controller pending list or not */
-  uint8_t pending_list_index;
+#define BTM_FAST_DEV_BIT 0x01
+  uint8_t in_controller_fast_dev; /* in controller fast device or not */
+  uint8_t fast_device_index;
 #endif
 
 #define BTM_BLE_ADDR_PSEUDO 0 /* address index device record */
