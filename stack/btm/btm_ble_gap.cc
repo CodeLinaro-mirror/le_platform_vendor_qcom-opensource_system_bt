@@ -800,7 +800,7 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
 }
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /**
  * Set BLE connectable mode to auto connect
  */
@@ -2921,7 +2921,7 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
   return rt;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void BTM_GetScanStatus(bool *running, uint8_t *scan_type) {
 
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {

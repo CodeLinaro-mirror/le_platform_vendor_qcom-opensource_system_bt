@@ -49,7 +49,7 @@
 #endif
 
 using bluetooth::Uuid;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern uint8_t vendor_gattc_if;
 #endif
 
@@ -241,7 +241,7 @@ void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
       }
     }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* remove fc connection associated with this rcb */
     for (i = 0; i < BTA_GATTC_KNOWN_FC_SR_MAX; i++) {
       if (bta_gattc_cb.fc_track[i].in_use) {
@@ -314,7 +314,7 @@ void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg) {
                      p_msg->api_conn.client_if);
   }
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_process_api_open_v2
@@ -573,7 +573,7 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
     /* else wait for the callback event */
   }
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_open_v2
@@ -685,7 +685,7 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
   }
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_init_fc_conn
@@ -830,7 +830,7 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
 
   if (p_clcb->p_srcb->mtu == 0) p_clcb->p_srcb->mtu = GATT_DEF_BLE_MTU_SIZE;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 if (gatt_if != vendor_gattc_if)
   {
     /* start database cache if needed */
@@ -1150,7 +1150,7 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
 void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
                          UNUSED_ATTR tBTA_GATTC_DATA* p_data) {
   tBTA_GATTC_DATA* p_q_cmd = p_clcb->p_q_cmd;
-  #ifdef SUPPORT_ESL_AP
+  #ifdef SUPPORT_VENDOR_AP
   tBTA_GATTC_IF gatt_if;
   tBTA_TRANSPORT transport;
   #endif
@@ -1198,7 +1198,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
      */
     if (p_q_cmd != p_clcb->p_q_cmd) osi_free_and_reset((void**)&p_q_cmd);
   }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   GATT_GetConnectionInfor(p_clcb->bta_conn_id, &gatt_if, p_clcb->bda,
                             &transport);
   if ((gatt_if == vendor_gattc_if) && p_clcb->p_rcb->p_cback && p_clcb->p_srcb) {

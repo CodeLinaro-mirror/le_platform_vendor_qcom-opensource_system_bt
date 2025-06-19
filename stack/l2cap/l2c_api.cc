@@ -393,7 +393,7 @@ uint16_t L2CA_ErtmConnectReq(uint16_t psm, const RawAddress& p_bd_addr,
   return (p_ccb->local_cid);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         L2CA_ConnectReq_v2
@@ -2068,7 +2068,7 @@ bool L2CA_RemoveFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda) {
   return (true);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  *  Function        L2CA_ConnectFixedChnl_v2

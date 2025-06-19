@@ -40,12 +40,12 @@
  ****************************************************************************/
 enum {
   BTA_GATTC_API_OPEN_EVT = BTA_SYS_EVT_START(BTA_ID_GATTC),
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_API_OPEN_EVT_V2,
 #endif
   BTA_GATTC_INT_OPEN_FAIL_EVT,
   BTA_GATTC_API_CANCEL_OPEN_EVT,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_API_CANCEL_OPEN_EVT_v2,
 #endif
   BTA_GATTC_INT_CANCEL_OPEN_OK_EVT,
@@ -66,7 +66,7 @@ enum {
   BTA_GATTC_DISCOVER_CMPL_EVT,
   BTA_GATTC_OP_CMPL_EVT,
   BTA_GATTC_INT_DISCONN_EVT,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_ADD_FC_DEV,
   BTA_GATTC_RM_FC_DEV,
   BTA_GATTC_CL_FC_DEV,
@@ -83,7 +83,7 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 #define BTA_GATTC_CL_MAX 32
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /* max known devices GATTC can support */
 #ifndef BTA_GATTC_KNOWN_SR_MAX
 #define BTA_GATTC_KNOWN_SR_MAX 128
@@ -98,7 +98,7 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 
 /* max known devices for fast connection can support
    as fast device max number is 128*/
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   #ifndef BTA_GATTC_KNOWN_FC_SR_MAX
   #define BTA_GATTC_KNOWN_FC_SR_MAX 128
   #endif
@@ -123,7 +123,7 @@ typedef struct {
   bool opportunistic;
 } tBTA_GATTC_API_OPEN;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   BT_HDR hdr;
   RawAddress remote_bda;
@@ -255,7 +255,7 @@ typedef struct {
 typedef union {
   BT_HDR hdr;
   tBTA_GATTC_API_OPEN api_conn;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tBTA_GATTC_API_OPEN_V2 api_conn_v2;
   tBTA_GATTC_API_ADD_FC api_add_fc;
   tBTA_GATTC_API_RM_FC api_rm_fc;
@@ -331,7 +331,7 @@ typedef struct {
   uint16_t attr_index;  /* cahce NV saving/loading attribute index */
 
   uint16_t mtu;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   uint8_t include_service_data[255];
 #endif
 } tBTA_GATTC_SERV;
@@ -395,7 +395,7 @@ typedef struct {
 
 } tBTA_GATTC_BG_TCK;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   bool in_use;
   RawAddress remote_bda;
@@ -425,7 +425,7 @@ typedef struct {
 
   tBTA_GATTC_CLCB clcb[BTA_GATTC_CLCB_MAX];
   tBTA_GATTC_SERV known_server[BTA_GATTC_KNOWN_SR_MAX];
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tBTA_GATTC_FC_TCK fc_track[BTA_GATTC_KNOWN_FC_SR_MAX];
 #endif
 } tBTA_GATTC_CB;
@@ -508,7 +508,7 @@ extern void bta_gattc_process_api_refresh(const RawAddress& remote_bda);
 extern void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_listen(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_broadcast(tBTA_GATTC_DATA* p_msg);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_process_add_fc_dev(tBTA_GATTC_DATA* p_msg);

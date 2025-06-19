@@ -40,7 +40,7 @@
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 #include "stack/btm/btm_int.h"
 #endif
 
@@ -149,7 +149,7 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
   bta_sys_sendmsg(p_buf);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 
 void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
                     bool is_direct, tBTA_GATT_TRANSPORT transport,

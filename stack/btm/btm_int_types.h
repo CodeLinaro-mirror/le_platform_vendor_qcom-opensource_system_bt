@@ -193,7 +193,7 @@ typedef struct {
                                                 HCI event is received successfully */
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tBTM_RAW_STATUS_CB *p_hci_status_cb;
 #endif
 
@@ -483,7 +483,7 @@ typedef struct {
 #if (BLE_PRIVACY_SPT == TRUE)
   RawAddress cur_rand_addr; /* current random address */
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 #define BTM_FAST_DEV_BIT 0x01
   uint8_t in_controller_fast_dev; /* in controller fast device or not */
   uint8_t fast_device_index;
@@ -923,6 +923,6 @@ typedef uint8_t tBTM_SEC_ACTION;
 extern void btm_hci_event(uint8_t *p, uint8_t event_code, uint8_t param_len);
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void btm_hci_status(uint16_t opcode, uint8_t status);
 #endif

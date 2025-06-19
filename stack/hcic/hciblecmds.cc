@@ -834,7 +834,7 @@ void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
 
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btsnd_hcic_ble_ext_create_conn_v2(uint8_t advertising_handle,
                                       uint8_t subevent,
                                       uint8_t init_filter_policy,

@@ -838,7 +838,7 @@ void BTA_DmSetBlePrefConnParams(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void BTA_DmSetBleConnScanParams(uint32_t scan_interval, uint32_t scan_window) {
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
   tBTA_DM_API_BLE_SCAN_PARAMS* p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS*)osi_calloc(
       sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
 

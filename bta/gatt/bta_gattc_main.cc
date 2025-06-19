@@ -39,7 +39,7 @@
 /* state machine action enumeration list */
 enum {
   BTA_GATTC_OPEN,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_OPEN_V2,
 #endif
   BTA_GATTC_OPEN_FAIL,
@@ -76,7 +76,7 @@ typedef void (*tBTA_GATTC_ACTION)(tBTA_GATTC_CLCB* p_clcb,
 
 /* action function list */
 const tBTA_GATTC_ACTION bta_gattc_action[] = {bta_gattc_open,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
                                               bta_gattc_open_v2,
 #endif
                                               bta_gattc_open_fail,
@@ -115,7 +115,7 @@ static const uint8_t bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1                  Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
                                             BTA_GATTC_W4_CONN_ST},
 #endif
@@ -123,7 +123,7 @@ static const uint8_t bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] = {
                                             BTA_GATTC_IDLE_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_IDLE_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_IDLE_ST},
 #endif
@@ -159,7 +159,7 @@ static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
                                             BTA_GATTC_W4_CONN_ST},
 #endif
@@ -167,7 +167,7 @@ static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] = {
                                             BTA_GATTC_IDLE_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
 #endif
@@ -209,14 +209,14 @@ static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] = {
 static const uint8_t bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN, BTA_GATTC_CONN_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2, BTA_GATTC_CONN_ST},
 #endif
     /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_CONN_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_CONN_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_CONN_ST},
 #endif
@@ -256,7 +256,7 @@ static const uint8_t bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_DISCOVER_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
                                             BTA_GATTC_DISCOVER_ST},
 #endif
@@ -264,7 +264,7 @@ static const uint8_t bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] = {
                                             BTA_GATTC_DISCOVER_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_DISCOVER_ST},
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_DISCOVER_ST},
 #endif
@@ -404,7 +404,7 @@ bool bta_gattc_hdl_event(BT_HDR* p_msg) {
       bta_gattc_process_api_open((tBTA_GATTC_DATA*)p_msg);
       break;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     case BTA_GATTC_API_OPEN_EVT_V2:
       bta_gattc_process_api_open_v2((tBTA_GATTC_DATA*)p_msg);
       break;
@@ -471,7 +471,7 @@ static const char* gattc_evt_code(tBTA_GATTC_INT_EVT evt_code) {
   switch (evt_code) {
     case BTA_GATTC_API_OPEN_EVT:
       return "BTA_GATTC_API_OPEN_EVT";
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     case BTA_GATTC_API_OPEN_EVT_V2:
       return "BTA_GATTC_API_OPEN_EVT_V2";
     case BTA_GATTC_ADD_PD_LIST:

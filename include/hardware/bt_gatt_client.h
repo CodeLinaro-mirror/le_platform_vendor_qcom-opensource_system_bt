@@ -306,7 +306,7 @@ typedef struct {
 
   /** Get gatt db content */
   bt_status_t (*get_gatt_db)(int conn_id);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   /** Create a fast connection to a remote LE or dual-mode device */
   bt_status_t (*connect_v2)(int client_if, uint8_t advertising_handle, uint8_t subevent,
                          const RawAddress& bd_addr, bool is_direct, int transport,

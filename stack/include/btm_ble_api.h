@@ -410,7 +410,7 @@ extern void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key);
  */
 extern void BTM_BleStartAutoConn();
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /**
  * Set BLE connectable mode to auto connect
  */

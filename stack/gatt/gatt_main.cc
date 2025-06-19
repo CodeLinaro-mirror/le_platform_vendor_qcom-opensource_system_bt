@@ -220,7 +220,7 @@ bool gatt_connect(const RawAddress& rem_bda, tGATT_TCB* p_tcb,
 
   return gatt_ret;
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         gatt_connect_v2
@@ -469,7 +469,7 @@ bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
   return ret;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         gatt_act_connect_v2
@@ -1052,7 +1052,7 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   uint16_t conn_id;
 
   tGATT_BG_CONN_DEV* p_bg_dev = gatt_find_bg_dev(p_tcb->peer_bda);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tGATT_FC_CONN_DEV* p_fc_dev = gatt_find_fc_dev(p_tcb->peer_bda);
 #endif
 
@@ -1062,7 +1062,7 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
       if (p_bg_dev && gatt_is_bg_dev_for_app(p_bg_dev, p_reg->gatt_if))
         gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, true);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
       if (p_fc_dev && gatt_is_fc_dev_for_app(p_fc_dev, p_reg->gatt_if))
         gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, true);
 #endif

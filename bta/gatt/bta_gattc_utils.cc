@@ -349,7 +349,7 @@ bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB* p_clreg,
   uint8_t i;
 
   for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
     if (p_clreg->notif_reg[i].in_use &&
         p_clreg->notif_reg[i].remote_bda == p_srcb->server_bda &&
         p_clreg->notif_reg[i].handle == p_notify->handle) {
@@ -520,7 +520,7 @@ bool bta_gattc_check_bg_conn(tBTA_GATTC_IF client_if,
   return is_bg_conn;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_mark_fc_conn
@@ -755,7 +755,7 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA* p_msg) {
                                     p_msg->int_conn.remote_bda,
                                     p_msg->int_conn.transport);
     }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* for a fast connection or listening connection */
     if (/*p_msg->int_conn.role == HCI_ROLE_SLAVE ||  */
         bta_gattc_check_fc_conn(p_msg->int_conn.client_if,
@@ -797,7 +797,7 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg) {
   if (p_clcb == NULL) {
     APPL_TRACE_DEBUG(" disconnection ID: [%d] not used by BTA",
                      p_msg->int_conn.hdr.layer_specific);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     /* remove from fast connection as connected but not established mean while to mark fast connection device false*/
     bta_gattc_process_rm_fc_dev(p_msg);
 #endif

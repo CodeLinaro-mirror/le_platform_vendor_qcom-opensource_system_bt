@@ -1452,7 +1452,7 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
   btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_PENC,
                       (tBTM_LE_KEY_VALUE*)&ple_key, true);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   // send ltk to uplayer.
   tSMP_CALLBACK* p_callback = p_cb->p_callback;
   tSMP_EVT_DATA cb_data;

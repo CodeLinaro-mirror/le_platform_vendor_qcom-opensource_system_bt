@@ -1492,7 +1492,7 @@ bool gatt_update_auto_connect_dev(tGATT_IF gatt_if, bool add,
   return ret;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /** Returns true if this is one of the background devices for the application,
  * false otherwise */
 bool gatt_is_fc_dev_for_app(tGATT_FC_CONN_DEV* p_dev, tGATT_IF gatt_if) {

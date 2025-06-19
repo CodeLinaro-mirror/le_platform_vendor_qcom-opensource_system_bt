@@ -1321,7 +1321,7 @@ extern void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status);
 *******************************************************************************/
 extern bool L2CA_isMediaChannel(uint16_t handle, uint16_t channel_id, bool is_local_cid);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         L2CA_ConnectReq_v2

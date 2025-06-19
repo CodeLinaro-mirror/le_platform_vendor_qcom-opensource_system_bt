@@ -128,7 +128,7 @@ cpp_sources += \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor.cc \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor_socket.cc
 
-if SUPPORT_ESL_AP
+if SUPPORT_VENDOR_AP
 cpp_sources += \
     $(external_bt_path)/system_bt_ext/btif/src/btif_gatt_vendor_client.cc \
     $(external_bt_path)/system_bt_ext/btif/src/btif_ble_vendor_scanner.cc

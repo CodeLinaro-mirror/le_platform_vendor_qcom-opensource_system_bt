@@ -45,7 +45,7 @@
 
 static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state);
 static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 static void btm_suspend_fc_activity(tBTM_BLE_FC_STATE fc_state);
 static void btm_resume_fc_activity(tBTM_BLE_FC_STATE fc_state);
 #endif
@@ -102,7 +102,7 @@ static void background_connection_remove(const RawAddress& address) {
 
 static void background_connections_clear() { background_connections.clear(); }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 static RawAddress get_bg_conn_pending_bdaddr() {
   for (auto& map_el : background_connections) {
     background_connection_t* connection = &map_el.second;
@@ -138,7 +138,7 @@ static int background_connections_count() {
   return count;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct fastdevice_connection_t {
   RawAddress address;
   uint8_t addr_type;
@@ -431,7 +431,7 @@ bool btm_update_dev_to_white_list(bool to_add, const RawAddress& bd_addr) {
   return true;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         btm_update_dev_to_white_list
@@ -557,7 +557,7 @@ void btm_send_hci_create_connection(
   }
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btm_send_hci_create_connection_v2(
     uint16_t scan_int, uint16_t scan_win, uint8_t advertising_handle,
     uint8_t subevent, uint8_t init_filter_policy, uint8_t addr_type_peer,
@@ -610,7 +610,7 @@ bool btm_ble_start_auto_conn(bool start) {
   uint8_t own_addr_type = BLE_ADDR_PUBLIC;
   uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   static uint16_t conn_int_min  = BTM_BLE_CONN_INT_MIN_DEF;
   static uint16_t conn_int_max = BTM_BLE_CONN_INT_MAX_DEF;
   static uint16_t conn_latency = BTM_BLE_CONN_SLAVE_LATENCY_DEF;
@@ -638,7 +638,7 @@ bool btm_ble_start_auto_conn(bool start) {
                      ? BTM_BLE_SCAN_SLOW_WIN_1
                      : p_cb->scan_win;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     RawAddress rem_bd_addr = get_bg_conn_pending_bdaddr();
     tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(rem_bd_addr);
     if (p_dev_rec == NULL) {
@@ -678,7 +678,7 @@ bool btm_ble_start_auto_conn(bool start) {
           peer_addr_type,                 /* uint8_t addr_type_peer */
           RawAddress::kEmpty,             /* BD_ADDR bda_peer     */
           own_addr_type,                  /* uint8_t addr_type_own */
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
           BTM_BLE_CONN_INT_MIN_DEF,       /* uint16_t conn_int_min  */
           BTM_BLE_CONN_INT_MAX_DEF,       /* uint16_t conn_int_max  */
           BTM_BLE_CONN_SLAVE_LATENCY_DEF, /* uint16_t conn_latency  */
@@ -798,7 +798,7 @@ tBTM_BLE_CONN_ST btm_ble_get_conn_st(void) {
 void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st) {
   btm_cb.ble_ctr_cb.conn_state = new_st;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   if (new_st == BLE_BG_CONN || new_st == BLE_PD_CONN || new_st == BLE_DIR_CONN)
 #else
   if (new_st == BLE_BG_CONN || new_st == BLE_DIR_CONN)
@@ -880,7 +880,7 @@ bool btm_send_pending_direct_conn(void) {
   return rt;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         btm_ble_pdconn_cancel_if_disconnected
@@ -991,7 +991,7 @@ static void btm_ble_vendor_fastdevice_vsc_cmpl_cback(
 void btm_ble_add_fast_dev(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle, uint8_t subevent) {
   uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
 
-  p[0] = QESL_AP_SUBCOMMAND_ADD_DEVICE_TO_FAST_DEV;
+  p[0] = VENDOR_AP_SUBCOMMAND_ADD_DEVICE_TO_FAST_DEV;
   p[1] = advertising_handle;
   p[2] = addr_type;
   p[3] = bda.address[5];
@@ -1009,7 +1009,7 @@ void btm_ble_add_fast_dev(uint8_t addr_type, const RawAddress& bda, uint8_t adve
 void btm_ble_remove_from_fast_dev(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle) {
   uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
 
-  p[0] = QESL_AP_SUBCOMMAND_REMOVE_DEVICE_FROM_FAST_DEV;
+  p[0] = VENDOR_AP_SUBCOMMAND_REMOVE_DEVICE_FROM_FAST_DEV;
   p[1] = advertising_handle;
   p[2] = addr_type;
   p[3] = bda.address[5];
@@ -1026,7 +1026,7 @@ void btm_ble_remove_from_fast_dev(uint8_t addr_type, const RawAddress& bda, uint
 void btm_ble_clear_fast_dev_from_controller(uint8_t advertising_handle) {
   uint8_t* p = (uint8_t*)osi_malloc(HCI_CMD_BUF_SIZE);
 
-  p[0] = QESL_AP_SUBCOMMAND_CLEAR_FAST_DEV;
+  p[0] = VENDOR_AP_SUBCOMMAND_CLEAR_FAST_DEV;
   p[1] = advertising_handle;
 
   BTM_VendorSpecificCommand(HCI_BLE_RAW_HCI_CMD, HCIC_PARAM_SIZE_CLEAR_FAST_DEV,

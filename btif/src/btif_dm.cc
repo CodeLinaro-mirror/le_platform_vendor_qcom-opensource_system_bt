@@ -1977,7 +1977,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
   tBTA_SERVICE_MASK service_mask;
   uint32_t i;
   RawAddress bd_addr;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   bool skip = false;
   char privacy_property[PROPERTY_VALUE_MAX];
 #endif
@@ -2004,7 +2004,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
         BTA_DmSetDeviceName(btif_get_default_local_name());
       }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
         osi_property_get("vendor.bt.eslap.privacy.disable", privacy_property, "false");
         if (strncmp("true", privacy_property, 4) == 0) {
             BTIF_TRACE_DEBUG("%s privacy disable = %s", __func__, privacy_property);
@@ -2081,7 +2081,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_DM_DEV_UNPAIRED_EVT:
       bd_addr = p_data->link_down.bd_addr;
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
       btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
 #endif
 
@@ -2139,7 +2139,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       }
       btif_update_remote_version_property(&bd_addr);
       btif_dm_update_cod(bd_addr, p_data->link_up.dc);
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_CONNECTED);
 #else
@@ -2161,7 +2161,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_DM_LINK_DOWN_EVT:
       bd_addr = p_data->link_down.bd_addr;
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
       btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
 #endif
 
@@ -2180,7 +2180,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btif_av_move_idle(bd_addr);
       BTIF_TRACE_DEBUG(
           "BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_DISCONNECTED);
 #else
@@ -2828,7 +2828,7 @@ bt_status_t btif_dm_create_bond_out_of_band(
     if (address_type == BLE_ADDR_PUBLIC || address_type == BLE_ADDR_RANDOM) {
       // bd_addr->address is already reversed, so use it instead of
       // oob_data->le_bt_dev_addr
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
       BTA_DmAddBleDevice(*bd_addr, BT_DEVICE_TYPE_BLE, address_type);
 #else
       BTM_SecAddBleDevice(*bd_addr, NULL, BT_DEVICE_TYPE_BLE, address_type);

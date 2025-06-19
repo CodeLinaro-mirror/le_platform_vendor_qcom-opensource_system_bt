@@ -571,7 +571,7 @@ void BTM_BleSetConnScanParams(uint32_t scan_interval, uint32_t scan_window) {
 void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
                               uint16_t max_conn_int, uint16_t slave_latency,
                               uint16_t supervision_tout) {
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
 #else
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bd_addr);
@@ -582,7 +582,7 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
                     tout: %u",
       min_conn_int, max_conn_int, slave_latency, supervision_tout);
 
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
   if (BTM_BLE_ISVALID_PARAM(min_conn_int, BTM_BLE_CONN_INT_MIN,
                             BTM_BLE_CONN_INT_MAX) &&
       BTM_BLE_ISVALID_PARAM(max_conn_int, BTM_BLE_CONN_INT_MIN,
@@ -619,7 +619,7 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
         else
           p_dev_rec->conn_params.slave_latency = BTM_BLE_CONN_SLAVE_LATENCY_DEF;
 
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
         if (supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) {
             p_dev_rec->conn_params.supervision_tout = supervision_tout;
         }
@@ -2071,7 +2071,7 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
 #endif
   } else {
     role = HCI_ROLE_UNKNOWN;
-#ifndef SUPPORT_ESL_AP
+#ifndef SUPPORT_VENDOR_AP
     if (status != HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT) {
       btm_ble_set_conn_st(BLE_CONN_IDLE);
   #if (BLE_PRIVACY_SPT == TRUE)
@@ -2093,7 +2093,7 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
   }
 
   btm_ble_update_mode_operation(role, &bda, status);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
 #endif
 }

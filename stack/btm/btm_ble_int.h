@@ -149,7 +149,7 @@ extern void btm_ble_update_mode_operation(uint8_t link_role,
 extern bool btm_execute_wl_dev_operation(void);
 extern void btm_ble_update_link_topology_mask(uint8_t role, bool increase);
 extern void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern bool check_device_in_fast_dev(const RawAddress& address);
 extern bool check_device_in_white_list(const RawAddress& address);
 extern void btm_send_hci_create_connection_v2(

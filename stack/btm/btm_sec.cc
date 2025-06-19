@@ -2819,7 +2819,7 @@ void btm_create_conn_cancel_complete(uint8_t* p) {
   }
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         btm_ble_create_connection_cancel_complete

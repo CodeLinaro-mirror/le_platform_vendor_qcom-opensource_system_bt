@@ -987,7 +987,7 @@ extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                          bool is_direct, tBT_TRANSPORT transport,
                          bool opportunistic, uint8_t initiating_phys);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         GATT_Connect_v2
@@ -1124,7 +1124,7 @@ extern void gatt_notify_enc_cmpl(const RawAddress& bd_addr);
 // Reset bg device list.
 extern void gatt_reset_bgdev_list(void);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 // Reset fc device list.
 extern void gatt_reset_fcdev_list(void);
 #endif

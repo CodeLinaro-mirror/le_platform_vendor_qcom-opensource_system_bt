@@ -49,7 +49,7 @@ void btu_hcif_send_cmd_with_cb(const tracked_objects::Location& posted_from,
                                uint16_t opcode, uint8_t* params,
                                uint8_t params_len,
                                base::Callback<void(uint8_t*, uint16_t)> cb);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btu_hcif_send_cmd_with_status_cb(uint8_t controller_id, BT_HDR* p_buf, void* status_cb);
 #endif
 

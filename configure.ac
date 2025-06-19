@@ -178,11 +178,11 @@ AC_ARG_ENABLE([hidl],
 
 AM_CONDITIONAL([USING_HIDL], [test x$hidl = xtrue])
 
-AC_ARG_WITH([esl],
-     AC_HELP_STRING([--with-esl],
-        [enable ESL AP, building Fluoride with ESL AP support]))
+AC_ARG_WITH([vendorap],
+     AC_HELP_STRING([--with-vendorap],
+        [enable VENDOR AP, building Fluoride with VENDOR AP support]))
 
-AM_CONDITIONAL(SUPPORT_ESL_AP, test "x${with_esl}" = "xyes")
+AM_CONDITIONAL(SUPPORT_VENDOR_AP, test "x${with_vendorap}" = "xyes")
 
 AC_SUBST(SYS_LIB)
 

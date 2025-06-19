@@ -316,7 +316,7 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
                  initiating_phys);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btif_gattc_open_impl_v2(int client_if, uint8_t advertising_handle, uint8_t subevent,
                           RawAddress address, bool is_direct,
                           int transport_p, bool opportunistic,
@@ -389,7 +389,7 @@ bt_status_t btif_gattc_open(int client_if, const RawAddress& bd_addr,
                                initiating_phys));
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 bt_status_t btif_gattc_open_v2(int client_if, uint8_t advertising_handle, uint8_t subevent,
                             const RawAddress& bd_addr, bool is_direct, int transport,
                             bool opportunistic, int initiating_phys) {
@@ -781,7 +781,7 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_read_phy,
     btif_gattc_test_command,
     btif_gattc_get_gatt_db,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     btif_gattc_open_v2,
     btif_gattc_add_fastconnection_device,
     btif_gattc_remove_fastconnection_device,
