@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
  *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
@@ -306,23 +306,6 @@ typedef struct {
 
   /** Get gatt db content */
   bt_status_t (*get_gatt_db)(int conn_id);
-#ifdef SUPPORT_VENDOR_AP
-  /** Create a fast connection to a remote LE or dual-mode device */
-  bt_status_t (*connect_v2)(int client_if, uint8_t advertising_handle, uint8_t subevent,
-                         const RawAddress& bd_addr, bool is_direct, int transport,
-                         bool opportunistic, int initiating_phys);
-  /** Add device to fastconnection device*/
-  bt_status_t (*add_fastconnection_device)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
-  /** Remove device from fastconnection device*/
-  bt_status_t (*remove_fastconnection_device)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
-  /** Clear device from fastconnection device*/
-  bt_status_t (*clear_fastconnection_device)(int client_if, int transport, uint8_t advertising_handle);
-  /** Add device to white list*/
-  bt_status_t (*add_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
-  /** Remove device from white list*/
-  bt_status_t (*remove_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
-  bt_status_t (*disconnect_v2)(int client_if, const RawAddress& bd_addr, int conn_id);
-#endif
 } btgatt_client_interface_t;
 
 __END_DECLS

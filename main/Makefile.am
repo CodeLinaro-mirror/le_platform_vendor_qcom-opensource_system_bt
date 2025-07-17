@@ -48,7 +48,6 @@ AM_CPPFLAGS= \
         -I$(external_bt_path)/vhal/include
 AM_CPPFLAGS += @AROUTE_CFLAGS@
 
-
 if MDM_ROME
 AM_CFLAGS += -DBT_SOC_TYPE_ROME
 AM_CPPFLAGS += -DBT_SOC_TYPE_ROME
@@ -128,12 +127,6 @@ cpp_sources += \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor.cc \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor_socket.cc
 
-if SUPPORT_VENDOR_AP
-cpp_sources += \
-    $(external_bt_path)/system_bt_ext/btif/src/btif_gatt_vendor_client.cc \
-    $(external_bt_path)/system_bt_ext/btif/src/btif_ble_vendor_scanner.cc
-endif
-
 # BTC
 if BTC_SUPPORT
 AM_CFLAGS += -DBTC_INCLUDED=TRUE
@@ -180,7 +173,7 @@ libbluetoothdefault_la_CC = @CC@
 libbluetoothdefault_la_SOURCES = $(c_sources) $(cpp_sources)
 libbluetoothdefault_la_CPPFLAGS = $(AM_CPPFLAGS) $(common_CPPFLAGS) -std=c++11 -fpermissive -O2
 libbluetoothdefault_la_CFLAGS = $(common_CFLAGS)
-libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS) -lpropertyvault -version-number @LT_VERSION_NUMBER@
+libbluetoothdefault_la_LDFLAGS = $(common_LDFLAGS) -version-number @LT_VERSION_NUMBER@
 
 externalincludedir = $(includedir)/fluoride/
 externalinclude_HEADERS=$(wildcard $(external_bt_path)/vhal/include/*.h)

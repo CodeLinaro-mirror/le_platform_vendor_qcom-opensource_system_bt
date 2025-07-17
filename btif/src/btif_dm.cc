@@ -786,41 +786,41 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
             num_properties, properties);
 }
 
-static void btif_dm_update_cod(const RawAddress& bd_addr, DEV_CLASS dev_class) {	
-    bt_property_t prop_cod;	
-    bt_status_t status;	
-    uint32_t cod = devclass2uint(dev_class);	
-    if (check_cod(&bd_addr, cod))	
-    {	
-        BTIF_TRACE_DEBUG("%s: dev class not changed", __func__);	
-        return;	
-    }	
-    else	
-    {	
-        if (cod == 0)	
-        {	
-            /* Try to retrieve cod from storage */	
-            BTIF_TRACE_DEBUG("%s cod is 0, checking cod from storage", __func__);	
-            BTIF_STORAGE_FILL_PROPERTY(&prop_cod,	
-                               BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);	
-            status = btif_storage_get_remote_device_property(	
-                            &bd_addr, &prop_cod);	
-            BTIF_TRACE_DEBUG("%s cod retrieved from storage is 0x%06x", __func__, cod);	
-            if (cod == 0) {	
-                BTIF_TRACE_DEBUG("%s cod is again 0, set as unclassified", __func__);	
-                cod = COD_UNCLASSIFIED;	
-            }	
-        }	
+static void btif_dm_update_cod(const RawAddress& bd_addr, DEV_CLASS dev_class) {
+    bt_property_t prop_cod;
+    bt_status_t status;
+    uint32_t cod = devclass2uint(dev_class);
+    if (check_cod(&bd_addr, cod))
+    {
+        BTIF_TRACE_DEBUG("%s: dev class not changed", __func__);
+        return;
+    }
+    else
+    {
+        if (cod == 0)
+        {
+            /* Try to retrieve cod from storage */
+            BTIF_TRACE_DEBUG("%s cod is 0, checking cod from storage", __func__);
+            BTIF_STORAGE_FILL_PROPERTY(&prop_cod,
+                               BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
+            status = btif_storage_get_remote_device_property(
+                            &bd_addr, &prop_cod);
+            BTIF_TRACE_DEBUG("%s cod retrieved from storage is 0x%06x", __func__, cod);
+            if (cod == 0) {
+                BTIF_TRACE_DEBUG("%s cod is again 0, set as unclassified", __func__);
+                cod = COD_UNCLASSIFIED;
+            }
+        }
 
-        BTIF_STORAGE_FILL_PROPERTY(&prop_cod,	
-                             BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);	
-        status = btif_storage_set_remote_device_property(&bd_addr, &prop_cod);	
-        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class",	
-                           status);	
+        BTIF_STORAGE_FILL_PROPERTY(&prop_cod,
+                             BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
+        status = btif_storage_set_remote_device_property(&bd_addr, &prop_cod);
+        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class",
+                           status);
 
-        HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,	
-                     status, &bd_addr, 1, &prop_cod);	
-    }	
+        HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                     status, &bd_addr, 1, &prop_cod);
+    }
 }
 
 /*******************************************************************************
@@ -1977,10 +1977,6 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
   tBTA_SERVICE_MASK service_mask;
   uint32_t i;
   RawAddress bd_addr;
-#ifdef SUPPORT_VENDOR_AP
-  bool skip = false;
-  char privacy_property[PROPERTY_VALUE_MAX];
-#endif
 
   BTIF_TRACE_EVENT("%s: ev: %s", __func__, dump_dm_event(event));
 
@@ -2004,20 +2000,8 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
         BTA_DmSetDeviceName(btif_get_default_local_name());
       }
 
-#ifdef SUPPORT_VENDOR_AP
-        osi_property_get("vendor.bt.eslap.privacy.disable", privacy_property, "false");
-        if (strncmp("true", privacy_property, 4) == 0) {
-            BTIF_TRACE_DEBUG("%s privacy disable = %s", __func__, privacy_property);
-            /* Disable local privacy */
-            BTA_DmBleConfigLocalPrivacy(false);
-        } else {
-            /* Enable local privacy */
-            BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
-        }
-#else
       /* Enable local privacy */
       BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
-#endif
       /* for each of the enabled services in the mask, trigger the profile
        * enable */
       service_mask = btif_get_enabled_services_mask();
@@ -2081,9 +2065,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_DM_DEV_UNPAIRED_EVT:
       bd_addr = p_data->link_down.bd_addr;
-#ifndef SUPPORT_VENDOR_AP
       btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
-#endif
 
 /*special handling for HID devices */
 #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
@@ -2139,20 +2121,8 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       }
       btif_update_remote_version_property(&bd_addr);
       btif_dm_update_cod(bd_addr, p_data->link_up.dc);
-#ifndef SUPPORT_VENDOR_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_CONNECTED);
-#else
-      if (vendor_acl_state_changed_cb) {
-          uint16_t conn_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
-          skip = vendor_acl_state_changed_cb(BT_STATUS_SUCCESS, &bd_addr, BT_ACL_STATE_CONNECTED, conn_handle);
-      }
-      if (!skip) {
-          HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
-                &bd_addr, BT_ACL_STATE_CONNECTED);
-      }
-#endif
-
       HAL_CBACK(bt_vendor_callbacks, acl_state_changed_with_reason_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_CONNECTED, BT_STATUS_SUCCESS,
                 p_data->link_up.link_type);
@@ -2161,9 +2131,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_DM_LINK_DOWN_EVT:
       bd_addr = p_data->link_down.bd_addr;
-#ifndef SUPPORT_VENDOR_AP
       btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
-#endif
 
       BTIF_TRACE_DEBUG("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
       if (num_active_le_links > 0 &&
@@ -2180,20 +2148,8 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btif_av_move_idle(bd_addr);
       BTIF_TRACE_DEBUG(
           "BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
-#ifndef SUPPORT_VENDOR_AP
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_DISCONNECTED);
-#else
-      if (vendor_acl_state_changed_cb) {
-          skip = vendor_acl_state_changed_cb(BT_STATUS_SUCCESS, &bd_addr, BT_ACL_STATE_DISCONNECTED, 0xff);
-      }
-
-      if (!skip) {
-        HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
-                &bd_addr, BT_ACL_STATE_DISCONNECTED);
-      }
-#endif
-
       HAL_CBACK(bt_vendor_callbacks, acl_state_changed_with_reason_cb, BT_STATUS_SUCCESS,
                 &bd_addr, BT_ACL_STATE_DISCONNECTED, btm_get_acl_disc_reason_code(),
                 p_data->link_down.link_type);
@@ -2828,11 +2784,7 @@ bt_status_t btif_dm_create_bond_out_of_band(
     if (address_type == BLE_ADDR_PUBLIC || address_type == BLE_ADDR_RANDOM) {
       // bd_addr->address is already reversed, so use it instead of
       // oob_data->le_bt_dev_addr
-#ifdef SUPPORT_VENDOR_AP
-      BTA_DmAddBleDevice(*bd_addr, BT_DEVICE_TYPE_BLE, address_type);
-#else
       BTM_SecAddBleDevice(*bd_addr, NULL, BT_DEVICE_TYPE_BLE, address_type);
-#endif
     }
   }
 

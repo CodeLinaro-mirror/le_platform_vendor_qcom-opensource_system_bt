@@ -16,12 +16,12 @@
  *
  ******************************************************************************/
 #include <string.h>
+#include <cutils/log.h>
 
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "bt_common.h"
-#include "log.h"
 
 /*****************************************************************************
  *  Global data

@@ -448,11 +448,7 @@
 
 /* The number of security records for peer devices. */
 #ifndef BTM_SEC_MAX_DEVICE_RECORDS
-#ifdef SUPPORT_VENDOR_AP
-#define BTM_SEC_MAX_DEVICE_RECORDS 140
-#else
 #define BTM_SEC_MAX_DEVICE_RECORDS 100
-#endif
 #endif
 
 /* The number of security records for services. */

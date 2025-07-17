@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#include <log.h>
+#include <cutils/log.h>
 
 #include <stdio.h>
 #include <string.h>

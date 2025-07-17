@@ -2819,43 +2819,6 @@ void btm_create_conn_cancel_complete(uint8_t* p) {
   }
 }
 
-#ifdef SUPPORT_VENDOR_AP
-/*******************************************************************************
- *
- * Function         btm_ble_create_connection_cancel_complete
- *
- * Description      This function is called when the command complete message
- *                  is received from the HCI for the ble create connection cancel
- *                  command.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_create_connection_cancel_complete(uint8_t* p) {
-  uint8_t status;
-
-  STREAM_TO_UINT8(status, p);
-  BTM_TRACE_EVENT("btm_ble_create_connection_cancel_complete():status:%d", status);
-
-  switch (status) {
-    case HCI_SUCCESS:
-      BTM_TRACE_EVENT("btm_ble_create_connection_cancel successful");
-      break;
-    case HCI_ERR_CONNECTION_EXISTS:
-    case HCI_ERR_NO_CONNECTION:
-    default:
-      BTM_TRACE_EVENT("btm_ble_create_connection_cancel error");
-      break;
-  }
-  tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
-  tBTM_RAW_STATUS  raw_status_params;
-  if (status != HCI_SUCCESS && p_devcb->p_hci_status_cb) {
-    raw_status_params.opcode = HCI_BLE_CREATE_CONN_CANCEL;
-    raw_status_params.status = status;
-    (p_devcb->p_hci_status_cb) (&raw_status_params);
-  }
-}
-#endif
 /*******************************************************************************
  *
  * Function         btm_sec_check_pending_reqs

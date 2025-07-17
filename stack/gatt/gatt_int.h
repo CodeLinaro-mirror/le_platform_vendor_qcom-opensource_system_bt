@@ -336,13 +336,6 @@ typedef struct {
   RawAddress remote_bda;
 } tGATT_BG_CONN_DEV;
 
-#ifdef SUPPORT_VENDOR_AP
-typedef struct {
-  std::unordered_set<tGATT_IF> gatt_if;
-  RawAddress remote_bda;
-} tGATT_FC_CONN_DEV;
-#endif
-
 #define GATT_SVC_CHANGED_CONNECTING 1     /* wait for connection */
 #define GATT_SVC_CHANGED_SERVICE 2        /* GATT service discovery */
 #define GATT_SVC_CHANGED_CHARACTERISTIC 3 /* service change char discovery */
@@ -394,9 +387,6 @@ typedef struct {
 
   tGATT_HDL_CFG hdl_cfg;
   std::list<tGATT_BG_CONN_DEV> bgconn_dev;
-#ifdef SUPPORT_VENDOR_AP
-  std::list<tGATT_FC_CONN_DEV> fcconn_dev;
-#endif
 } tGATT_CB;
 
 #define GATT_SIZE_OF_SRV_CHG_HNDL_RANGE 4
@@ -491,18 +481,6 @@ extern bool gatt_remove_bg_dev_for_app(tGATT_IF gatt_if,
 extern uint8_t gatt_clear_bg_dev_for_addr(const RawAddress& bd_addr);
 extern tGATT_BG_CONN_DEV* gatt_find_bg_dev(const RawAddress& remote_bda);
 extern void gatt_deregister_bgdev_list(tGATT_IF gatt_if);
-
-#ifdef SUPPORT_VENDOR_AP
-extern bool gatt_update_fc_connect_dev(tGATT_IF gatt_if, bool add, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent);
-extern bool gatt_is_fc_dev_for_app(tGATT_FC_CONN_DEV* p_dev, tGATT_IF gatt_if);
-extern bool gatt_remove_fc_dev_for_app(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent);
-extern uint8_t gatt_clear_fc_dev_for_addr(const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent);
-extern tGATT_FC_CONN_DEV* gatt_find_fc_dev(const RawAddress& remote_bda);
-extern void gatt_deregister_fcdev_list(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent);
-extern bool gatt_clear_fc_connect_dev(tGATT_IF gatt_if, uint8_t advertising_handle);
-extern bool gatt_update_wl_connect_dev(tGATT_IF gatt_if, bool add,
-                                         const RawAddress& bd_addr);
-#endif
 
 /* server function */
 extern std::list<tGATT_SRV_LIST_ELEM>::iterator gatt_sr_find_i_rcb_by_handle(
@@ -605,14 +583,4 @@ extern tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB* p_db, bool is_long,
                                                tGATT_SEC_FLAG sec_flag,
                                                uint8_t key_size);
 extern bluetooth::Uuid* gatts_get_service_uuid(tGATT_SVC_DB* p_db);
-#ifdef SUPPORT_VENDOR_AP
-/* for fast connection*/
-extern bool gatt_act_connect_v2(tGATT_REG* p_reg, uint8_t advertising_handle, uint8_t subevent,
-                                const RawAddress& bd_addr, tBT_TRANSPORT transport, bool opportunistic,
-                                int8_t initiating_phys);
-extern bool gatt_connect_v2(const RawAddress& rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
-                         uint8_t advertising_handle, uint8_t subevent,uint8_t initiating_phys);
-extern bool gatt_start_auto_fast_connection();
-#endif
-
 #endif

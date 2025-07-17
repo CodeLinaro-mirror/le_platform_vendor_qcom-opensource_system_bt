@@ -193,10 +193,6 @@ typedef struct {
                                                 HCI event is received successfully */
 #endif
 
-#ifdef SUPPORT_VENDOR_AP
-  tBTM_RAW_STATUS_CB *p_hci_status_cb;
-#endif
-
   tBTM_IO_CAP loc_io_caps;      /* IO capability of the local device */
   tBTM_AUTH_REQ loc_auth_req;   /* the auth_req flag  */
   bool secure_connections_only; /* Rejects service level 0 connections if */
@@ -482,12 +478,6 @@ typedef struct {
   uint8_t resolving_list_index;
 #if (BLE_PRIVACY_SPT == TRUE)
   RawAddress cur_rand_addr; /* current random address */
-
-#ifdef SUPPORT_VENDOR_AP
-#define BTM_FAST_DEV_BIT 0x01
-  uint8_t in_controller_fast_dev; /* in controller fast device or not */
-  uint8_t fast_device_index;
-#endif
 
 #define BTM_BLE_ADDR_PSEUDO 0 /* address index device record */
 #define BTM_BLE_ADDR_RRA 1    /* cur_rand_addr */
@@ -921,8 +911,4 @@ typedef uint8_t tBTM_SEC_ACTION;
 /* HCI event handler */
 #if HCI_RAW_CMD_INCLUDED == TRUE
 extern void btm_hci_event(uint8_t *p, uint8_t event_code, uint8_t param_len);
-#endif
-
-#ifdef SUPPORT_VENDOR_AP
-extern void btm_hci_status(uint16_t opcode, uint8_t status);
 #endif

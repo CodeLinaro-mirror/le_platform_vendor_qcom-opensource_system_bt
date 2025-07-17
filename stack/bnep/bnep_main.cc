@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cutils/log.h>
 #include "bt_target.h"
 
 #include "bt_common.h"
@@ -34,7 +35,6 @@
 
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "log.h"
 
 #include "btm_api.h"
 #include "btu.h"

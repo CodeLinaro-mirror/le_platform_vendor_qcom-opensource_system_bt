@@ -63,9 +63,6 @@ extern void bte_main_disable(void);
 extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
 extern void btm_ble_test_command_complete(uint8_t* p);
 extern void smp_cancel_start_encryption_attempt();
-#ifdef SUPPORT_VENDOR_AP
-extern void hcif_vs_event_callback(uint8_t* p, uint8_t len);
-#endif
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -192,9 +189,6 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
       break;
     case HCI_DISCONNECTION_COMP_EVT:
       btu_hcif_disconnection_comp_evt(p);
-#ifdef SUPPORT_VENDOR_AP
-      hcif_vs_event_callback(p - 2, hci_evt_len + 2);
-#endif
       break;
     case HCI_AUTHENTICATION_COMP_EVT:
       btu_hcif_authentication_comp_evt(p);
@@ -353,13 +347,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           break;
 #if (BLE_PRIVACY_SPT == TRUE)
         case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT:
-#ifdef SUPPORT_VENDOR_AP
-        case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT_V2:
-#endif
           btu_ble_proc_enhanced_conn_cmpl(p, hci_evt_len);
-#ifdef SUPPORT_VENDOR_AP
-          hcif_vs_event_callback(p - 3, hci_evt_len + 2);
-#endif
           break;
 #endif
 #if (BLE_LLT_INCLUDED == TRUE)
@@ -382,21 +370,12 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
         case HCI_LE_ADVERTISING_SET_TERMINATED_EVT:
           btm_le_on_advertising_set_terminated(p, hci_evt_len);
           break;
-#ifdef SUPPORT_VENDOR_AP
-        default:
-          LOG_WARN(LOG_TAG, "%s new defined sub event. %x, len:%d", __func__, ble_sub_code, p_msg->len);
-          hcif_vs_event_callback(p - 3, hci_evt_len + 2);
-          break;
-#endif
       }
       break;
     }
 
     case HCI_VENDOR_SPECIFIC_EVT:
       btm_vendor_specific_evt(p, hci_evt_len);
-#ifdef SUPPORT_VENDOR_AP
-      hcif_vs_event_callback(p - 2, hci_evt_len + 2);
-#endif
       break;
 
     case HCI_CSB_TIMEOUT_EVT:
@@ -439,38 +418,6 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
       p_buf, btu_hcif_command_complete_evt, btu_hcif_command_status_evt,
       vsc_callback);
 }
-
-#ifdef SUPPORT_VENDOR_AP
-static void btu_hcif_command_status_evt_with_cb_on_task_all(uint8_t status,
-                                                        BT_HDR* event,
-                                                        void* context) {
-  command_opcode_t opcode;
-  uint8_t* stream = event->data + event->offset;
-  STREAM_TO_UINT16(opcode, stream);
-
-  tBTM_RAW_STATUS raw_status_params;
-  raw_status_params.opcode = opcode;
-  raw_status_params.status = status;
-  tBTM_RAW_STATUS_CB *cb = (tBTM_RAW_STATUS_CB*)context;
-  (*cb)(&raw_status_params);
-
-  osi_free(event);
-}
-
-static void btu_hcif_command_status_evt_with_cb_all(uint8_t status, BT_HDR* command,
-                                                void* context) {
-  // report command status event every time.
-  do_in_hci_thread(
-      FROM_HERE, base::Bind(btu_hcif_command_status_evt_with_cb_on_task_all, status,
-                            command, context));
-}
-
-void btu_hcif_send_cmd_with_status_cb(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf, void* status_cb) {
-  hci_layer_get_interface()->transmit_command(
-      p_buf, NULL,
-      btu_hcif_command_status_evt_with_cb_all, status_cb);
-}
-#endif
 
 using hci_cmd_cb = base::Callback<void(uint8_t* /* return_parameters */,
                                        uint16_t /* return_parameters_length*/)>;
@@ -1176,11 +1123,6 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
       break;
 #endif
-#ifdef SUPPORT_VENDOR_AP
-    case HCI_BLE_CREATE_CONN_CANCEL:
-      btm_ble_create_connection_cancel_complete(p);
-    break;
-#endif
     default:
       if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
         btm_vsc_complete(p, opcode, evt_len, (tBTM_VSC_CMPL_CB*)p_cplt_cback);
@@ -1402,11 +1344,6 @@ static void btu_hcif_command_status_evt_on_task(uint8_t status, BT_HDR* event,
   command_opcode_t opcode;
   uint8_t* stream = event->data + event->offset;
   STREAM_TO_UINT16(opcode, stream);
-
-#ifdef SUPPORT_VENDOR_AP
-  if (opcode == HCI_LE_EXTENDED_CREATE_CONNECTION || opcode == HCI_LE_EXTENDED_CREATE_CONNECTION_V2 || opcode == HCI_DISCONNECT)
-    btm_hci_status (opcode, status);
-#endif
 
   btu_hcif_hdl_command_status(opcode, status, stream, context);
   osi_free(event);

@@ -271,30 +271,6 @@ tL2C_LCB* l2cu_find_lcb_by_bd_addr(const RawAddress& p_bd_addr,
   return (NULL);
 }
 
-#ifdef SUPPORT_VENDOR_AP
-/*******************************************************************************
- *
- * Function         l2cu_find_lcb_by_bd_addr_to_clean
- *
- * Description      Look through all active LCBs for a match based on the
- *                  remote BD address and clean it.
- *
- * Returns          void
- *
- ******************************************************************************/
-void l2cu_find_lcb_by_bd_addr_to_clean(const RawAddress& p_bd_addr,
-                                   tBT_TRANSPORT transport) {
-  int xx;
-  tL2C_LCB* p_lcb = &l2cb.lcb_pool[0];
-
-  for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++) {
-    if ((p_lcb->in_use) && p_lcb->transport == transport &&
-        (p_lcb->remote_bd_addr == p_bd_addr)) {
-      l2cu_release_lcb(p_lcb);
-    }
-  }
-}
-#endif
 /*******************************************************************************
  *
  * Function         l2cu_get_conn_role
@@ -2236,91 +2212,6 @@ bool l2cu_create_conn(tL2C_LCB* p_lcb, tBT_TRANSPORT transport,
 
   return (l2cu_create_conn_after_switch(p_lcb));
 }
-
-#ifdef SUPPORT_VENDOR_AP
-/*******************************************************************************
- *
- * Function         l2cu_create_conn_v2
- *
- * Description      This function initiates an acl connection via HCI
- *
- * Returns          true if successful, false if get buffer fails.
- *
- ******************************************************************************/
-bool l2cu_create_conn_v2(tL2C_LCB* p_lcb, tBT_TRANSPORT transport, uint8_t advertising_handle, uint8_t subevent) {
-  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
-  return l2cu_create_conn_v2(p_lcb, transport, advertising_handle, subevent, phy);
-}
-
-bool l2cu_create_conn_v2(tL2C_LCB* p_lcb, tBT_TRANSPORT transport,
-                      uint8_t advertising_handle, uint8_t subevent, uint8_t initiating_phys) {
-  int xx;
-  tL2C_LCB* p_lcb_cur = &l2cb.lcb_pool[0];
-#if (BTM_SCO_INCLUDED == TRUE)
-  bool is_sco_active;
-#endif
-
-  tBT_DEVICE_TYPE dev_type;
-  tBLE_ADDR_TYPE addr_type;
-  BTM_ReadDevInfo(p_lcb->remote_bd_addr, &dev_type, &addr_type);
-
-  if (transport == BT_TRANSPORT_LE) {
-    if (!controller_get_interface()->supports_ble()) return false;
-
-    p_lcb->ble_addr_type = addr_type;
-    p_lcb->transport = BT_TRANSPORT_LE;
-    p_lcb->initiating_phys = initiating_phys;
-    p_lcb->advertising_handle = advertising_handle;
-    p_lcb->subevent = subevent;
-
-    return (l2cble_create_conn_v2(p_lcb));
-  }
-
-  /* If there is a connection where we perform as a slave, try to switch roles
-     for this connection */
-  for (xx = 0, p_lcb_cur = &l2cb.lcb_pool[0]; xx < MAX_L2CAP_LINKS;
-       xx++, p_lcb_cur++) {
-    if (p_lcb_cur == p_lcb) continue;
-
-    if ((p_lcb_cur->in_use) && (p_lcb_cur->link_role == HCI_ROLE_SLAVE)) {
-#if (BTM_SCO_INCLUDED == TRUE)
-      /* The LMP_switch_req shall be sent only if the ACL logical transport
-      is in active mode, when encryption is disabled, and all synchronous
-      logical transports on the same physical link are disabled." */
-
-      /* Check if there is any SCO Active on this BD Address */
-      is_sco_active = btm_is_sco_active_by_bdaddr(p_lcb_cur->remote_bd_addr);
-
-      L2CAP_TRACE_API(
-          "l2cu_create_conn_v2 - btm_is_sco_active_by_bdaddr() is_sco_active = %s",
-          (is_sco_active == true) ? "true" : "false");
-
-      if (is_sco_active == true)
-        continue; /* No Master Slave switch not allowed when SCO Active */
-#endif
-      /*4_1_TODO check  if btm_cb.devcb.local_features to be used instead */
-      if (HCI_SWITCH_SUPPORTED(BTM_ReadLocalFeatures())) {
-        /* mark this lcb waiting for switch to be completed and
-           start switch on the other one */
-        p_lcb->link_state = LST_CONNECTING_WAIT_SWITCH;
-        p_lcb->link_role = HCI_ROLE_MASTER;
-
-        if (BTM_SwitchRole(p_lcb_cur->remote_bd_addr, HCI_ROLE_MASTER, NULL) ==
-            BTM_CMD_STARTED) {
-          alarm_set_on_mloop(p_lcb->l2c_lcb_timer,
-                             L2CAP_LINK_ROLE_SWITCH_TIMEOUT_MS,
-                             l2c_lcb_timer_timeout, p_lcb);
-          return (true);
-        }
-      }
-    }
-  }
-
-  p_lcb->link_state = LST_CONNECTING;
-
-  return (l2cu_create_conn_after_switch(p_lcb));
-}
-#endif
 
 /*******************************************************************************
  *

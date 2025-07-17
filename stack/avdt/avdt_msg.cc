@@ -26,7 +26,7 @@
  *
  ******************************************************************************/
 
-#include <log.h>
+#include <cutils/log.h>
 #include <string.h>
 #include "avdt_api.h"
 #include "avdt_int.h"

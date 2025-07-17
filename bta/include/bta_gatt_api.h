@@ -650,39 +650,6 @@ extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if,
                            tBTA_GATT_TRANSPORT transport, bool opportunistic,
                            uint8_t initiating_phys);
 
-#ifdef SUPPORT_VENDOR_AP
-extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
-                          bool is_direct, tBTA_GATT_TRANSPORT transport,
-                          bool opportunistic, uint8_t initiating_phys, tBTM_RAW_STATUS_CB *p_status_cb);
-
-/*******************************************************************************
- *
- * Function         BTA_GATTC_Open_v2
- *
- * Description      Open a direct connection or add a background auto connection
- *                  bd address
- *
- * Parameters       client_if: server interface.
- *                  remote_bda: remote device BD address.
- *                  is_direct: direct connection or background auto connection
- *                  initiating_phys: LE PHY to use, optional
- *
- ******************************************************************************/
-extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
-                           const RawAddress& remote_bda, bool is_direct,
-                           tBTA_GATT_TRANSPORT transport, bool opportunistic);
-extern void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint8_t subevent,
-                           const RawAddress& remote_bda, bool is_direct,
-                           tBTA_GATT_TRANSPORT transport, bool opportunistic,
-                           uint8_t initiating_phys);
-extern void BTA_GATTC_Add_Fc(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
-extern void BTA_GATTC_Remove_Fc(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent);
-extern void BTA_GATTC_Clear_Fc(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle);
-extern void BTA_GATTC_Add_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
-extern void BTA_GATTC_Remove_Wl(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport);
-extern void BTA_GATTC_CancelOpen_v2(tBTA_GATTC_IF client_if,
-                                 const RawAddress& remote_bda, bool is_direct);
-#endif
 /*******************************************************************************
  *
  * Function         BTA_GATTC_CancelOpen

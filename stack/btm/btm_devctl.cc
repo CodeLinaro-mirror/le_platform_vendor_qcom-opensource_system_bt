@@ -700,20 +700,6 @@ BTM_TRACE_EVENT ("BTM: BTM_Hci_Raw_Command: Opcode: 0x%04X, ParamLen: %i.",
 
 }
 
-#ifdef SUPPORT_VENDOR_AP
-void BTM_Hci_Raw_Command_with_status_cb(uint16_t opcode, uint8_t param_len,
-                               uint8_t* p_param_buf, tBTM_RAW_STATUS_CB* p_cb) {
-  /* Allocate a buffer to hold HCI command plus the callback function */
-  void* p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB*) + param_len +
-                           HCIC_PREAMBLE_SIZE);
-
-  BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__, opcode,
-                  param_len);
-  /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
-  btsnd_hcic_raw_cmd_with_status_cb(p_buf, opcode, param_len, p_param_buf,(void*)p_cb);
-}
-#endif
-
 /*******************************************************************************
  *
  * Function         BTM_VendorSpecificCommand
@@ -761,22 +747,6 @@ void btm_hci_event(uint8_t *p, uint8_t event_code, uint8_t param_len)
     raw_cplt_params.param_len = param_len;    /* Number of bytes in return info */
     raw_cplt_params.p_param_buf = p;
     (p_devcb->p_hci_evt_cb) (&raw_cplt_params);  /* Call the cmd complete callback function */
-  }
-}
-#endif
-
-#ifdef SUPPORT_VENDOR_AP
-void btm_hci_status(uint16_t opcode, uint8_t status)
-{
-  tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
-  tBTM_RAW_STATUS  raw_status_params;
-
-  /* If there was a callback address for raw cmd complete, call it */
-  if (p_devcb->p_hci_status_cb) {
-    /* Pass paramters to the callback function */
-    raw_status_params.opcode = opcode;   /* Number of bytes in return info */
-    raw_status_params.status = status;    /* Number of bytes in return info */
-    (p_devcb->p_hci_status_cb) (&raw_status_params);  /* Call the cmd complete callback function */
   }
 }
 #endif

@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cutils/properties.h>
 #if defined(OS_GENERIC)
 #define PROPERTY_VALUE_MAX 92
 #else

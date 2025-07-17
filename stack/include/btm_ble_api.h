@@ -410,47 +410,6 @@ extern void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key);
  */
 extern void BTM_BleStartAutoConn();
 
-#ifdef SUPPORT_VENDOR_AP
-/**
- * Set BLE connectable mode to auto connect
- */
-extern bool BTM_BleStartAutoConnV2();
-
-/*******************************************************************************
- *
- * Function         BTM_BleUpdateFcConnDev
- *
- * Description      This function is called to add or remove a device into/from
- *                  fast device connection procedure. The fast device connection
-*                   procedure is decided by the fast device connection type, it
-*can be
-*                   auto connection, or selective connection.
- *
- * Parameters       add_remove: true to add; false to remove.
- *                  remote_bda: device address to add/remove.
- *
- * Returns          void
- *
- ******************************************************************************/
-extern bool BTM_BleUpdateFcConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent);
-
-/*******************************************************************************
- *
- * Function         BTM_BleClearFcConnDev
- *
- * Description      This function is called to clear the fastdevice,
- *                  end any pending fast connections,
- *                  and reset the local fc device list.
- *
- * Parameters       void
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTM_BleClearFcConnDev(uint8_t advertising_handle);
-
-extern bool BTM_BleUpdateWlDev(bool add_remove, const RawAddress& remote_bda);
-#endif
 /*******************************************************************************
  *
  * Function         BTM_BleUpdateBgConnDev

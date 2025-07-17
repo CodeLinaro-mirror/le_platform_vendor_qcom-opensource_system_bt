@@ -45,7 +45,19 @@ if test "x$with_common_includes" != "xno"; then
    CFLAGS="${CFLAGS} -I${common_incdir}"
 fi
 
-PKG_CHECK_MODULES([AROUTE], [audioroute])
+AC_ARG_ENABLE([audio],
+  [AS_HELP_STRING([--enable-audio], [Enable audio support])],
+  [case "${enableval}" in
+      yes) audio=true ;;
+      no)  audio=false ;;
+      *) AC_MSG_ERROR([bad value ${enableval} for --enable-audio]) ;;
+  esac],[audio=false])
+
+
+if test "x$audio" = "xtrue"; then
+   PKG_CHECK_MODULES([AROUTE], [audioroute])
+fi
+
 AC_SUBST([AROUTE_CFLAGS])
 
 AC_ARG_WITH([chrome_includes],
@@ -102,6 +114,7 @@ AC_ARG_ENABLE(rome,
   [ROME=none]
 )
 
+AM_CONDITIONAL([BT_AUDIO_ENABLE], [test "x$audio" = "xtrue"])
 AM_CONDITIONAL([MDM_ROME], [test "x$TARGET" = "xmdm9607" -o "x$TARGET" = "xmdm9635" -o "x$TARGET" = "xmdm9640" -o "x$TARGET" = "xmdm9650" -o "x$TARGET" = "xapq8096" -o "x$TARGET" = "xsdx20" -o "x$ROME" = "xqsap" -o "x$ROME" = "xrobot-rome"])
 AM_CONDITIONAL([MDM_PRONTO], [test "x$TARGET" = "xapq8009" -o "x$TARGET" = "xapq8017" -o "x$TARGET" = "xapq8053" -o "x$TARGET" = "xapq8016"])
 AM_CONDITIONAL([MDM_CHEROKEE], [test "x$TARGET" = "xapq8098" -o "x$TARGET" = "xsdmsteppe"])
@@ -178,11 +191,9 @@ AC_ARG_ENABLE([hidl],
 
 AM_CONDITIONAL([USING_HIDL], [test x$hidl = xtrue])
 
-AC_ARG_WITH([vendorap],
-     AC_HELP_STRING([--with-vendorap],
-        [enable VENDOR AP, building Fluoride with VENDOR AP support]))
-
-AM_CONDITIONAL(SUPPORT_VENDOR_AP, test "x${with_vendorap}" = "xyes")
+AC_ARG_WITH([esl],
+     AC_HELP_STRING([--with-esl],
+        [enable ESL AP, building Fluoride with ESL AP support]))
 
 AC_SUBST(SYS_LIB)
 

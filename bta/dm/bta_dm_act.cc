@@ -785,12 +785,7 @@ void bta_dm_process_remove_device(const RawAddress& bd_addr) {
     sec_event.link_down.bd_addr = bd_addr;
     /* No connection, set status to success (acl disc code not valid) */
     sec_event.link_down.status = HCI_SUCCESS;
-#ifdef SUPPORT_VENDOR_AP
-    btm_set_bond_type_dev(bd_addr, BOND_TYPE_UNKNOWN);
     bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
-#else
-    bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
-#endif
   }
 }
 
@@ -3324,7 +3319,7 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
     bta_dm_cb.device_list.peer_device[i].conn_state = BTA_DM_CONNECTED;
     bta_dm_cb.device_list.peer_device[i].pref_role = BTA_ANY_ROLE;
     conn.link_up.bd_addr = p_bda;
-    memcpy(conn.link_up.dc, p_data->acl_change.dc, sizeof(DEV_CLASS));    
+    memcpy(conn.link_up.dc, p_data->acl_change.dc, sizeof(DEV_CLASS));
     bta_dm_cb.device_list.peer_device[i].info = BTA_DM_DI_NONE;
     conn.link_up.link_type = p_data->acl_change.transport;
     bta_dm_cb.device_list.peer_device[i].transport =
@@ -3424,12 +3419,7 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
     conn.link_down.bd_addr = p_bda;
     conn.link_down.status = (uint8_t)btm_get_acl_disc_reason_code();
     if (bta_dm_cb.p_sec_cback) {
-#ifdef SUPPORT_VENDOR_AP
-      btm_set_bond_type_dev(p_bda, BOND_TYPE_UNKNOWN);
       bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, &conn);
-#else
-      bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, &conn);
-#endif
       if (issue_unpair_cb)
         bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &conn);
     }

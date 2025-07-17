@@ -28,6 +28,7 @@
 #define LOG_TAG "bt_utils"
 
 #include "bt_utils.h"
+#include "osi/include/log.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -55,7 +56,6 @@
 #include "btcore/include/module.h"
 #include "osi/include/compat.h"
 
-#include "osi/include/log.h"
 #include "osi/include/properties.h"
 
 

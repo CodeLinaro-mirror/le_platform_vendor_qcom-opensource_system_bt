@@ -677,11 +677,6 @@ extern void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode,
                                        uint8_t len, uint8_t* p_data,
                                        void* p_cmd_cplt_cback);
 
-#ifdef SUPPORT_VENDOR_AP
-void btsnd_hcic_raw_cmd_with_status_cb (void *buffer, uint16_t opcode, uint8_t len,
-                                 uint8_t *p_data, void *p_cmd_status_cback);
-#endif
-
 /*******************************************************************************
  * BLE Commands
  *      Note: "local_controller_id" is for transport, not counted in HCI
@@ -709,11 +704,6 @@ void btsnd_hcic_raw_cmd_with_status_cb (void *buffer, uint16_t opcode, uint8_t l
 #define HCIC_PARAM_SIZE_BLE_READ_REMOTE_FEAT 2
 #define HCIC_PARAM_SIZE_BLE_ENCRYPT 32
 #define HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED 2
-#ifdef SUPPORT_VENDOR_AP
-#define HCIC_PARAM_SIZE_ADD_FAST_DEV 10
-#define HCIC_PARAM_SIZE_REMOVE_FAST_DEV 9
-#define HCIC_PARAM_SIZE_CLEAR_FAST_DEV 2
-#endif
 
 #define HCIC_BLE_RAND_DI_SIZE 8
 #define HCIC_BLE_ENCRYT_KEY_SIZE 16
@@ -792,12 +782,6 @@ extern void btsnd_hcic_ble_add_white_list(uint8_t addr_type,
 
 extern void btsnd_hcic_ble_remove_from_white_list(uint8_t addr_type,
                                                   const RawAddress& bda);
-
-#ifdef SUPPORT_VENDOR_AP
-extern void btsnd_hcic_ble_add_pending_list(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle, uint8_t subevent);
-extern void btsnd_hcic_ble_remove_from_pending_list(uint8_t addr_type, const RawAddress& bda, uint8_t advertising_handle);
-extern void btsnd_hcic_ble_clear_pending_list(void);
-#endif
 
 extern void btsnd_hcic_ble_upd_ll_conn_params(
     uint16_t handle, uint16_t conn_int_min, uint16_t conn_int_max,
@@ -896,16 +880,6 @@ extern void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
                                            uint8_t initiating_phys,
                                            EXT_CONN_PHY_CFG* phy_cfg);
 
-#ifdef SUPPORT_VENDOR_AP
-extern void btsnd_hcic_ble_ext_create_conn_v2(uint8_t advertising_handle,
-                                              uint8_t subevent,
-                                              uint8_t init_filter_policy,
-                                              uint8_t addr_type_own,
-                                              uint8_t addr_type_peer,
-                                              const RawAddress& bda_peer,
-                                              uint8_t initiating_phys,
-                                              EXT_CONN_PHY_CFG* phy_cfg);
-#endif
 extern void btsnd_hcic_ble_add_device_resolving_list(
     uint8_t addr_type_peer, const RawAddress& bda_peer,
     uint8_t irk_peer[HCIC_BLE_IRK_SIZE], uint8_t irk_local[HCIC_BLE_IRK_SIZE]);

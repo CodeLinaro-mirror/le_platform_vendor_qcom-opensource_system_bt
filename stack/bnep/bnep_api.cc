@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "bnep_api.h"
-#include <log.h>
+#include <cutils/log.h>
 #include <string.h>
 #include "bnep_int.h"
 

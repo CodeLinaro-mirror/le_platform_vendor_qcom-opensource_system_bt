@@ -74,7 +74,7 @@ class LogMessage {
 
 #else /* !defined(OS_GENERIC) */
 
-#include <syslog.h>
+#include <log/log.h>
 #define LOG_EVENT_INT(...)
 /**
  * These log statements are effectively executing only ALOG(_________, tag, fmt,
@@ -122,18 +122,13 @@ class LogMessage {
 #include <limits.h>
 #include <stdio.h>
 #ifdef USE_ANDROID_LOGGING
-#include <syslog.h>
+#include <utils/Log.h>
 #define LOG_TAG "bt_stack"
-#define ALOGV(fmt, arg...) syslog (LOG_WARNING, fmt, ##arg)
-#define ALOGD(fmt, arg...) syslog (LOG_NOTICE, fmt, ##arg)
-#define ALOGI(fmt, arg...) syslog (LOG_NOTICE, fmt, ##arg)
-#define ALOGW(fmt, arg...) syslog (LOG_WARNING, fmt, ##arg)
-#define ALOGE(fmt, arg...) syslog (LOG_ERR, fmt, ##arg)
-#define LOG_VERBOSE(tag, fmt, args...) syslog (LOG_WARNING, fmt, ##args)
-#define LOG_DEBUG(tag, fmt, args...)   syslog (LOG_NOTICE, fmt, ##args)
-#define LOG_INFO(tag, fmt, args...)   syslog (LOG_NOTICE, fmt, ##args)
-#define LOG_WARN(tag, fmt, args...)   syslog (LOG_WARNING, fmt, ##args)
-#define LOG_ERROR(tag, fmt, args...)   syslog (LOG_ERR, fmt, ##args)
+#define LOG_VERBOSE(tag, fmt, args...) ALOG(LOG_VERBOSE, tag, fmt, ##args)
+#define LOG_DEBUG(tag, fmt, args...)   ALOG(LOG_DEBUG, tag, fmt, ##args)
+#define LOG_INFO(tag, fmt, args...)   ALOG(LOG_INFO, tag, fmt, ##args)
+#define LOG_WARN(tag, fmt, args...)   ALOG(LOG_WARN, tag, fmt, ##args)
+#define LOG_ERROR(tag, fmt, args...)   ALOG(LOG_ERROR, tag, fmt, ##args)
 #else
 #include <syslog.h>
 #define LOG_TAG "bt_stack : "
@@ -142,11 +137,11 @@ class LogMessage {
 #define PRI_ERROR " E"
 #define PRI_DEBUG " D"
 #define PRI_VERB " V"
-#define ALOGV(fmt, arg...) syslog (LOG_WARNING, fmt, ##arg)
-#define ALOGD(fmt, arg...) syslog (LOG_NOTICE, fmt, ##arg)
-#define ALOGI(fmt, arg...) syslog (LOG_NOTICE, fmt, ##arg)
-#define ALOGW(fmt, arg...) syslog (LOG_WARNING, fmt, ##arg)
-#define ALOGE(fmt, arg...) syslog (LOG_ERR, fmt, ##arg)
+#define ALOGV(fmt, arg...) syslog (LOG_WARNING, LOG_TAG fmt, ##arg)
+#define ALOGD(fmt, arg...) syslog (LOG_NOTICE, LOG_TAG fmt, ##arg)
+#define ALOGI(fmt, arg...) syslog (LOG_NOTICE, LOG_TAG fmt, ##arg)
+#define ALOGW(fmt, arg...) syslog (LOG_WARNING, LOG_TAG fmt, ##arg)
+#define ALOGE(fmt, arg...) syslog (LOG_ERR, LOG_TAG fmt, ##arg)
 #define LOG_VERBOSE(fmt, arg...) syslog (LOG_WARNING, LOG_TAG fmt, ##arg)
 #define LOG_DEBUG(fmt, arg...) syslog (LOG_NOTICE, LOG_TAG fmt, ##arg)
 #define LOG_INFO(fmt, arg...)  syslog (LOG_NOTICE, LOG_TAG fmt, ##arg)

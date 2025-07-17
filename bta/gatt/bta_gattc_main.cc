@@ -39,9 +39,6 @@
 /* state machine action enumeration list */
 enum {
   BTA_GATTC_OPEN,
-#ifdef SUPPORT_VENDOR_AP
-  BTA_GATTC_OPEN_V2,
-#endif
   BTA_GATTC_OPEN_FAIL,
   BTA_GATTC_OPEN_ERROR,
   BTA_GATTC_CANCEL_OPEN,
@@ -76,9 +73,6 @@ typedef void (*tBTA_GATTC_ACTION)(tBTA_GATTC_CLCB* p_clcb,
 
 /* action function list */
 const tBTA_GATTC_ACTION bta_gattc_action[] = {bta_gattc_open,
-#ifdef SUPPORT_VENDOR_AP
-                                              bta_gattc_open_v2,
-#endif
                                               bta_gattc_open_fail,
                                               bta_gattc_open_error,
                                               bta_gattc_cancel_open,
@@ -115,18 +109,10 @@ static const uint8_t bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1                  Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
-                                            BTA_GATTC_W4_CONN_ST},
-#endif
     /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_IDLE_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_IDLE_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_IGNORE,
-                                            BTA_GATTC_IDLE_ST},
-#endif
     /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_IDLE_ST},
 
@@ -159,18 +145,10 @@ static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
-                                            BTA_GATTC_W4_CONN_ST},
-#endif
     /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_OPEN_FAIL,
                                             BTA_GATTC_IDLE_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN,
                                             BTA_GATTC_W4_CONN_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN,
-                                            BTA_GATTC_W4_CONN_ST},
-#endif
     /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */ {BTA_GATTC_CANCEL_OPEN_OK,
                                             BTA_GATTC_IDLE_ST},
 
@@ -209,17 +187,10 @@ static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] = {
 static const uint8_t bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN, BTA_GATTC_CONN_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2, BTA_GATTC_CONN_ST},
-#endif
     /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_CONN_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_CONN_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN_ERROR,
-                                            BTA_GATTC_CONN_ST},
-#endif
     /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_CONN_ST},
 
@@ -256,18 +227,10 @@ static const uint8_t bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] = {
     /* Event                            Action 1 Next state */
     /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
                                             BTA_GATTC_DISCOVER_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_OPEN_EVT_V2        */ {BTA_GATTC_OPEN_V2,
-                                            BTA_GATTC_DISCOVER_ST},
-#endif
     /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_IGNORE,
                                             BTA_GATTC_DISCOVER_ST},
     /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN_ERROR,
                                             BTA_GATTC_DISCOVER_ST},
-#ifdef SUPPORT_VENDOR_AP
-    /* BTA_GATTC_API_CANCEL_OPEN_EVT_v2 */ {BTA_GATTC_CANCEL_OPEN_ERROR,
-                                            BTA_GATTC_DISCOVER_ST},
-#endif
     /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */ {BTA_GATTC_FAIL,
                                             BTA_GATTC_DISCOVER_ST},
 
@@ -404,30 +367,6 @@ bool bta_gattc_hdl_event(BT_HDR* p_msg) {
       bta_gattc_process_api_open((tBTA_GATTC_DATA*)p_msg);
       break;
 
-#ifdef SUPPORT_VENDOR_AP
-    case BTA_GATTC_API_OPEN_EVT_V2:
-      bta_gattc_process_api_open_v2((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_ADD_FC_DEV:
-      bta_gattc_process_add_fc_dev((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_RM_FC_DEV:
-      bta_gattc_process_rm_fc_dev((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_CL_FC_DEV:
-      bta_gattc_process_cl_fc_dev((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_ADD_WH_LIST:
-      bta_gattc_process_add_wh_list((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_RM_WH_LIST:
-      bta_gattc_process_rm_wh_list((tBTA_GATTC_DATA*)p_msg);
-      break;
-    case BTA_GATTC_API_CANCEL_OPEN_EVT_v2:
-      bta_gattc_process_api_open_cancel_v2((tBTA_GATTC_DATA*)p_msg);
-      break;
-#endif
-
     case BTA_GATTC_API_CANCEL_OPEN_EVT:
       bta_gattc_process_api_open_cancel((tBTA_GATTC_DATA*)p_msg);
       break;
@@ -471,23 +410,6 @@ static const char* gattc_evt_code(tBTA_GATTC_INT_EVT evt_code) {
   switch (evt_code) {
     case BTA_GATTC_API_OPEN_EVT:
       return "BTA_GATTC_API_OPEN_EVT";
-#ifdef SUPPORT_VENDOR_AP
-    case BTA_GATTC_API_OPEN_EVT_V2:
-      return "BTA_GATTC_API_OPEN_EVT_V2";
-    case BTA_GATTC_ADD_PD_LIST:
-      return "BTA_GATTC_ADD_PD_LIST";
-    case BTA_GATTC_RM_PD_LIST:
-      return "BTA_GATTC_RM_PD_LIST";
-    case BTA_GATTC_CL_PD_LIST:
-      return "BTA_GATTC_CL_PD_LIST";
-    case BTA_GATTC_ADD_WH_LIST:
-      return "BTA_GATTC_ADD_WH_LIST";
-    case BTA_GATTC_RM_WH_LIST:
-      return "BTA_GATTC_RM_WH_LIST";
-    case BTA_GATTC_API_CANCEL_OPEN_EVT_v2:
-      return "BTA_GATTC_API_CANCEL_OPEN_EVT_v2";
-#endif
-
     case BTA_GATTC_INT_OPEN_FAIL_EVT:
       return "BTA_GATTC_INT_OPEN_FAIL_EVT";
     case BTA_GATTC_API_CANCEL_OPEN_EVT:

@@ -23,7 +23,6 @@
 #include "hardware/vendor.h"
 bt_property_callout_t* property_callouts = NULL;
 #endif
-#include "properties.h"
 
 int osi_property_get(const char* key, char* value, const char* default_value) {
 #if defined(OS_GENERIC)

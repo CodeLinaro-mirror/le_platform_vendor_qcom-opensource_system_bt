@@ -1012,7 +1012,7 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, tGATT_CBACK* p_cb_info) {
 void GATT_Deregister(tGATT_IF gatt_if) {
   bool is_gatt_connected = false;
   VLOG(1) << __func__ << " gatt_if=" << +gatt_if;
-  
+
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   /* Index 0 is GAP and is never deregistered */
   if ((gatt_if == 0) || (p_reg == NULL)) {
@@ -1163,128 +1163,6 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
 
   return status;
 }
-
-#ifdef SUPPORT_VENDOR_AP
-/*******************************************************************************
- *
- * Function         GATT_Connect_v2
- *
- * Description      This function initiate a connecttion to a remote device on
- *                  GATT channel.
- *
- * Parameters       gatt_if: applicaiton interface
- *                  bd_addr: peer device address.
- *                  is_direct: is a direct conenection or a background auto
- *                             connection
- *
- * Returns          true if connection started; false if connection start
- *                  failure.
- *
- ******************************************************************************/
-bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
-                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
-                  bool opportunistic) {
-  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
-  return GATT_Connect_v2(gatt_if, advertising_handle, subevent, bd_addr, is_direct, transport, opportunistic,
-                      phy);
-}
-
-bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
-                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
-                  bool opportunistic, uint8_t initiating_phys) {
-  tGATT_REG* p_reg;
-  bool status = false;
-  LOG(INFO) << __func__ << "gatt_if=" << +gatt_if << " " << bd_addr;
-
-  /* Make sure app is registered */
-  p_reg = gatt_get_regcb(gatt_if);
-  if (p_reg == NULL) {
-    LOG(ERROR) << "gatt_if = " << gatt_if << " is not registered";
-    return (false);
-  }
-
-  if (is_direct)
-    status = gatt_act_connect_v2(p_reg, advertising_handle, subevent, bd_addr, transport, opportunistic,
-                              initiating_phys);
-  else {
-    if (transport == BT_TRANSPORT_LE)
-      status = gatt_start_auto_fast_connection();
-    else {
-      LOG(ERROR) << "Unsupported transport for background connection";
-    }
-  }
-
-  return status;
-}
-
-bool GATT_Add_Fast_Device(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
-    bool status = false;
-    status = gatt_update_fc_connect_dev(gatt_if, true, bd_addr, advertising_handle, subevent);
-    return status;
-}
-
-bool GATT_Remove_Fast_Device(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
-    bool status = false;
-    status = gatt_update_fc_connect_dev(gatt_if, false, bd_addr, advertising_handle, subevent);
-    return status;
-}
-
-bool GATT_Clear_Fast_Device(tGATT_IF gatt_if, uint8_t advertising_handle) {
-    bool status = false;
-    status = gatt_clear_fc_connect_dev(gatt_if, advertising_handle);
-    return status;
-}
-
-bool GATT_Add_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
-    bool status = false;
-    status = gatt_update_wl_connect_dev(gatt_if, true, bd_addr);
-    return status;
-}
-
-bool GATT_Remove_White_List(tGATT_IF gatt_if, const RawAddress& bd_addr) {
-    bool status = false;
-    status = gatt_update_wl_connect_dev(gatt_if, false, bd_addr);
-    return status;
-}
-
-bool GATT_CancelConnect_v2(tGATT_IF gatt_if, const RawAddress& bd_addr,
-                        bool is_direct) {
-  LOG(INFO) << __func__ << ": gatt_if=" << +gatt_if;
-
-  if (gatt_if && !gatt_get_regcb(gatt_if)) {
-    LOG(ERROR) << "gatt_if =" << +gatt_if << " is not registered";
-    return false;
-  }
-
-  if (is_direct) {
-    if (gatt_if) {
-      return gatt_cancel_open(gatt_if, bd_addr);
-    }
-
-    VLOG(1) << " unconditional";
-    /* only LE connection can be cancelled */
-    tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
-    if (!p_tcb || p_tcb->app_hold_link.empty()) {
-      LOG(ERROR) << __func__ << " no app found";
-      return false;
-    }
-
-    for (auto it = p_tcb->app_hold_link.begin();
-         it != p_tcb->app_hold_link.end();) {
-      auto next = std::next(it);
-      // gatt_cancel_open modifies the app_hold_link.
-      if (!gatt_cancel_open(*it, bd_addr)) return false;
-
-      it = next;
-    }
-
-    return true;
-  }
-  // is not direct
-  // send cancel command
-  return btm_ble_suspend_fc_conn();
-}
-#endif
 
 /*******************************************************************************
  *

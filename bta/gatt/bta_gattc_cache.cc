@@ -838,13 +838,6 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
 
   if (p_srvc_cb != NULL && p_clcb != NULL &&
       p_clcb->state == BTA_GATTC_DISCOVER_ST) {
-#ifdef SUPPORT_VENDOR_AP
-        if(p_data->handle == ((((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.e_handle))) {
-          bta_gattc_add_attr_to_cache(
-            p_srvc_cb, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->handle, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.service_type,
-            false, ((tGATT_DISC_RES*)p_srvc_cb->include_service_data)->value.incl_service.s_handle,BTA_GATTC_ATTR_TYPE_INCL_SRVC);
-        }
-#endif
     switch (disc_type) {
       case GATT_DISC_SRVC_ALL:
         /* discover services result, add services into a service list */
@@ -868,7 +861,6 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
             p_data->value.incl_service.e_handle,
             p_data->value.incl_service.service_type);
 
-#ifndef SUPPORT_VENDOR_AP
         if (!pri_srvc)
           bta_gattc_add_srvc_to_list(
               p_srvc_cb, p_data->value.incl_service.s_handle,
@@ -879,15 +871,6 @@ void bta_gattc_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
             p_srvc_cb, p_data->handle, p_data->value.incl_service.service_type,
             pri_srvc, p_data->value.incl_service.s_handle,
             BTA_GATTC_ATTR_TYPE_INCL_SRVC);
-#else
-        if (!pri_srvc) {
-          bta_gattc_add_srvc_to_list(
-              p_srvc_cb, p_data->value.incl_service.s_handle,
-              p_data->value.incl_service.e_handle,
-              p_data->value.incl_service.service_type, false);
-              memcpy(p_srvc_cb->include_service_data, p_data, 255);
-        }
-#endif
         break;
 
       case GATT_DISC_CHAR:

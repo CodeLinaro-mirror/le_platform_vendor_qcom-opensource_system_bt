@@ -1508,24 +1508,6 @@ void btsnd_hcic_raw_cmd (void *buffer, uint16_t opcode, uint8_t len,
   btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 }
 
-#ifdef SUPPORT_VENDOR_AP
-void btsnd_hcic_raw_cmd_with_status_cb (void *buffer, uint16_t opcode, uint8_t len,
-                                 uint8_t *p_data, void *p_cmd_status_cback)
-{
-  BT_HDR *p = (BT_HDR *)buffer;
-  uint8_t *pp = (uint8_t *)(p + 1);
-
-  p->len    = HCIC_PREAMBLE_SIZE + len;
-  p->offset = 0;
-
-  UINT16_TO_STREAM (pp, opcode);
-  UINT8_TO_STREAM  (pp, len);
-  ARRAY_TO_STREAM  (pp, p_data, len);
-
-  btu_hcif_send_cmd_with_status_cb (LOCAL_BR_EDR_CONTROLLER_ID, p, p_cmd_status_cback);
-}
-#endif
-
 void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode, uint8_t len,
                                 uint8_t* p_data, void* p_cmd_cplt_cback) {
   BT_HDR* p = (BT_HDR*)buffer;

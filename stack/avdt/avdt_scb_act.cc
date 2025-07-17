@@ -26,7 +26,7 @@
  *  control block state machine.
  *
  ******************************************************************************/
-#include <log.h>
+#include <cutils/log.h>
 #include <string.h>
 #include "a2dp_codec_api.h"
 #include "avdt_api.h"

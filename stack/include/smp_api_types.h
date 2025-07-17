@@ -63,10 +63,6 @@
 #define SMP_SC_LOC_OOB_DATA_UP_EVT 10
 #define SMP_BR_KEYS_REQ_EVT 12 /* SMP over BR keys request event */
 
-#ifdef SUPPORT_VENDOR_AP
-#define SMP_ENCRYPTION_INFORMATION_EVT 13 /* encryption information event */
-#endif
-
 typedef uint8_t tSMP_EVT;
 
 /* pairing failure reason code */
@@ -260,26 +256,12 @@ typedef struct {
   tSMP_PEER_OOB_DATA peer_oob_data;
 } tSMP_SC_OOB_DATA;
 
-#ifdef SUPPORT_VENDOR_AP
-typedef struct {
-  BT_OCTET16 ltk;
-  BT_OCTET8 rand;
-  uint16_t ediv;
-  uint8_t sec_level;
-  uint8_t key_size;
-} tSMP_ENC_KEY;
-#endif
-
 typedef union {
   uint32_t passkey;
   tSMP_IO_REQ io_req; /* IO request */
   tSMP_CMPL cmplt;
   tSMP_OOB_DATA_TYPE req_oob_type;
   tSMP_LOC_OOB_DATA loc_oob_data;
-#ifdef SUPPORT_VENDOR_AP
-  tSMP_ENC_KEY enc_key;
-  tSMP_AUTH_REQ auth_req;
-#endif
 } tSMP_EVT_DATA;
 
 /* AES Encryption output */
