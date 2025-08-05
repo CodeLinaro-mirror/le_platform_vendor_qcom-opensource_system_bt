@@ -272,6 +272,17 @@ bt_status_t btif_dm_remove_bond(const RawAddress* bd_addr);
 uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr);
 
 /*******************************************************************************
+ *
+ *  Function         btif_dm_get_conn_handle
+ *
+ *  Description      Get connection handle of dut with a given remote device
+ *
+ *  Returns          connection handle
+ *
+ ******************************************************************************/
+uint16_t btif_dm_get_conn_handle(const RawAddress* bd_addr);
+
+/*******************************************************************************
 **
 ** Function         btif_dm_switch_role_req
 **

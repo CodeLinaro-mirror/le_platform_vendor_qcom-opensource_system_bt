@@ -979,6 +979,21 @@ uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr) {
 
 /*******************************************************************************
 *
+*  Function         btif_dm_get_conn_handle
+*
+*  Description      Get role of dut with a given remote device
+*
+*  Returns          connection handle or 0xFFFF if not connected
+*
+*******************************************************************************/
+uint16_t btif_dm_get_conn_handle(const RawAddress* bd_addr)
+{
+    BTIF_TRACE_DEBUG("%s, bd address : %s", __func__,bd_addr->ToString().c_str());
+    return  BTM_GetHCIConnHandle(*bd_addr, BT_TRANSPORT_LE);
+}
+
+/*******************************************************************************
+*
 *  Function         btif_dm_get_role_req
 *
 *  Description      Get role of dut with a given remote device
