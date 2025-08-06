@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/../../bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -38,7 +38,7 @@ AM_CPPFLAGS = -I$(srcdir)/include \
         -I$(external_bt_path)/system_bt_ext/bta/include \
         -I$(external_bt_path)/system_bt_ext/stack/include \
         -I$(external_bt_path)/system_bt_ext/bta/tws_plus \
-        -I$(BT_SOURCE)/bt_audio/hal/include
+        -I$(AUDIO_INC_PATH)/hal/include
 AM_CPPFLAGS += @AROUTE_CFLAGS@
 
 

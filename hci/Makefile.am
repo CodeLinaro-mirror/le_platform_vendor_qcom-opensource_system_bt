@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/../../bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
