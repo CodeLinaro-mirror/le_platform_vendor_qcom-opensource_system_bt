@@ -102,7 +102,7 @@ static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
                                  bool is_received, uint64_t timestamp_us);
 
 static const char* BTSNOOP_THREAD_NAME = "btsnoop_workqueue";
-#define MAX_BTSNOOP_WORKQUEUE_COUNT    (256)
+#define MAX_BTSNOOP_WORKQUEUE_COUNT    (1024)
 static thread_t *btsnoop_thread = NULL;
 static base::MessageLoop* btsnoop_message_loop_ = NULL;
 static base::RunLoop* btsnoop_run_loop_ = NULL;
@@ -205,12 +205,15 @@ static void do_in_btsnoop_thread(const base::Closure& task) {
 
 // Interface functions
 static void capture(const BT_HDR* buffer, bool is_received) {
-  BT_HDR* buffer_new = (BT_HDR*)malloc(sizeof(BT_HDR) + buffer->len);
+  if (!buffer)
+    return;
+  uint16_t data_len = buffer->len + buffer->offset;
+  BT_HDR* buffer_new = (BT_HDR*)malloc(BT_HDR_SIZE + data_len);
   buffer_new->event = buffer->event;
   buffer_new->len = buffer->len;
   buffer_new->offset = buffer->offset;
   buffer_new->layer_specific = buffer->layer_specific;
-  memcpy(buffer_new->data, buffer->data, buffer_new->len);
+  memcpy(buffer_new->data, buffer->data, data_len);
   uint64_t timestamp_us = time_gettimeofday_us();
   timestamp_us += gmt_offset*1000000LL;
 
