@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/../../bluetooth_ext
 
 AM_CFLAGS = -Wno-gnu-variable-sized-type-not-at-end \
         -Wundef \
@@ -21,11 +21,10 @@ AM_CPPFLAGS= \
         -I$(srcdir)/../bta/include \
         -I$(srcdir)/../internal_include \
         -I$(external_bt_path)/vhal/include \
-        -I$(BT_SOURCE)/bt_audio/hal/include \
+        -I$(AUDIO_INC_PATH)/hal/include \
         -I$(srcdir)/../include \
         -I$(srcdir)/../types \
         -I$(srcdir)/../ \
-        -I$(BT_SOURCE)/bt_audio/hal/include \
         -I$(bdroid_C_INCLUDES)
 
 if MDM_ROME

@@ -1508,7 +1508,7 @@ void btsnd_hcic_raw_cmd (void *buffer, uint16_t opcode, uint8_t len,
   btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btsnd_hcic_raw_cmd_with_status_cb (void *buffer, uint16_t opcode, uint8_t len,
                                  uint8_t *p_data, void *p_cmd_status_cback)
 {

@@ -49,7 +49,7 @@
 #endif
 
 using bluetooth::Uuid;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern uint8_t vendor_gattc_if;
 #endif
 
@@ -241,16 +241,16 @@ void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
       }
     }
 
-#ifdef SUPPORT_ESL_AP
-    /* remove pd connection associated with this rcb */
-    for (i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX; i++) {
-      if (bta_gattc_cb.pd_track[i].in_use) {
-        if (bta_gattc_cb.pd_track[i].cif_mask &
+#ifdef SUPPORT_VENDOR_AP
+    /* remove fc connection associated with this rcb */
+    for (i = 0; i < BTA_GATTC_KNOWN_FC_SR_MAX; i++) {
+      if (bta_gattc_cb.fc_track[i].in_use) {
+        if (bta_gattc_cb.fc_track[i].cif_mask &
             (1 << (p_clreg->client_if - 1))) {
-          bta_gattc_mark_pd_conn(p_clreg->client_if,
-                                 bta_gattc_cb.pd_track[i].remote_bda, false);
+          bta_gattc_mark_fc_conn(p_clreg->client_if,
+                                 bta_gattc_cb.fc_track[i].remote_bda, false);
           GATT_CancelConnect_v2(p_clreg->client_if,
-                             bta_gattc_cb.pd_track[i].remote_bda, false);
+                             bta_gattc_cb.fc_track[i].remote_bda, false);
         }
       }
     }
@@ -314,7 +314,7 @@ void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg) {
                      p_msg->api_conn.client_if);
   }
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_process_api_open_v2
@@ -344,7 +344,7 @@ void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg) {
             BTA_GATT_INVALID_CONN_ID, p_msg->api_conn_v2.transport, 0);
       }
     } else {
-      bta_gattc_init_pd_conn(&p_msg->api_conn_v2, p_clreg);
+      bta_gattc_init_fc_conn(&p_msg->api_conn_v2, p_clreg);
     }
   } else {
     APPL_TRACE_ERROR("%s: Failed, unknown client_if: %d", __func__,
@@ -352,36 +352,36 @@ void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg) {
   }
 }
 
-void bta_gattc_process_add_pd_list(tBTA_GATTC_DATA* p_msg) {
-  if (bta_gattc_mark_pd_conn(p_msg->api_add_pd.client_if, p_msg->api_add_pd.remote_bda, true)) {
-    GATT_Add_Pending_List(p_msg->api_add_pd.client_if, p_msg->api_add_pd.remote_bda, p_msg->api_add_pd.advertising_handle, p_msg->api_add_pd.subevent);
+void bta_gattc_process_add_fc_dev(tBTA_GATTC_DATA* p_msg) {
+  if (bta_gattc_mark_fc_conn(p_msg->api_add_fc.client_if, p_msg->api_add_fc.remote_bda, true)) {
+    GATT_Add_Fast_Device(p_msg->api_add_fc.client_if, p_msg->api_add_fc.remote_bda, p_msg->api_add_fc.advertising_handle, p_msg->api_add_fc.subevent);
   } else {
-    APPL_TRACE_ERROR("mark device true in pd failed.");
+    APPL_TRACE_ERROR("mark device true in fc failed.");
   }
 }
 
-void bta_gattc_process_rm_pd_list(tBTA_GATTC_DATA* p_msg) {
-  /* mark pending list device false as create connection timeout or gatt connection to remove from pending list */
-  if (bta_gattc_mark_pd_conn(p_msg->api_rm_pd.client_if, p_msg->api_rm_pd.remote_bda, false)) {
-    GATT_Remove_Pending_List(p_msg->api_rm_pd.client_if, p_msg->api_rm_pd.remote_bda, p_msg->api_rm_pd.advertising_handle, p_msg->api_rm_pd.subevent);
+void bta_gattc_process_rm_fc_dev(tBTA_GATTC_DATA* p_msg) {
+  /* mark fast connection device false as create connection timeout or gatt connection to remove from fast device */
+  if (bta_gattc_mark_fc_conn(p_msg->api_rm_fc.client_if, p_msg->api_rm_fc.remote_bda, false)) {
+    GATT_Remove_Fast_Device(p_msg->api_rm_fc.client_if, p_msg->api_rm_fc.remote_bda, p_msg->api_rm_fc.advertising_handle, p_msg->api_rm_fc.subevent);
   } else {
-    APPL_TRACE_ERROR("mark device false in pd failed.");
+    APPL_TRACE_ERROR("mark device false in fc failed.");
   }
 }
 
-void bta_gattc_process_cl_pd_list(tBTA_GATTC_DATA* p_msg) {
-  /* clear pd connection associated with this rcb */
-  for (int i = 0; i < BTA_GATTC_KNOWN_PD_SR_MAX; i++) {
-    if (bta_gattc_cb.pd_track[i].in_use) {
-      if (bta_gattc_cb.pd_track[i].cif_mask &
-          (1 << (p_msg->api_cl_pd.client_if - 1))) {
-        bta_gattc_mark_pd_conn(p_msg->api_cl_pd.client_if,
-                                bta_gattc_cb.pd_track[i].remote_bda, false);
+void bta_gattc_process_cl_fc_dev(tBTA_GATTC_DATA* p_msg) {
+  /* clear fc connection associated with this rcb */
+  for (int i = 0; i < BTA_GATTC_KNOWN_FC_SR_MAX; i++) {
+    if (bta_gattc_cb.fc_track[i].in_use) {
+      if (bta_gattc_cb.fc_track[i].cif_mask &
+          (1 << (p_msg->api_cl_fc.client_if - 1))) {
+        bta_gattc_mark_fc_conn(p_msg->api_cl_fc.client_if,
+                                bta_gattc_cb.fc_track[i].remote_bda, false);
       }
     }
   }
 
-  GATT_Clear_Pending_List(p_msg->api_cl_pd.client_if, p_msg->api_cl_pd.advertising_handle);
+  GATT_Clear_Fast_Device(p_msg->api_cl_fc.client_if, p_msg->api_cl_fc.advertising_handle);
 }
 
 void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg) {
@@ -393,7 +393,7 @@ void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg) {
 }
 
 void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg) {
-  /* mark pending list device false as create connection timeout or gatt connection to remove from pending list */
+  /* mark white list device false as create connection timeout or gatt connection to remove from white list */
   if (bta_gattc_mark_bg_conn(p_msg->api_rm_wl.client_if, p_msg->api_rm_wl.remote_bda, false)) {
     GATT_Remove_White_List(p_msg->api_rm_wl.client_if, p_msg->api_rm_wl.remote_bda);
   } else {
@@ -405,7 +405,7 @@ void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg) {
  *
  * Function         bta_gattc_process_api_open_cancel
  *
- * Description      process connect API request of fast connection using pending list.
+ * Description      process connect API request of fast connection using fast device.
  *
  * Returns          void
  *
@@ -433,7 +433,7 @@ void bta_gattc_process_api_open_cancel_v2(tBTA_GATTC_DATA* p_msg) {
       }
     }
   } else {
-    bta_gattc_cancel_pd_conn(&p_msg->api_cancel_conn);
+    bta_gattc_cancel_fc_conn(&p_msg->api_cancel_conn);
   }
 }
 #endif
@@ -573,7 +573,7 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
     /* else wait for the callback event */
   }
 }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         bta_gattc_open_v2
@@ -685,17 +685,17 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
   }
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
- * Function         bta_gattc_init_pd_conn
+ * Function         bta_gattc_init_fc_conn
  *
- * Description      Process API Open for a pending list connection
+ * Description      Process API Open for a fast device connection
  *
  * Returns          void
  *
  ******************************************************************************/
-void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data,
+void bta_gattc_init_fc_conn(tBTA_GATTC_API_OPEN_V2* p_data,
                             tBTA_GATTC_RCB* p_clreg) {
   tBTA_GATT_STATUS status = BTA_GATT_NO_RESOURCES;
   uint16_t conn_id;
@@ -737,14 +737,14 @@ void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data,
 
 /*******************************************************************************
  *
- * Function         bta_gattc_cancel_pd_conn
+ * Function         bta_gattc_cancel_fc_conn
  *
- * Description      Process API Cancel Open for a pending list connection
+ * Description      Process API Cancel Open for a fast device connection
  *
  * Returns          void
  *
  ******************************************************************************/
-void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
+void bta_gattc_cancel_fc_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data) {
   tBTA_GATTC_RCB* p_clreg;
   tBTA_GATTC cb_data;
   cb_data.status = BTA_GATT_ERROR;
@@ -830,7 +830,7 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
 
   if (p_clcb->p_srcb->mtu == 0) p_clcb->p_srcb->mtu = GATT_DEF_BLE_MTU_SIZE;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 if (gatt_if != vendor_gattc_if)
   {
     /* start database cache if needed */
@@ -1150,7 +1150,7 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
 void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
                          UNUSED_ATTR tBTA_GATTC_DATA* p_data) {
   tBTA_GATTC_DATA* p_q_cmd = p_clcb->p_q_cmd;
-  #ifdef SUPPORT_ESL_AP
+  #ifdef SUPPORT_VENDOR_AP
   tBTA_GATTC_IF gatt_if;
   tBTA_TRANSPORT transport;
   #endif
@@ -1198,7 +1198,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
      */
     if (p_q_cmd != p_clcb->p_q_cmd) osi_free_and_reset((void**)&p_q_cmd);
   }
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   GATT_GetConnectionInfor(p_clcb->bta_conn_id, &gatt_if, p_clcb->bda,
                             &transport);
   if ((gatt_if == vendor_gattc_if) && p_clcb->p_rcb->p_cback && p_clcb->p_srcb) {

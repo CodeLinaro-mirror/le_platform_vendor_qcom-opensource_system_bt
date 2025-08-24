@@ -63,7 +63,7 @@
 #define SMP_SC_LOC_OOB_DATA_UP_EVT 10
 #define SMP_BR_KEYS_REQ_EVT 12 /* SMP over BR keys request event */
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 #define SMP_ENCRYPTION_INFORMATION_EVT 13 /* encryption information event */
 #endif
 
@@ -260,7 +260,7 @@ typedef struct {
   tSMP_PEER_OOB_DATA peer_oob_data;
 } tSMP_SC_OOB_DATA;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   BT_OCTET16 ltk;
   BT_OCTET8 rand;
@@ -276,7 +276,7 @@ typedef union {
   tSMP_CMPL cmplt;
   tSMP_OOB_DATA_TYPE req_oob_type;
   tSMP_LOC_OOB_DATA loc_oob_data;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tSMP_ENC_KEY enc_key;
   tSMP_AUTH_REQ auth_req;
 #endif

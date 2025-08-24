@@ -1,6 +1,6 @@
 # sources and intermediate files are separated
 
-external_bt_path := $(BT_SOURCE)/stack/bluetooth_ext
+external_bt_path := $(BT_SOURCE)/../../bluetooth_ext
 
 AM_CFLAGS = -Wall \
         -Wundef \
@@ -41,11 +41,12 @@ AM_CPPFLAGS= \
         -I$(external_bt_path)/system_bt_ext \
         -I$(external_bt_path)/system_bt_ext/include/ \
         -I$(external_bt_path)/system_bt_ext/device/include/ \
-        -I${BT_SOURCE}/bt_audio/hal/include \
-        -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/stack/include \
-        -I${BT_SOURCE}/bt_audio/bthost_ipc \
-        -I${BT_SOURCE}/stack/bluetooth_ext/system_bt_ext/udrv/include \
-        -I$(external_bt_path)/vhal/include
+        -I${external_bt_path}/system_bt_ext/stack/include \
+        -I${external_bt_path}/system_bt_ext/udrv/include \
+        -I$(external_bt_path)/vhal/include \
+        -I${AUDIO_INC_PATH}/hal/include \
+        -I${AUDIO_INC_PATH}/bthost_ipc
+
 AM_CPPFLAGS += @AROUTE_CFLAGS@
 
 
@@ -128,7 +129,7 @@ cpp_sources += \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor.cc \
     $(external_bt_path)/system_bt_ext/btif/src/btif_vendor_socket.cc
 
-if SUPPORT_ESL_AP
+if SUPPORT_VENDOR_AP
 cpp_sources += \
     $(external_bt_path)/system_bt_ext/btif/src/btif_gatt_vendor_client.cc \
     $(external_bt_path)/system_bt_ext/btif/src/btif_ble_vendor_scanner.cc

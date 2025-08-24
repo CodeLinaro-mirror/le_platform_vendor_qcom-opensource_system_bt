@@ -306,17 +306,17 @@ typedef struct {
 
   /** Get gatt db content */
   bt_status_t (*get_gatt_db)(int conn_id);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   /** Create a fast connection to a remote LE or dual-mode device */
   bt_status_t (*connect_v2)(int client_if, uint8_t advertising_handle, uint8_t subevent,
                          const RawAddress& bd_addr, bool is_direct, int transport,
                          bool opportunistic, int initiating_phys);
-  /** Add device to pending list*/
-  bt_status_t (*add_pendinglist)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
-  /** Remove device from pending list*/
-  bt_status_t (*remove_pendinglist)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
-  /** Clear device from pending list*/
-  bt_status_t (*clear_pendinglist)(int client_if, int transport, uint8_t advertising_handle);
+  /** Add device to fastconnection device*/
+  bt_status_t (*add_fastconnection_device)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
+  /** Remove device from fastconnection device*/
+  bt_status_t (*remove_fastconnection_device)(int client_if, const RawAddress& bd_addr, int transport, uint8_t advertising_handle, uint8_t subevent);
+  /** Clear device from fastconnection device*/
+  bt_status_t (*clear_fastconnection_device)(int client_if, int transport, uint8_t advertising_handle);
   /** Add device to white list*/
   bt_status_t (*add_whitelist)(int client_if, const RawAddress& bd_addr, int transport);
   /** Remove device from white list*/

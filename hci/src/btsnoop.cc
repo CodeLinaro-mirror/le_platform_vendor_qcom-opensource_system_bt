@@ -46,6 +46,7 @@
 #include "l2c_api.h"
 #include <poll.h>
 #include <sys/uio.h>
+#include <base/run_loop.h>
 
 // The number of of packets per btsnoop file before we rotate to the next
 // file. As of right now there are two snoop files that are rotated through.
@@ -100,6 +101,14 @@ static void open_next_snoop_file();
 static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
                                  bool is_received, uint64_t timestamp_us);
 
+static const char* BTSNOOP_THREAD_NAME = "btsnoop_workqueue";
+#define MAX_BTSNOOP_WORKQUEUE_COUNT    (1024)
+static thread_t *btsnoop_thread = NULL;
+static base::MessageLoop* btsnoop_message_loop_ = NULL;
+static base::RunLoop* btsnoop_run_loop_ = NULL;
+static int btsnoop_thread_init(void);
+static int btsnoop_thread_deinit(void);
+
 // Module lifecycle functions
 
 static future_t* start_up(void) {
@@ -119,6 +128,8 @@ static future_t* start_up(void) {
                                               DEFAULT_BTSNOOP_SIZE);
     btsnoop_net_open();
     START_SNOOP_LOGGING();
+
+    btsnoop_thread_init();
   }
   LOG_DEBUG(LOG_TAG, "%s: vendor_logging_level values is %d ", __func__, vendor_logging_level);
 
@@ -131,6 +142,8 @@ static future_t* shut_down(void) {
   if (!is_btsnoop_enabled()) {
     delete_btsnoop_files();
   }
+
+  btsnoop_thread_deinit();
 
   if (logfile_fd != INVALID_FD) close(logfile_fd);
   logfile_fd = INVALID_FD;
@@ -152,33 +165,135 @@ EXPORT_SYMBOL extern const module_t btsnoop_module = {
     .clean_up = NULL,
     .dependencies = {STACK_CONFIG_MODULE, NULL}};
 
-// Interface functions
-static void capture(const BT_HDR* buffer, bool is_received) {
+static void capture_impl(BT_HDR* buffer, bool is_received, uint64_t timestamp_us) {
   uint8_t* p = const_cast<uint8_t*>(buffer->data + buffer->offset);
 
   std::lock_guard<std::mutex> lock(btsnoop_mutex);
-  uint64_t timestamp_us = time_gettimeofday_us();
-  timestamp_us += gmt_offset*1000000LL;
   btsnoop_mem_capture(buffer, timestamp_us);
 
-  if (logfile_fd == INVALID_FD) return;
-
-  switch (buffer->event & MSG_EVT_MASK) {
-    case MSG_HC_TO_STACK_HCI_EVT:
-      btsnoop_write_packet(kEventPacket, p, false, timestamp_us);
-      break;
-    case MSG_HC_TO_STACK_HCI_ACL:
-    case MSG_STACK_TO_HC_HCI_ACL:
-      btsnoop_write_packet(kAclPacket, p, is_received, timestamp_us);
-      break;
-    case MSG_HC_TO_STACK_HCI_SCO:
-    case MSG_STACK_TO_HC_HCI_SCO:
-      btsnoop_write_packet(kScoPacket, p, is_received, timestamp_us);
-      break;
-    case MSG_STACK_TO_HC_HCI_CMD:
-      btsnoop_write_packet(kCommandPacket, p, true, timestamp_us);
-      break;
+  if (logfile_fd != INVALID_FD) {
+    switch (buffer->event & MSG_EVT_MASK) {
+      case MSG_HC_TO_STACK_HCI_EVT:
+        btsnoop_write_packet(kEventPacket, p, false, timestamp_us);
+        break;
+      case MSG_HC_TO_STACK_HCI_ACL:
+      case MSG_STACK_TO_HC_HCI_ACL:
+        btsnoop_write_packet(kAclPacket, p, is_received, timestamp_us);
+        break;
+      case MSG_HC_TO_STACK_HCI_SCO:
+      case MSG_STACK_TO_HC_HCI_SCO:
+        btsnoop_write_packet(kScoPacket, p, is_received, timestamp_us);
+        break;
+      case MSG_STACK_TO_HC_HCI_CMD:
+        btsnoop_write_packet(kCommandPacket, p, true, timestamp_us);
+        break;
+    }
   }
+
+  free(buffer);
+}
+
+static void do_in_btsnoop_thread(const base::Closure& task) {
+
+  if (!btsnoop_message_loop_ || !btsnoop_message_loop_->task_runner().get()) {
+    APPL_TRACE_ERROR("%s: MessageLooper not initialized", __func__);
+    return;
+  }
+
+  btsnoop_message_loop_->task_runner()->PostTask(FROM_HERE, task);
+}
+
+// Interface functions
+static void capture(const BT_HDR* buffer, bool is_received) {
+  if (!buffer)
+    return;
+  uint16_t data_len = buffer->len + buffer->offset;
+  BT_HDR* buffer_new = (BT_HDR*)malloc(BT_HDR_SIZE + data_len);
+  buffer_new->event = buffer->event;
+  buffer_new->len = buffer->len;
+  buffer_new->offset = buffer->offset;
+  buffer_new->layer_specific = buffer->layer_specific;
+  memcpy(buffer_new->data, buffer->data, data_len);
+  uint64_t timestamp_us = time_gettimeofday_us();
+  timestamp_us += gmt_offset*1000000LL;
+
+  do_in_btsnoop_thread(base::Bind(&capture_impl, buffer_new, is_received, timestamp_us));
+}
+
+/*******************************************************************************
+ *
+ * Function         btsnoop_thread_ready
+ *
+ * Description      show btsnoop thread ready
+ *
+ ******************************************************************************/
+void btsnoop_thread_ready(void)
+{
+   LOG_INFO(LOG_TAG, "%s", __func__);
+}
+
+/*******************************************************************************
+ *
+ * Function         btsnoop_message_loop
+ *
+ * Description      process tasks in the thread queue
+ *
+ ******************************************************************************/
+void btsnoop_message_loop(void* UNUSED) {
+  btsnoop_message_loop_ = new base::MessageLoop();
+  btsnoop_run_loop_ = new base::RunLoop();
+
+  btsnoop_message_loop_->task_runner()->PostTask(FROM_HERE, base::Bind(&btsnoop_thread_ready));
+
+  btsnoop_run_loop_->Run();
+
+  delete btsnoop_message_loop_;
+  btsnoop_message_loop_ = nullptr;
+
+  delete btsnoop_run_loop_;
+  btsnoop_run_loop_ = nullptr;
+}
+
+/*******************************************************************************
+ *
+ * Function         btsnoop_thread_init
+ *
+ * Description      Creates snoop log thread for writing btsnoop log file
+ *
+ * Returns          0:success, -1:fail
+ *
+ ******************************************************************************/
+static int btsnoop_thread_init(void) {
+  btsnoop_thread = thread_new_sized(BTSNOOP_THREAD_NAME, MAX_BTSNOOP_WORKQUEUE_COUNT);
+  if (btsnoop_thread == NULL) {
+    LOG_ERROR(LOG_TAG, "%s Unable to create thread %s", __func__, BTSNOOP_THREAD_NAME);
+    return -1;
+  }
+
+  thread_post(btsnoop_thread, btsnoop_message_loop, nullptr);
+  return 0;
+}
+
+/*******************************************************************************
+ *
+ * Function         btsnoop_thread_deinit
+ *
+ * Description      exit btsnoop log thread
+ *
+ * Returns          0:success
+ *
+ ******************************************************************************/
+static int btsnoop_thread_deinit(void) {
+
+  if (btsnoop_run_loop_ && btsnoop_message_loop_) {
+    btsnoop_message_loop_->task_runner()->PostTask(FROM_HERE, btsnoop_run_loop_->QuitClosure());
+  }
+
+  if (btsnoop_thread)
+    thread_free(btsnoop_thread);
+  btsnoop_thread = NULL;
+
+  return 0;
 }
 
 static const btsnoop_t interface = {capture};
@@ -199,10 +314,10 @@ static void delete_btsnoop_files() {
 }
 
 static bool is_btsnoop_enabled() {
-  //char btsnoop_enabled[PROPERTY_VALUE_MAX] = {0};
-  //osi_property_get(BTSNOOP_ENABLE_PROPERTY, btsnoop_enabled, "true");
-  //bool ret = strncmp(btsnoop_enabled, "true", 4) == 0;
-  return true;
+  char btsnoop_enabled[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get(BTSNOOP_ENABLE_PROPERTY, btsnoop_enabled, "false");
+  bool ret = strncmp(btsnoop_enabled, "true", 4) == 0;
+  return ret;
 }
 
 static char* get_btsnoop_log_path(char* btsnoop_path) {

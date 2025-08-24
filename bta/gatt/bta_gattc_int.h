@@ -40,12 +40,12 @@
  ****************************************************************************/
 enum {
   BTA_GATTC_API_OPEN_EVT = BTA_SYS_EVT_START(BTA_ID_GATTC),
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_API_OPEN_EVT_V2,
 #endif
   BTA_GATTC_INT_OPEN_FAIL_EVT,
   BTA_GATTC_API_CANCEL_OPEN_EVT,
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   BTA_GATTC_API_CANCEL_OPEN_EVT_v2,
 #endif
   BTA_GATTC_INT_CANCEL_OPEN_OK_EVT,
@@ -66,10 +66,10 @@ enum {
   BTA_GATTC_DISCOVER_CMPL_EVT,
   BTA_GATTC_OP_CMPL_EVT,
   BTA_GATTC_INT_DISCONN_EVT,
-#ifdef SUPPORT_ESL_AP
-  BTA_GATTC_ADD_PD_LIST,
-  BTA_GATTC_RM_PD_LIST,
-  BTA_GATTC_CL_PD_LIST,
+#ifdef SUPPORT_VENDOR_AP
+  BTA_GATTC_ADD_FC_DEV,
+  BTA_GATTC_RM_FC_DEV,
+  BTA_GATTC_CL_FC_DEV,
   BTA_GATTC_ADD_WH_LIST,
   BTA_GATTC_RM_WH_LIST
 #endif
@@ -83,7 +83,7 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 #define BTA_GATTC_CL_MAX 32
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /* max known devices GATTC can support */
 #ifndef BTA_GATTC_KNOWN_SR_MAX
 #define BTA_GATTC_KNOWN_SR_MAX 128
@@ -97,10 +97,10 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 
 
 /* max known devices for fast connection can support
-   as pending list max number is 128*/
-#ifdef SUPPORT_ESL_AP
-  #ifndef BTA_GATTC_KNOWN_PD_SR_MAX
-  #define BTA_GATTC_KNOWN_PD_SR_MAX 128
+   as fast device max number is 128*/
+#ifdef SUPPORT_VENDOR_AP
+  #ifndef BTA_GATTC_KNOWN_FC_SR_MAX
+  #define BTA_GATTC_KNOWN_FC_SR_MAX 128
   #endif
 #endif
 
@@ -123,7 +123,7 @@ typedef struct {
   bool opportunistic;
 } tBTA_GATTC_API_OPEN;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   BT_HDR hdr;
   RawAddress remote_bda;
@@ -143,7 +143,7 @@ typedef struct {
   tBTA_TRANSPORT transport;
   uint8_t advertising_handle;
   uint8_t subevent;
-} tBTA_GATTC_API_ADD_PD;
+} tBTA_GATTC_API_ADD_FC;
 
 typedef struct {
   BT_HDR hdr;
@@ -152,14 +152,14 @@ typedef struct {
   tBTA_TRANSPORT transport;
   uint8_t advertising_handle;
   uint8_t subevent;
-} tBTA_GATTC_API_RM_PD;
+} tBTA_GATTC_API_RM_FC;
 
 typedef struct {
   BT_HDR hdr;
   tBTA_GATTC_IF client_if;
   tBTA_TRANSPORT transport;
   uint8_t advertising_handle;
-} tBTA_GATTC_API_CL_PD;
+} tBTA_GATTC_API_CL_FC;
 
 typedef struct {
   BT_HDR hdr;
@@ -255,11 +255,11 @@ typedef struct {
 typedef union {
   BT_HDR hdr;
   tBTA_GATTC_API_OPEN api_conn;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   tBTA_GATTC_API_OPEN_V2 api_conn_v2;
-  tBTA_GATTC_API_ADD_PD api_add_pd;
-  tBTA_GATTC_API_RM_PD api_rm_pd;
-  tBTA_GATTC_API_CL_PD api_cl_pd;
+  tBTA_GATTC_API_ADD_FC api_add_fc;
+  tBTA_GATTC_API_RM_FC api_rm_fc;
+  tBTA_GATTC_API_CL_FC api_cl_fc;
   tBTA_GATTC_API_ADD_WL api_add_wl;
   tBTA_GATTC_API_RM_WL api_rm_wl;
 #endif
@@ -331,7 +331,7 @@ typedef struct {
   uint16_t attr_index;  /* cahce NV saving/loading attribute index */
 
   uint16_t mtu;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   uint8_t include_service_data[255];
 #endif
 } tBTA_GATTC_SERV;
@@ -395,13 +395,13 @@ typedef struct {
 
 } tBTA_GATTC_BG_TCK;
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   bool in_use;
   RawAddress remote_bda;
   tBTA_GATTC_CIF_MASK cif_mask;
 
-} tBTA_GATTC_PD_TCK;
+} tBTA_GATTC_FC_TCK;
 #endif
 
 typedef struct {
@@ -425,8 +425,8 @@ typedef struct {
 
   tBTA_GATTC_CLCB clcb[BTA_GATTC_CLCB_MAX];
   tBTA_GATTC_SERV known_server[BTA_GATTC_KNOWN_SR_MAX];
-#ifdef SUPPORT_ESL_AP
-  tBTA_GATTC_PD_TCK pd_track[BTA_GATTC_KNOWN_PD_SR_MAX];
+#ifdef SUPPORT_VENDOR_AP
+  tBTA_GATTC_FC_TCK fc_track[BTA_GATTC_KNOWN_FC_SR_MAX];
 #endif
 } tBTA_GATTC_CB;
 
@@ -508,16 +508,16 @@ extern void bta_gattc_process_api_refresh(const RawAddress& remote_bda);
 extern void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_listen(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_broadcast(tBTA_GATTC_DATA* p_msg);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void bta_gattc_process_api_open_v2(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_open_v2(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
-extern void bta_gattc_process_add_pd_list(tBTA_GATTC_DATA* p_msg);
-extern void bta_gattc_process_rm_pd_list(tBTA_GATTC_DATA* p_msg);
-extern void bta_gattc_process_cl_pd_list(tBTA_GATTC_DATA* p_msg);
-extern void bta_gattc_init_pd_conn(tBTA_GATTC_API_OPEN_V2* p_data, tBTA_GATTC_RCB* p_clreg);
-extern void bta_gattc_cancel_pd_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data);
-extern bool bta_gattc_mark_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, bool add);
-extern bool bta_gattc_check_pd_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, uint8_t role);
+extern void bta_gattc_process_add_fc_dev(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_rm_fc_dev(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_process_cl_fc_dev(tBTA_GATTC_DATA* p_msg);
+extern void bta_gattc_init_fc_conn(tBTA_GATTC_API_OPEN_V2* p_data, tBTA_GATTC_RCB* p_clreg);
+extern void bta_gattc_cancel_fc_conn(tBTA_GATTC_API_CANCEL_OPEN* p_data);
+extern bool bta_gattc_mark_fc_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, bool add);
+extern bool bta_gattc_check_fc_conn(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, uint8_t role);
 extern void bta_gattc_process_add_wh_list(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_process_rm_wh_list(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_process_api_open_cancel_v2(tBTA_GATTC_DATA* p_msg);

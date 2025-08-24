@@ -700,7 +700,7 @@ BTM_TRACE_EVENT ("BTM: BTM_Hci_Raw_Command: Opcode: 0x%04X, ParamLen: %i.",
 
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void BTM_Hci_Raw_Command_with_status_cb(uint16_t opcode, uint8_t param_len,
                                uint8_t* p_param_buf, tBTM_RAW_STATUS_CB* p_cb) {
   /* Allocate a buffer to hold HCI command plus the callback function */
@@ -765,7 +765,7 @@ void btm_hci_event(uint8_t *p, uint8_t event_code, uint8_t param_len)
 }
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void btm_hci_status(uint16_t opcode, uint8_t status)
 {
   tBTM_DEVCB     *p_devcb = &btm_cb.devcb;

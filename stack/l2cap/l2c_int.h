@@ -452,7 +452,7 @@ typedef struct t_l2c_linkcb {
 #endif
 
   tBT_TRANSPORT transport;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   uint8_t advertising_handle; //extended advertising handle
   uint8_t subevent; // periodic group ID
 #endif
@@ -878,7 +878,7 @@ extern void l2cble_process_data_length_change_event(uint16_t handle,
 
 extern void l2cu_process_fixed_disc_cback(tL2C_LCB* p_lcb);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void l2cu_find_lcb_by_bd_addr_to_clean(const RawAddress& p_bd_addr,
                                    tBT_TRANSPORT transport);
 extern bool l2cu_create_conn_v2(tL2C_LCB* p_lcb, tBT_TRANSPORT transport,

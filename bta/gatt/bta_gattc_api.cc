@@ -40,7 +40,7 @@
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 #include "stack/btm/btm_int.h"
 #endif
 
@@ -149,7 +149,7 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
   bta_sys_sendmsg(p_buf);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 
 void BTA_GATTC_Open(tBTA_GATTC_IF client_if, const RawAddress& remote_bda,
                     bool is_direct, tBTA_GATT_TRANSPORT transport,
@@ -205,10 +205,10 @@ void BTA_GATTC_Open_v2(tBTA_GATTC_IF client_if, uint8_t advertising_handle, uint
   bta_sys_sendmsg(p_buf);
 }
 
-void BTA_GATTC_Add_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
-    tBTA_GATTC_API_ADD_PD* p_buf =
-      (tBTA_GATTC_API_ADD_PD*)osi_malloc(sizeof(tBTA_GATTC_API_ADD_PD));
-    p_buf->hdr.event = BTA_GATTC_ADD_PD_LIST;
+void BTA_GATTC_Add_Fc(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
+    tBTA_GATTC_API_ADD_FC* p_buf =
+      (tBTA_GATTC_API_ADD_FC*)osi_malloc(sizeof(tBTA_GATTC_API_ADD_FC));
+    p_buf->hdr.event = BTA_GATTC_ADD_FC_DEV;
     p_buf->client_if = client_if;
     p_buf->transport = transport;
     p_buf->remote_bda = remote_bda;
@@ -218,10 +218,10 @@ void BTA_GATTC_Add_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int
     bta_sys_sendmsg(p_buf);
 }
 
-void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
-    tBTA_GATTC_API_RM_PD* p_buf =
-      (tBTA_GATTC_API_RM_PD*)osi_malloc(sizeof(tBTA_GATTC_API_RM_PD));
-    p_buf->hdr.event = BTA_GATTC_RM_PD_LIST;
+void BTA_GATTC_Remove_Fc(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, int transport, uint8_t advertising_handle, uint8_t subevent) {
+    tBTA_GATTC_API_RM_FC* p_buf =
+      (tBTA_GATTC_API_RM_FC*)osi_malloc(sizeof(tBTA_GATTC_API_RM_FC));
+    p_buf->hdr.event = BTA_GATTC_RM_FC_DEV;
     p_buf->client_if = client_if;
     p_buf->transport = transport;
     p_buf->remote_bda = remote_bda;
@@ -231,10 +231,10 @@ void BTA_GATTC_Remove_Pd(tBTA_GATTC_IF client_if, const RawAddress& remote_bda, 
     bta_sys_sendmsg(p_buf);
 }
 
-void BTA_GATTC_Clear_Pd(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle) {
-    tBTA_GATTC_API_CL_PD* p_buf =
-      (tBTA_GATTC_API_CL_PD*)osi_malloc(sizeof(tBTA_GATTC_API_CL_PD));
-    p_buf->hdr.event = BTA_GATTC_CL_PD_LIST;
+void BTA_GATTC_Clear_Fc(tBTA_GATTC_IF client_if, int transport, uint8_t advertising_handle) {
+    tBTA_GATTC_API_CL_FC* p_buf =
+      (tBTA_GATTC_API_CL_FC*)osi_malloc(sizeof(tBTA_GATTC_API_CL_FC));
+    p_buf->hdr.event = BTA_GATTC_CL_FC_DEV;
     p_buf->client_if = client_if;
     p_buf->transport = transport;
     p_buf->advertising_handle = advertising_handle;

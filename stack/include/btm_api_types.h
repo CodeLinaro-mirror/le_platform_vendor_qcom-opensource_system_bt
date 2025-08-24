@@ -107,7 +107,7 @@ typedef struct
 #define BTM_VSC_CMPL_DATA_SIZE \
   (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef struct {
   uint16_t opcode;
   uint8_t status;
@@ -151,7 +151,7 @@ typedef void(tBTM_VSC_CMPL_CB)(tBTM_VSC_CMPL* p1);
 */
 typedef void (tBTM_RAW_CMPL_CB) (tBTM_RAW_CMPL *p1);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 typedef void (tBTM_RAW_STATUS_CB) (tBTM_RAW_STATUS *p1);
 #endif
 
@@ -1966,7 +1966,7 @@ extern tBTM_STATUS BTM_Hci_Raw_Command(uint16_t opcode,
                                                          uint8_t  param_len,
                                                          uint8_t *p_param_buf,
                                                          tBTM_RAW_CMPL_CB *p_cb);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void BTM_Hci_Raw_Command_with_status_cb(uint16_t opcode, uint8_t param_len,
                                uint8_t* p_param_buf, tBTM_RAW_STATUS_CB* p_cb);
 #endif

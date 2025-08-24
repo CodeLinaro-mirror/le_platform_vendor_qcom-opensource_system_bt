@@ -1025,7 +1025,7 @@ bool l2cble_create_conn(tL2C_LCB* p_lcb) {
   return rt;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         l2cble_init_direct_conn_v2

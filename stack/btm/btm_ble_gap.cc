@@ -800,7 +800,7 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
 }
 #endif
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /**
  * Set BLE connectable mode to auto connect
  */
@@ -809,33 +809,33 @@ bool BTM_BleStartAutoConnV2() {
   if (!controller_get_interface()->supports_ble()) {
     return false;
   }
-  if (btm_cb.ble_ctr_cb.pd_conn_type != BTM_BLE_CONN_AUTO) {
-    btm_cb.ble_ctr_cb.pd_conn_type = BTM_BLE_CONN_AUTO;
+  if (btm_cb.ble_ctr_cb.fc_conn_type != BTM_BLE_CONN_AUTO) {
+    btm_cb.ble_ctr_cb.fc_conn_type = BTM_BLE_CONN_AUTO;
   }
   return btm_ble_start_auto_conn_v2(true);
 }
 /*******************************************************************************
  *
- * Function         BTM_BleClearPdConnDev
+ * Function         BTM_BleClearFcConnDev
  *
- * Description      This function is called to clear the pendinglist,
- *                  end any pending pendinglist connections,
- *                  and reset the local bg device list.
+ * Description      This function is called to clear the fast device,
+ *                  end any pending fast device connections,
+ *                  and reset the local fc device list.
  *
  * Parameters       void
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTM_BleClearPdConnDev(uint8_t advertising_handle) {
+void BTM_BleClearFcConnDev(uint8_t advertising_handle) {
   btm_ble_start_auto_conn_v2(false);
-  btm_ble_clear_pending_list(advertising_handle);
-  gatt_reset_pddev_list();
+  btm_ble_clear_fast_dev(advertising_handle);
+  gatt_reset_fcdev_list();
 }
 
 /*******************************************************************************
  *
- * Function         BTM_BleUpdatePdConnDev
+ * Function         BTM_BleUpdateFcConnDev
  *
  * Description      This function is called to add or remove a device into/from
  *                  pending connection procedure. The pending connection
@@ -848,9 +848,9 @@ void BTM_BleClearPdConnDev(uint8_t advertising_handle) {
  * Returns          void
  *
  ******************************************************************************/
-bool BTM_BleUpdatePdConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent) {
+bool BTM_BleUpdateFcConnDev(bool add_remove, const RawAddress& remote_bda, uint8_t advertising_handle, uint8_t subevent) {
   BTM_TRACE_EVENT("%s() add=%d, advertising_handle=%d, subevent=%d", __func__, add_remove,advertising_handle,subevent);
-  return btm_update_dev_to_pending_list(add_remove, remote_bda, advertising_handle, subevent);
+  return btm_update_dev_to_fast_dev(add_remove, remote_bda, advertising_handle, subevent);
 }
 
 /*******************************************************************************
@@ -2921,7 +2921,7 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
   return rt;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 void BTM_GetScanStatus(bool *running, uint8_t *scan_type) {
 
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) {

@@ -100,8 +100,8 @@ inline bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x) {
 #define BTM_VSC_CHIP_CAPABILITY_L_VERSION 55
 #define BTM_VSC_CHIP_CAPABILITY_M_VERSION 95
 
-#ifdef SUPPORT_ESL_AP
-#define BTM_BLE_MAX_PENDING_LIST_SIZE 128
+#ifdef SUPPORT_VENDOR_AP
+#define BTM_BLE_MAX_FAST_DEV_SIZE 128
 #endif
 
 typedef struct {
@@ -194,11 +194,11 @@ typedef struct {
 #define BTM_BLE_WL_INIT 1
 typedef uint8_t tBTM_BLE_WL_STATE;
 
-#ifdef SUPPORT_ESL_AP
-/* pending list using state as a bit mask */
-#define BTM_BLE_PL_IDLE 0
-#define BTM_BLE_PL_INIT 1
-typedef uint8_t tBTM_BLE_PL_STATE;
+#ifdef SUPPORT_VENDOR_AP
+/* fast device using state as a bit mask */
+#define BTM_BLE_FC_IDLE 0
+#define BTM_BLE_FC_INIT 1
+typedef uint8_t tBTM_BLE_FC_STATE;
 #endif
 
 /* resolving list using state as a bit mask */
@@ -213,7 +213,7 @@ typedef uint8_t tBTM_BLE_RL_STATE;
 #define BLE_DIR_CONN 1
 #define BLE_BG_CONN 2
 #define BLE_CONN_CANCEL 3
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 #define BLE_PD_CONN 4
 #endif
 typedef uint8_t tBTM_BLE_CONN_ST;
@@ -312,11 +312,11 @@ typedef struct {
   fixed_queue_t* conn_pending_q;
   tBTM_BLE_CONN_ST conn_state;
 
-#ifdef SUPPORT_ESL_AP
-  /* pendinglist connection procedure cb value */
-  tBTM_BLE_CONN_TYPE pd_conn_type;
-  /* pending list information */
-  tBTM_BLE_PL_STATE pl_state;
+#ifdef SUPPORT_VENDOR_AP
+  /* fast connection procedure cb value */
+  tBTM_BLE_CONN_TYPE fc_conn_type;
+  /* fast connection information */
+  tBTM_BLE_FC_STATE fc_state;
 #endif
 
   /* random address management control block */

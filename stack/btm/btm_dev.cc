@@ -225,7 +225,7 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec != NULL) {
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     if (bd_addr == btm_cb.pairing_bda) {
       /* Reset btm pairing state */
       BTM_TRACE_WARNING("%s Resetting BTM Pairing flags ", __func__);
@@ -580,12 +580,12 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
     VLOG(2) << __func__ << ": pair addr: " <<  p_dev_rec->bd_addr << " device type: " << p_dev_rec->device_type << " true? " << (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     if ((p_dev_rec->device_type & BT_DEVICE_TYPE_BLE)) {
       // Only remove LE device
       if (!BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_LE) &&
           !BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR) && // dumo device may create BR/EDR acl connection
-          !check_device_in_pending_list(p_dev_rec->bd_addr) &&
+          !check_device_in_fast_dev(p_dev_rec->bd_addr) &&
           !check_device_in_white_list(p_dev_rec->bd_addr)) {
           // device which has finished connection
           if ((p_dev_rec->sec_flags &
@@ -645,7 +645,7 @@ tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
   BTM_TRACE_DEBUG("%s list_length(btm_cb.sec_dev_rec) %d", __func__, list_length(btm_cb.sec_dev_rec));
   if (list_length(btm_cb.sec_dev_rec) > BTM_SEC_MAX_DEVICE_RECORDS) {
     p_dev_rec = btm_find_oldest_dev_rec();
-  #ifdef SUPPORT_ESL_AP
+  #ifdef SUPPORT_VENDOR_AP
     if (p_dev_rec) {
       BTM_TRACE_DEBUG("%s remove oldest dev_rec: %s", __func__, p_dev_rec->bd_addr.ToString().c_str());
       list_remove(btm_cb.sec_dev_rec, p_dev_rec);

@@ -271,7 +271,7 @@ tL2C_LCB* l2cu_find_lcb_by_bd_addr(const RawAddress& p_bd_addr,
   return (NULL);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         l2cu_find_lcb_by_bd_addr_to_clean
@@ -2237,7 +2237,7 @@ bool l2cu_create_conn(tL2C_LCB* p_lcb, tBT_TRANSPORT transport,
   return (l2cu_create_conn_after_switch(p_lcb));
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         l2cu_create_conn_v2

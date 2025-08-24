@@ -1164,7 +1164,7 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
   return status;
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 /*******************************************************************************
  *
  * Function         GATT_Connect_v2
@@ -1217,21 +1217,21 @@ bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subev
   return status;
 }
 
-bool GATT_Add_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+bool GATT_Add_Fast_Device(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
     bool status = false;
-    status = gatt_update_pd_connect_dev(gatt_if, true, bd_addr, advertising_handle, subevent);
+    status = gatt_update_fc_connect_dev(gatt_if, true, bd_addr, advertising_handle, subevent);
     return status;
 }
 
-bool GATT_Remove_Pending_List(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
+bool GATT_Remove_Fast_Device(tGATT_IF gatt_if, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
     bool status = false;
-    status = gatt_update_pd_connect_dev(gatt_if, false, bd_addr, advertising_handle, subevent);
+    status = gatt_update_fc_connect_dev(gatt_if, false, bd_addr, advertising_handle, subevent);
     return status;
 }
 
-bool GATT_Clear_Pending_List(tGATT_IF gatt_if, uint8_t advertising_handle) {
+bool GATT_Clear_Fast_Device(tGATT_IF gatt_if, uint8_t advertising_handle) {
     bool status = false;
-    status = gatt_clear_pd_connect_dev(gatt_if, advertising_handle);
+    status = gatt_clear_fc_connect_dev(gatt_if, advertising_handle);
     return status;
 }
 
@@ -1282,7 +1282,7 @@ bool GATT_CancelConnect_v2(tGATT_IF gatt_if, const RawAddress& bd_addr,
   }
   // is not direct
   // send cancel command
-  return btm_ble_suspend_pl_conn();
+  return btm_ble_suspend_fc_conn();
 }
 #endif
 

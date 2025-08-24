@@ -63,7 +63,7 @@ extern void bte_main_disable(void);
 extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
 extern void btm_ble_test_command_complete(uint8_t* p);
 extern void smp_cancel_start_encryption_attempt();
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 extern void hcif_vs_event_callback(uint8_t* p, uint8_t len);
 #endif
 
@@ -192,7 +192,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
       break;
     case HCI_DISCONNECTION_COMP_EVT:
       btu_hcif_disconnection_comp_evt(p);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
       hcif_vs_event_callback(p - 2, hci_evt_len + 2);
 #endif
       break;
@@ -353,11 +353,11 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           break;
 #if (BLE_PRIVACY_SPT == TRUE)
         case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT:
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
         case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT_V2:
 #endif
           btu_ble_proc_enhanced_conn_cmpl(p, hci_evt_len);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
           hcif_vs_event_callback(p - 3, hci_evt_len + 2);
 #endif
           break;
@@ -382,7 +382,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
         case HCI_LE_ADVERTISING_SET_TERMINATED_EVT:
           btm_le_on_advertising_set_terminated(p, hci_evt_len);
           break;
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
         default:
           LOG_WARN(LOG_TAG, "%s new defined sub event. %x, len:%d", __func__, ble_sub_code, p_msg->len);
           hcif_vs_event_callback(p - 3, hci_evt_len + 2);
@@ -394,7 +394,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
 
     case HCI_VENDOR_SPECIFIC_EVT:
       btm_vendor_specific_evt(p, hci_evt_len);
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
       hcif_vs_event_callback(p - 2, hci_evt_len + 2);
 #endif
       break;
@@ -440,7 +440,7 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
       vsc_callback);
 }
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
 static void btu_hcif_command_status_evt_with_cb_on_task_all(uint8_t status,
                                                         BT_HDR* event,
                                                         void* context) {
@@ -1176,7 +1176,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
       break;
 #endif
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
     case HCI_BLE_CREATE_CONN_CANCEL:
       btm_ble_create_connection_cancel_complete(p);
     break;
@@ -1403,7 +1403,7 @@ static void btu_hcif_command_status_evt_on_task(uint8_t status, BT_HDR* event,
   uint8_t* stream = event->data + event->offset;
   STREAM_TO_UINT16(opcode, stream);
 
-#ifdef SUPPORT_ESL_AP
+#ifdef SUPPORT_VENDOR_AP
   if (opcode == HCI_LE_EXTENDED_CREATE_CONNECTION || opcode == HCI_LE_EXTENDED_CREATE_CONNECTION_V2 || opcode == HCI_DISCONNECT)
     btm_hci_status (opcode, status);
 #endif
