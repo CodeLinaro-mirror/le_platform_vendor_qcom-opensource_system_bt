@@ -35,7 +35,7 @@
 #include <hardware/bt_av.h>
 #include "stack_config.h"
 
-#define BTSNOOP_ENABLE_PROPERTY "persist.bluetooth.btsnoopenable"
+#define SOC_LOG_ENABLE_PROPERTY "persist.bluetooth.soclogenable"
 
 const bt_event_mask_t BLE_EVENT_MASK = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x0B, 0xFE, 0x7f}};
@@ -192,9 +192,9 @@ void send_soc_log_command(bool value) {
 }
 #ifndef QLOGKIT_USERDEBUG
 static bool is_soc_logging_enabled() {
-  char btsnoop_enabled[PROPERTY_VALUE_MAX] = {0};
-  osi_property_get(BTSNOOP_ENABLE_PROPERTY, btsnoop_enabled, "false");
-  return strncmp(btsnoop_enabled, "true", 4) == 0;
+  char soc_log_enabled[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get(SOC_LOG_ENABLE_PROPERTY, soc_log_enabled, "false");
+  return strncmp(soc_log_enabled, "true", 4) == 0;
 }
 #endif
 
