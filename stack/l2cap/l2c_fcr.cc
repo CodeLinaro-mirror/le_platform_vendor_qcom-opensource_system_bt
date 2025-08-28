@@ -39,6 +39,12 @@
 #include "l2c_int.h"
 #include "l2cdefs.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /* Flag passed to retransmit_i_frames() when all packets should be retransmitted
  */
 #define L2C_FCR_RETX_ALL_PKTS 0xFF

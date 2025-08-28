@@ -86,7 +86,7 @@ void avdt_scb_transport_channel_timer_timeout(void* data) {
 }
 
 void avdt_delay_report_timer_timeout(void* data) {
-  tAVDT_EVT_HDR single;
+  tAVDT_EVT_HDR single = {};
   tAVDT_SCB* p_scb = (tAVDT_SCB*)data;
   single.seid = p_scb->peer_seid;
   tAVDT_SCB_EVT avdt_scb_evt;
@@ -564,7 +564,7 @@ void AVDT_UpdateDelayReport(uint8_t handle) {
 
   /* map handle to scb */
   p_scb = avdt_scb_by_hdl(handle);
-  if (p_scb->cs.is_split_enabled && (p_scb->cs.tsep == AVDT_TSEP_SNK) &&
+  if (p_scb && p_scb->cs.is_split_enabled && (p_scb->cs.tsep == AVDT_TSEP_SNK) &&
       (p_scb->curr_cfg.psc_mask & AVDT_PSC_DELAY_RPT)) {
     current_delay = (uint16_t)(btif_avk_split_get_delay(p_scb->p_ccb->peer_addr) * 10);
     if (abs(p_scb->reported_delay - current_delay) >= accure_range) {
@@ -1531,7 +1531,7 @@ void AVDT_UpdateLinkPktType(uint8_t hdl, uint16_t packet_type) {
 
         p_scb = avdt_scb_by_hdl(hdl);
         if (p_scb != NULL)
-                p_ccb = avdt_scb_by_hdl(hdl)->p_ccb;
+                p_ccb = p_scb->p_ccb;
         if (p_ccb != NULL)
                 p_acl_cb = btm_bda_to_acl(p_ccb->peer_addr, BT_TRANSPORT_BR_EDR);
         if (p_acl_cb != NULL)

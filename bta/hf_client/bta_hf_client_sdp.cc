@@ -33,6 +33,12 @@
 #include "bta_sys.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 using bluetooth::Uuid;
 
 /* Number of protocol elements in protocol element list. */

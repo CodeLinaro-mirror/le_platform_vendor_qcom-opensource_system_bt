@@ -27,6 +27,12 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct array_t {
   size_t element_size;
   size_t length;

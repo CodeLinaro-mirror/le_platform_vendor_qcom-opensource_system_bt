@@ -865,7 +865,8 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
       L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, true);
     }
   }
-  p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+  if (p_clcb->p_srcb)
+    p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
   p_clcb->disc_active = false;
 
   if (p_clcb->status != GATT_SUCCESS) {

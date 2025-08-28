@@ -275,7 +275,7 @@ const char* smp_get_br_state_name(tSMP_BR_STATE br_state) {
 const char* smp_get_br_event_name(tSMP_BR_EVENT event) {
   const char* p_str = smp_br_event_name[SMP_BR_MAX_EVT - 1];
 
-  if (event < SMP_BR_MAX_EVT) {
+  if (event > 0 && event < SMP_BR_MAX_EVT) {
     p_str = smp_br_event_name[event - 1];
   }
   return p_str;

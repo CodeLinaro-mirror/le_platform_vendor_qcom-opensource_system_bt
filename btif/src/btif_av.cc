@@ -3809,7 +3809,7 @@ static bt_status_t init_src( // gghai
 static bt_status_t init_src_vendor(btav_vendor_callbacks_t* callbacks, int max_a2dp_connections,
                             int a2dp_multicast_state, uint8_t streaming_prarm)
 {
-    bt_status_t status;
+    bt_status_t status = BT_STATUS_FAIL;
 
     BTIF_TRACE_EVENT("%s with max conn = %d", __FUNCTION__, max_a2dp_connections);
 
@@ -4104,7 +4104,7 @@ static bt_status_t codec_config_src(const RawAddress& bd_addr,
   BTIF_TRACE_EVENT("%s", __func__);
   CHECK_BTAV_INIT();
   num_codec_configs = codec_preferences.size();
-  int64_t aptx_mode;
+  int64_t aptx_mode = 0;
   codec_bda = bd_addr;
   BTIF_TRACE_ERROR("%s: bd_addr: %s", __func__, codec_bda.ToString().c_str());
   if (btif_av_is_tws_connected()) {
@@ -5743,7 +5743,7 @@ int64_t btif_get_average_delay() {
 ** Returns          bool
 *******************************************************************************/
 bool btif_device_in_sink_role() {
-    char a2dp_role[6] = "false";
+    char a2dp_role[PROPERTY_VALUE_MAX] = "false";
     osi_property_get("persist.vendor.service.bt.a2dp.sink", a2dp_role, "false");
     if (!strncmp("true", a2dp_role, 4))
         return true;

@@ -34,6 +34,12 @@
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 // The IPv4 loopback address: 127.0.0.1
 static const in_addr_t LOCALHOST_ = 0x7f000001;
 

@@ -1015,8 +1015,10 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
         l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, NULL);
       }
 
-      L2CAP_TRACE_WARNING("L2CAP-Upper layer Config_Rsp,Local CID: 0x%04x,Remote CID: 0x%04x,PSM: %d,our MTU present:%d,our MTU:%d",
-                              p_ccb->local_cid,p_ccb->remote_cid, p_ccb->p_rcb->psm, p_ccb->our_cfg.mtu_present,p_ccb->our_cfg.mtu);
+      L2CAP_TRACE_WARNING("L2CAP-Upper layer Config_Rsp,Local CID: 0x%04x,Remote CID: 0x%04x,our MTU present:%d,our MTU:%d",
+                              p_ccb->local_cid,p_ccb->remote_cid, p_ccb->our_cfg.mtu_present,p_ccb->our_cfg.mtu);
+      if (p_ccb->p_rcb)
+        L2CAP_TRACE_WARNING("L2CAP-Upper layer Config_Rsp,PSM: %d", p_ccb->p_rcb->psm);
       break;
 
     case L2CEVT_L2CA_CONFIG_RSP_NEG: /* Upper layer config reject */

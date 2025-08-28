@@ -27,6 +27,12 @@
 #include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct future_t {
   bool ready_can_be_called;
   semaphore_t* semaphore;  // NULL semaphore means immediate future

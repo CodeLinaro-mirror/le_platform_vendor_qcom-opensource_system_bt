@@ -57,6 +57,13 @@
 using system_bt_osi::BluetoothMetricsLogger;
 using system_bt_osi::A2dpSessionMetrics;
 #endif
+
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /**
  * The typical runlevel of the tx queue size is ~1 buffer
  * but due to link flow control or thread preemption in lower
@@ -523,11 +530,11 @@ bt_status_t btif_a2dp_source_setup_codec(tBTA_AV_HNDL hndl) {
 
     A2dpCodecConfig* current_codec = bta_av_get_a2dp_current_codec();
     btav_a2dp_codec_config_t codec_config;
-    APPL_TRACE_DEBUG("%s: codec_config.codec_type:%d", __func__, codec_config.codec_type);
 
     //get the current codec config, so that we can get the codec type.
     if (current_codec != nullptr) {
       codec_config = current_codec->getCodecConfig();
+      APPL_TRACE_DEBUG("%s: codec_config.codec_type:%d", __func__, codec_config.codec_type);
     } else {
       APPL_TRACE_ERROR("%s: current codec is null, returns fail.", __func__);
       return BT_STATUS_FAIL;
@@ -634,7 +641,7 @@ void btif_a2dp_source_stop_audio_req(void) {
 }
 
 static void btif_a2dp_source_encoder_init(void) {
-  tBTIF_A2DP_SOURCE_ENCODER_INIT msg;
+  tBTIF_A2DP_SOURCE_ENCODER_INIT msg = {};
 
   // Check to make sure the platform has 8 bits/byte since
   // we're using that in frame size calculations now.

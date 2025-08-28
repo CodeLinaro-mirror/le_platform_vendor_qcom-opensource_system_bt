@@ -22,6 +22,12 @@
 #include "btcore/include/device_class.h"
 #include "osi/include/allocator.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 using bluetooth::Uuid;
 
 static bt_property_t* property_new_(void* val, size_t len,

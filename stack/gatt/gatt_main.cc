@@ -509,8 +509,9 @@ static void gatt_channel_congestion(tGATT_TCB* p_tcb, bool congested) {
   tGATT_REG* p_reg = NULL;
   uint16_t conn_id;
 
+  if (p_tcb == NULL) return;
   /* if uncongested, check to see if there is any more pending data */
-  if (p_tcb != NULL && congested == false) {
+  if (congested == false) {
     gatt_cl_send_next_cmd_inq(*p_tcb);
   }
   /* notifying all applications for the connection up event */

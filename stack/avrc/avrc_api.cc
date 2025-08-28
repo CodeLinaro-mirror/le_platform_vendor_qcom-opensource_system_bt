@@ -35,6 +35,12 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /*****************************************************************************
  *  Global data
  ****************************************************************************/

@@ -4,6 +4,12 @@
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct list_node_t {
   struct list_node_t* next;
   void* data;
