@@ -1016,10 +1016,23 @@ bool A2dpCodecConfigAac::setCodecConfig(const uint8_t* p_peer_codec_info,
   //
   memset(&result_config_cie, 0, sizeof(result_config_cie));
 
+   LOG_ERROR(LOG_TAG, "%s: user bit rate  = %u",
+              __func__, codec_user_config_.bitRate);
+  LOG_ERROR(LOG_TAG, "%s: user vbr Support = %d",
+              __func__, codec_user_config_.variableBitRateSupport);
+
+  // Select the bit rate as user preference
+  if(codec_user_config_.bitRate > A2DP_AAC_MIN_BITRATE) {
+    a2dp_aac_caps.bitRate = codec_user_config_.bitRate;
+  }
+  // Select the variableBitRateSupport as user preference
+  a2dp_aac_caps.variableBitRateSupport = codec_user_config_.variableBitRateSupport;
+
   // NOTE: Always assign the Object Type and Variable Bit Rate Support.
   result_config_cie.objectType = a2dp_aac_caps.objectType;
   result_config_cie.variableBitRateSupport =
-      a2dp_aac_caps.variableBitRateSupport;
+        a2dp_aac_caps.variableBitRateSupport &
+        sink_info_cie.variableBitRateSupport;
 
   // Set the bit rate as follows:
   // 1. If the Sink device reports a bogus bit rate
@@ -1038,6 +1051,14 @@ bool A2dpCodecConfigAac::setCodecConfig(const uint8_t* p_peer_codec_info,
         std::min(a2dp_aac_caps.bitRate, sink_info_cie.bitRate);
   }
 
+  // Update AAC supported values to application
+  codec_config_.objectType = result_config_cie.objectType;
+  codec_config_.variableBitRateSupport =
+       result_config_cie.variableBitRateSupport;
+  codec_config_.bitRate = result_config_cie.bitRate;
+
+    LOG_ERROR(LOG_TAG, "%s: result_config_cie.bitRate = %u",
+              __func__, result_config_cie.bitRate);
   //
   // Select the sample frequency
   //
