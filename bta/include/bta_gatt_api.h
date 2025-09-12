@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -28,9 +29,9 @@
 #ifndef BTA_GATT_API_H
 #define BTA_GATT_API_H
 
+#include "bta/gatt/database.h"
 #include "bta_api.h"
 #include "gatt_api.h"
-#include "osi/include/list.h"
 
 #include <base/callback_forward.h>
 #include <vector>
@@ -326,6 +327,11 @@ typedef struct {
   tBTA_GATT_STATUS status;
 } tBTA_GATTC_CONN_UPDATE;
 
+typedef struct {
+  RawAddress remote_bda;
+  uint16_t conn_id;
+} tBTA_GATTC_SERVICE_CHANGED;
+
 typedef union {
   tBTA_GATT_STATUS status;
 
@@ -344,6 +350,7 @@ typedef union {
   tBTA_GATTC_CONGEST congest;
   tBTA_GATTC_PHY_UPDATE phy_update;
   tBTA_GATTC_CONN_UPDATE conn_update;
+  tBTA_GATTC_SERVICE_CHANGED service_changed;
 } tBTA_GATTC;
 
 /* GATTC enable callback function */
@@ -551,37 +558,6 @@ typedef void(tBTA_GATTS_ENB_CBACK)(tBTA_GATT_STATUS status);
 /* Server callback function */
 typedef void(tBTA_GATTS_CBACK)(tBTA_GATTS_EVT event, tBTA_GATTS* p_data);
 
-typedef struct {
-  bluetooth::Uuid uuid;
-  bool is_primary;
-  uint16_t handle;
-  uint16_t s_handle;
-  uint16_t e_handle;
-  list_t* characteristics; /* list of tBTA_GATTC_CHARACTERISTIC */
-  list_t* included_svc;    /* list of tBTA_GATTC_INCLUDED_SVC */
-} __attribute__((packed, aligned(alignof(bluetooth::Uuid)))) tBTA_GATTC_SERVICE;
-
-typedef struct {
-  bluetooth::Uuid uuid;
-  uint16_t handle;
-  tBTA_GATT_CHAR_PROP properties;
-  tBTA_GATTC_SERVICE* service; /* owning service*/
-  list_t* descriptors;         /* list of tBTA_GATTC_DESCRIPTOR */
-} __attribute__((packed, aligned(alignof(bluetooth::Uuid))))
-tBTA_GATTC_CHARACTERISTIC;
-
-typedef struct {
-  bluetooth::Uuid uuid;
-  uint16_t handle;
-  tBTA_GATTC_CHARACTERISTIC* characteristic; /* owning characteristic */
-} __attribute__((packed)) tBTA_GATTC_DESCRIPTOR;
-
-typedef struct {
-  bluetooth::Uuid uuid;
-  uint16_t handle;
-  tBTA_GATTC_SERVICE* owning_service; /* owning service*/
-  tBTA_GATTC_SERVICE* included_service;
-} __attribute__((packed)) tBTA_GATTC_INCLUDED_SVC;
 
 /*****************************************************************************
  *  External Function Declarations
@@ -715,10 +691,10 @@ extern void BTA_GATTC_DiscoverServiceByUuid(uint16_t conn_id,
  *
  * Parameters       conn_id: connection ID which identify the server.
  *
- * Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
+ * Returns          returns vector of gatt::Service or NULL.
  *
  ******************************************************************************/
-extern const list_t* BTA_GATTC_GetServices(uint16_t conn_id);
+extern const std::vector<gatt::Service>* BTA_GATTC_GetServices(uint16_t conn_id);
 
 /*******************************************************************************
  *
@@ -730,10 +706,10 @@ extern const list_t* BTA_GATTC_GetServices(uint16_t conn_id);
  * Parameters       conn_id: connection ID which identify the server.
  *                  handle: characteristic handle
  *
- * Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
+ * Returns          returns pointer to gatt::Characteristic or NULL.
  *
  ******************************************************************************/
-extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(
+extern const gatt::Characteristic* BTA_GATTC_GetCharacteristic(
     uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
@@ -746,11 +722,43 @@ extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(
  * Parameters       conn_id: connection ID which identify the server.
  *                  handle: descriptor handle
  *
- * Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
+ * Returns          returns pointer to gatt::Descriptor or NULL.
  *
  ******************************************************************************/
-extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id,
+extern const gatt::Descriptor* BTA_GATTC_GetDescriptor(uint16_t conn_id,
                                                             uint16_t handle);
+
+/*******************************************************************************
+ *
+ * Function         BTA_GATTC_GetOwningCharacteristic
+ *
+ * Description      This function is called to find the characteristic that
+ *                  owns descriptor with handle equal to parameters.
+ *
+ * Parameters       conn_id - connection ID which identify the server.
+ *                  handle - descriptor handle
+ *
+ * Returns          returns characteristic handle or NULL.
+ *
+ ******************************************************************************/
+extern const gatt::Characteristic* BTA_GATTC_GetOwningCharacteristic(
+                                            uint16_t conn_id, uint16_t handle);
+
+/*******************************************************************************
+ *
+ * Function         BTA_GATTC_GetOwningService
+ *
+ * Description      This function is called to find the service that owns
+ *                  characteristic with handle equal to parameters.
+ *
+ * Parameters       conn_id - connection ID which identify the server.
+ *                  handle - characteristic handle
+ *
+ * Returns          returns service handle or NULL.
+ *
+ ******************************************************************************/
+extern const gatt::Service* BTA_GATTC_GetOwningService(uint16_t conn_id,
+                                                                uint16_t handle);
 
 /*******************************************************************************
  *
@@ -980,6 +988,15 @@ extern void BTA_GATTC_Refresh(const RawAddress& remote_bda);
  *
  ******************************************************************************/
 extern void BTA_GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu);
+
+/*******************************************************************************
+ *
+ * Function         BTA_GATTC_ResetGattDb
+ *
+ * Description      Resets GATT Database for the device.
+ *
+ ******************************************************************************/
+extern void BTA_GATTC_ResetGattDb(const RawAddress& remote_bda);
 
 /*******************************************************************************
  *  BTA GATT Server API

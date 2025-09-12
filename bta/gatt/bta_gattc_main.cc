@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -60,7 +61,7 @@ enum {
   BTA_GATTC_CONFIRM,
   BTA_GATTC_EXEC,
   BTA_GATTC_READ_MULTI,
-  BTA_GATTC_IGNORE_OP_CMPL,
+  BTA_GATTC_OP_CMPL_DURING_DISCOVERY,
   BTA_GATTC_DISC_CLOSE,
   BTA_GATTC_RESTART_DISCOVER,
   BTA_GATTC_CFG_MTU,
@@ -94,7 +95,7 @@ const tBTA_GATTC_ACTION bta_gattc_action[] = {bta_gattc_open,
                                               bta_gattc_confirm,
                                               bta_gattc_execute,
                                               bta_gattc_read_multi,
-                                              bta_gattc_ignore_op_cmpl,
+                                              bta_gattc_op_cmpl_during_discovery,
                                               bta_gattc_disc_close,
                                               bta_gattc_restart_discover,
                                               bta_gattc_cfg_mtu};
@@ -259,7 +260,50 @@ static const uint8_t bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] = {
                                             BTA_GATTC_DISCOVER_ST},
     /* BTA_GATTC_DISCOVER_CMPL_EVT      */ {BTA_GATTC_DISC_CMPL,
                                             BTA_GATTC_CONN_ST},
-    /* BTA_GATTC_OP_CMPL_EVT            */ {BTA_GATTC_IGNORE_OP_CMPL,
+    /* BTA_GATTC_OP_CMPL_EVT            */ {BTA_GATTC_OP_CMPL_DURING_DISCOVERY,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_INT_DISCONN_EVT        */ {BTA_GATTC_CLOSE, BTA_GATTC_IDLE_ST},
+
+};
+
+/* state table for discover state with Robust caching support */
+static const uint8_t bta_gattc_st_discover_rc[][BTA_GATTC_NUM_COLS] = {
+    /* Event                            Action 1 Next state */
+    /* BTA_GATTC_API_OPEN_EVT           */ {BTA_GATTC_OPEN,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_INT_OPEN_FAIL_EVT      */ {BTA_GATTC_IGNORE,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_CANCEL_OPEN_EVT    */ {BTA_GATTC_CANCEL_OPEN_ERROR,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */ {BTA_GATTC_FAIL,
+                                            BTA_GATTC_DISCOVER_ST},
+
+    /* BTA_GATTC_API_READ_EVT           */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_WRITE_EVT          */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_EXEC_EVT           */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_CFG_MTU_EVT        */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+
+    /* BTA_GATTC_API_CLOSE_EVT          */ {BTA_GATTC_DISC_CLOSE,
+                                            BTA_GATTC_DISCOVER_ST},
+
+    /* BTA_GATTC_API_SEARCH_EVT         */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_CONFIRM_EVT        */ {BTA_GATTC_CONFIRM,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_API_READ_MULTI_EVT     */ {BTA_GATTC_Q_CMD,
+                                            BTA_GATTC_DISCOVER_ST},
+
+    /* BTA_GATTC_INT_CONN_EVT           */ {BTA_GATTC_CONN,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_INT_DISCOVER_EVT       */ {BTA_GATTC_RESTART_DISCOVER,
+                                            BTA_GATTC_DISCOVER_ST},
+    /* BTA_GATTC_DISCOVER_CMPL_EVT      */ {BTA_GATTC_IGNORE,
+                                            BTA_GATTC_W4_CONN_ST},
+    /* BTA_GATTC_OP_CMPL_EVT            */ {BTA_GATTC_OP_CMPL_DURING_DISCOVERY,
                                             BTA_GATTC_DISCOVER_ST},
     /* BTA_GATTC_INT_DISCONN_EVT        */ {BTA_GATTC_CLOSE, BTA_GATTC_IDLE_ST},
 
@@ -270,8 +314,12 @@ typedef const uint8_t (*tBTA_GATTC_ST_TBL)[BTA_GATTC_NUM_COLS];
 
 /* state table */
 const tBTA_GATTC_ST_TBL bta_gattc_st_tbl[] = {
-    bta_gattc_st_idle, bta_gattc_st_w4_conn, bta_gattc_st_connected,
-    bta_gattc_st_discover};
+    bta_gattc_st_idle,      /* BTA_GATTC_IDLE_ST */
+    bta_gattc_st_w4_conn,   /* BTA_GATTC_W4_CONN_ST */
+    bta_gattc_st_connected, /* BTA_GATTC_CONN_ST */
+    bta_gattc_st_discover,   /* BTA_GATTC_DISCOVER_ST */
+    bta_gattc_st_discover_rc   /* BTA_GATTC_DISCOVER_ST_RC */
+};
 
 /*****************************************************************************
  * Global data

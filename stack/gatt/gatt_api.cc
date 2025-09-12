@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -110,12 +114,18 @@ static uint16_t compute_service_size(btgatt_db_element_t* service, int count) {
     if (el->type == BTGATT_DB_PRIMARY_SERVICE ||
         el->type == BTGATT_DB_SECONDARY_SERVICE ||
         el->type == BTGATT_DB_DESCRIPTOR ||
-        el->type == BTGATT_DB_INCLUDED_SERVICE)
+        el->type == BTGATT_DB_INCLUDED_SERVICE) {
       db_size += 1;
-    else if (el->type == BTGATT_DB_CHARACTERISTIC)
+    } else if (el->type == BTGATT_DB_CHARACTERISTIC) {
       db_size += 2;
-    else
+
+      // if present, Characteristic Extended Properties takes one handle
+      if (el->properties & GATT_CHAR_PROP_BIT_EXT_PROP) db_size++;
+    } else {
       LOG(ERROR) << __func__ << ": Unknown element type: " << el->type;
+      db_size = 0;
+      break;
+    }
 
   return db_size;
 }
@@ -130,12 +140,42 @@ static bool is_gatt_attr_type(const Uuid& uuid) {
   return false;
 }
 
-/** Update the the last primary info for the service list info */
-static void gatt_update_last_pri_srv_info() {
-  gatt_cb.last_primary_s_handle = 0;
+/** Update the the last service info for the service list info */
+static void gatt_update_last_srv_info() {
+  gatt_cb.last_service_handle = 0;
 
-  for (tGATT_SRV_LIST_ELEM& el : *gatt_cb.srv_list_info)
-    if (el.is_primary) gatt_cb.last_primary_s_handle = el.s_hdl;
+  for (tGATT_SRV_LIST_ELEM& el : *gatt_cb.srv_list_info) {
+    gatt_cb.last_service_handle = el.s_hdl;
+  }
+}
+
+/** Update database hash and client status */
+static void gatt_update_for_database_change() {
+  gatt_cb.database_hash = gatts_calculate_database_hash(gatt_cb.srv_list_info);
+
+  uint8_t i = 0;
+  for (i = 0; i < GATT_MAX_PHY_CHANNEL; i++) {
+    tGATT_TCB& tcb = gatt_cb.tcb[i];
+    if (tcb.in_use) gatt_sr_update_cl_status(tcb, /* chg_aware= */ false);
+  }
+}
+
+static bool is_uuid_le_only_transport(Uuid uuid) {
+  uint16_t uuid_val = uuid.As16Bit();
+  bool status = false;
+
+  switch (uuid_val) {
+    case 0x1849:
+    case 0x184C:
+      {
+        status = true;
+        APPL_TRACE_DEBUG("%s: Only LE Transport 0x%X ", __func__, uuid.As16Bit());
+      }
+      break;
+    default:
+      APPL_TRACE_DEBUG("%s: 0x%X, 0x%X ", __func__, uuid.As16Bit(), uuid_val);
+  }
+  return status;
 }
 
 /*******************************************************************************
@@ -170,6 +210,11 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
   }
 
   uint16_t num_handles = compute_service_size(service, count);
+  if (num_handles == 0) {
+    LOG(ERROR) << StringPrintf(
+        "Invalid Gatt Service. Skip adding in db. gatt_if: %u", gatt_if);
+    return GATT_INTERNAL_ERROR;
+  }
   char value[PROPERTY_VALUE_MAX] = {'\0'};
   bool log_for_certification = false;
   osi_property_get("vendor.bt.pts.certification", value, "false");
@@ -253,6 +298,10 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
         //el->attribute_handle characteristic value handle, characteristic - 1 is characteristic handle
         printf("GATTS_AddService:add characteristic handle=0x%04x value handle=0x%04x uuid=%s \n", el->attribute_handle - 1, el->attribute_handle, el->uuid.ToString().c_str());
       }
+      // add characteristic extended properties descriptor if needed
+      if (el->properties & GATT_CHAR_PROP_BIT_EXT_PROP) {
+        gatts_add_char_ext_prop_descr(list.svc_db, el->extended_properties);
+      }
     } else if (el->type == BTGATT_DB_DESCRIPTOR) {
       if (is_gatt_attr_type(uuid)) {
         LOG(ERROR) << StringPrintf(
@@ -310,18 +359,25 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
   if (elem.type == GATT_UUID_PRI_SERVICE &&
            stack_config_get_interface()->get_att_psm_registered()) {
     Uuid* p_uuid = gatts_get_service_uuid(elem.p_db);
-    elem.sdp_handle = gatt_add_sdp_record(*p_uuid, elem.s_hdl, elem.e_hdl);
+    if (p_uuid && !is_uuid_le_only_transport(*p_uuid)) {
+      elem.sdp_handle = gatt_add_sdp_record(*p_uuid, elem.s_hdl, elem.e_hdl);
+    } else {
+      elem.sdp_handle = 0;
+    }
   } else {
     elem.sdp_handle = 0;
   }
 
-  gatt_update_last_pri_srv_info();
+  gatt_update_last_srv_info();
 
   VLOG(1) << StringPrintf(
       "%s: allocated el: s_hdl=%d e_hdl=%d type=0x%x sdp_hdl=0x%x", __func__,
       elem.s_hdl, elem.e_hdl, elem.type, elem.sdp_handle);
 
-  gatt_proc_srv_chg();
+  gatt_update_for_database_change();
+  if (!stack_config_get_interface()->get_pts_service_chg_indication_disable()) {
+    gatt_proc_srv_chg();
+  }
 
   return GATT_SERVICE_STARTED;
 }
@@ -371,10 +427,13 @@ bool GATTS_DeleteService(tGATT_IF gatt_if, Uuid* p_svc_uuid,
     return false;
   }
 
-  gatt_proc_srv_chg();
-
   if (is_active_service(p_reg->app_uuid128, p_svc_uuid, svc_inst)) {
     GATTS_StopService(it->asgn_range.s_handle);
+  }
+
+  gatt_update_for_database_change();
+  if (!stack_config_get_interface()->get_pts_service_chg_indication_disable()) {
+    gatt_proc_srv_chg();
   }
 
   VLOG(1) << StringPrintf("released handles s_hdl=%u e_hdl=%u",
@@ -413,7 +472,7 @@ void GATTS_StopService(uint16_t service_handle) {
   }
 
   gatt_cb.srv_list_info->erase(it);
-  gatt_update_last_pri_srv_info();
+  gatt_update_last_srv_info();
 }
 /*******************************************************************************
  *
@@ -625,11 +684,15 @@ tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
   tGATT_CLCB* p_clcb = gatt_clcb_alloc(conn_id);
   if (!p_clcb) return GATT_NO_RESOURCES;
 
-  p_clcb->p_tcb->payload_size = mtu;
+  if (p_clcb->p_tcb)
+    p_clcb->p_tcb->payload_size = mtu;
   p_clcb->operation = GATTC_OPTYPE_CONFIG;
   tGATT_CL_MSG gatt_cl_msg;
   gatt_cl_msg.mtu = mtu;
-  return attp_send_cl_msg(*p_clcb->p_tcb, p_clcb, GATT_REQ_MTU, &gatt_cl_msg);
+  if (p_clcb->p_tcb)
+    return attp_send_cl_msg(*p_clcb->p_tcb, p_clcb, GATT_REQ_MTU, &gatt_cl_msg);
+
+  return GATT_ERROR;
 }
 
 /*******************************************************************************
@@ -686,6 +749,15 @@ tGATT_STATUS GATTC_Discover(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
 
   gatt_act_discovery(p_clcb);
   return GATT_SUCCESS;
+}
+
+tGATT_STATUS GATTC_Discover(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
+                            uint16_t start_handle, uint16_t end_handle) {
+  tGATT_DISC_PARAM p_param;
+  p_param.s_handle = start_handle;
+  p_param.e_handle = end_handle;
+  p_param.service = Uuid::kEmpty;
+  return GATTC_Discover(conn_id, disc_type, &p_param);
 }
 
 /*******************************************************************************
@@ -860,7 +932,8 @@ tGATT_STATUS GATTC_ExecuteWrite(uint16_t conn_id, bool is_execute) {
   p_clcb->operation = GATTC_OPTYPE_EXE_WRITE;
   tGATT_EXEC_FLAG flag =
       is_execute ? GATT_PREP_WRITE_EXEC : GATT_PREP_WRITE_CANCEL;
-  gatt_send_queue_write_cancel(*p_clcb->p_tcb, p_clcb, flag);
+  if (p_clcb->p_tcb)
+    gatt_send_queue_write_cancel(*p_clcb->p_tcb, p_clcb, flag);
   return GATT_SUCCESS;
 }
 
@@ -1138,6 +1211,7 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
 bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
                   tBT_TRANSPORT transport, bool opportunistic,
                   uint8_t initiating_phys) {
+  tGATT_TCB* p_tcb;
   tGATT_REG* p_reg;
   bool status = false;
 
@@ -1314,6 +1388,7 @@ bool GATT_GetConnIdIfConnected(tGATT_IF gatt_if, const RawAddress& bd_addr,
     status = true;
   }
 
+  LOG(INFO) << __func__ << " status=" << +status;
   VLOG(1) << __func__ << " status= " << +status;
   return status;
 }

@@ -14,8 +14,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center are provided under the following license:
- *  Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
  *
  ******************************************************************************/
@@ -655,9 +655,9 @@ tBTA_HH_LE_RPT* bta_hh_le_find_alloc_report_entry(tBTA_HH_DEV_CB* p_cb,
   return NULL;
 }
 
-static tBTA_GATTC_DESCRIPTOR* find_descriptor_by_short_uuid(
+static const gatt::Descriptor* find_descriptor_by_short_uuid(
     uint16_t conn_id, uint16_t char_handle, uint16_t short_uuid) {
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(conn_id, char_handle);
 
   if (!p_char) {
@@ -665,13 +665,8 @@ static tBTA_GATTC_DESCRIPTOR* find_descriptor_by_short_uuid(
     return NULL;
   }
 
-  if (!p_char->descriptors || list_is_empty(p_char->descriptors)) return NULL;
-
-  for (list_node_t* dn = list_begin(p_char->descriptors);
-       dn != list_end(p_char->descriptors); dn = list_next(dn)) {
-    tBTA_GATTC_DESCRIPTOR* p_desc = (tBTA_GATTC_DESCRIPTOR*)list_node(dn);
-
-    if (p_desc->uuid == Uuid::From16Bit(short_uuid)) return p_desc;
+  for (const gatt::Descriptor& desc : p_char->descriptors) {
+    if (desc.uuid == Uuid::From16Bit(short_uuid)) return &desc;
   }
 
   return NULL;
@@ -689,7 +684,7 @@ static tBTA_HH_STATUS bta_hh_le_read_char_descriptor(tBTA_HH_DEV_CB* p_cb,
                                                      uint16_t short_uuid,
                                                      GATT_READ_OP_CB cb,
                                                      void* cb_data) {
-  const tBTA_GATTC_DESCRIPTOR* p_desc =
+  const gatt::Descriptor* p_desc =
       find_descriptor_by_short_uuid(p_cb->conn_id, char_handle, short_uuid);
   if (!p_desc) return BTA_HH_ERR;
 
@@ -877,7 +872,7 @@ void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB* p_cb) {
 bool bta_hh_le_write_ccc(tBTA_HH_DEV_CB* p_cb, uint8_t char_handle,
                          uint16_t clt_cfg_value, GATT_WRITE_OP_CB cb,
                          void* cb_data) {
-  tBTA_GATTC_DESCRIPTOR* p_desc = find_descriptor_by_short_uuid(
+  const gatt::Descriptor* p_desc = find_descriptor_by_short_uuid(
       p_cb->conn_id, char_handle, GATT_UUID_CHAR_CLIENT_CONFIG);
   if (!p_desc) return false;
 
@@ -895,18 +890,27 @@ bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB* p_cb);
 static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status,
                                  uint16_t handle, void* data) {
   uint8_t srvc_inst_id, hid_inst_id;
+  uint16_t char_uuid;
 
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
-  const tBTA_GATTC_DESCRIPTOR* p_desc =
-      BTA_GATTC_GetDescriptor(conn_id, handle);
-  if (!p_desc) {
-    APPL_TRACE_ERROR("%s: error: descriptor is null!", __func__);
+  const gatt::Characteristic* characteristic =
+      BTA_GATTC_GetOwningCharacteristic(conn_id, handle);
+  if (!characteristic) {
+    APPL_TRACE_ERROR("%s: error: characteristic not found for handle: %d"
+        ", conn_id: %d, status: %d", __func__, handle, conn_id, status);
+    return;
+  } else {
+    char_uuid = characteristic->uuid.As16Bit();
+  }
+
+  const gatt::Service* service = BTA_GATTC_GetOwningService(conn_id, handle);
+  if (!service) {
+    APPL_TRACE_ERROR("%s: service not found for handle: %d, conn_id: %d, status: %d",
+        __func__, handle, conn_id, status);
     return;
   }
 
-  uint16_t char_uuid = p_desc->characteristic->uuid.As16Bit();
-
-  srvc_inst_id = p_desc->characteristic->service->handle;
+  srvc_inst_id = service->handle;
   hid_inst_id = srvc_inst_id;
   switch (char_uuid) {
     case GATT_UUID_BATTERY_LEVEL: /* battery level clt cfg registered */
@@ -1546,18 +1550,33 @@ static void read_report_ref_desc_cb(uint16_t conn_id, tGATT_STATUS status,
   }
 
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
-  const tBTA_GATTC_DESCRIPTOR* p_desc =
-      BTA_GATTC_GetDescriptor(conn_id, handle);
-
+  const gatt::Descriptor* p_desc = BTA_GATTC_GetDescriptor(conn_id, handle);
   if (!p_desc) {
     APPL_TRACE_ERROR("%s: error: descriptor is null!", __func__);
     return;
   }
 
+  const gatt::Characteristic* characteristic =
+      BTA_GATTC_GetOwningCharacteristic(conn_id, handle);
+  if (!characteristic) {
+    APPL_TRACE_ERROR("%s: error: characteristic not found for handle: %d"
+        ", conn_id: %d, status: %d", __func__, handle, conn_id, status);
+    return;
+  }
+
+  const gatt::Service* service =
+      BTA_GATTC_GetOwningService(conn_id, characteristic->value_handle);
+  if (!service) {
+    APPL_TRACE_ERROR("%s: error: service not found for char handle: %d"
+        ", conn_id: %d, status: %d", __func__, characteristic->value_handle,
+        conn_id, status);
+    return;
+  }
+
   tBTA_HH_LE_RPT* p_rpt;
-  p_rpt = bta_hh_le_find_report_entry(
-      p_dev_cb, p_desc->characteristic->service->handle, GATT_UUID_HID_REPORT,
-      p_desc->characteristic->handle);
+  p_rpt = bta_hh_le_find_report_entry(p_dev_cb, service->handle,
+                                      GATT_UUID_HID_REPORT,
+                                      characteristic->value_handle);
   if (p_rpt) bta_hh_le_save_report_ref(p_dev_cb, p_rpt, status, value, len);
 }
 
@@ -1614,35 +1633,31 @@ void read_pref_conn_params_cb(uint16_t conn_id, tGATT_STATUS status,
  *
  ******************************************************************************/
 static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
-                                       tBTA_GATTC_SERVICE* service) {
+                                       const gatt::Service* service) {
   tBTA_HH_LE_RPT* p_rpt;
 
-  for (list_node_t* cn = list_begin(service->characteristics);
-       cn != list_end(service->characteristics); cn = list_next(cn)) {
-    tBTA_GATTC_CHARACTERISTIC* p_char =
-        (tBTA_GATTC_CHARACTERISTIC*)list_node(cn);
+  for (const gatt::Characteristic& charac : service->characteristics) {
+    if (!charac.uuid.Is16Bit()) continue;
 
-    if (!p_char->uuid.Is16Bit()) continue;
-
-    uint16_t uuid16 = p_char->uuid.As16Bit();
+    uint16_t uuid16 = charac.uuid.As16Bit();
     LOG_DEBUG(LOG_TAG, "%s: %s %s", __func__, bta_hh_uuid_to_str(uuid16),
-              p_char->uuid.ToString().c_str());
+              charac.uuid.ToString().c_str());
 
     switch (uuid16) {
       case GATT_UUID_HID_CONTROL_POINT:
-        p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].control_point_handle = p_char->handle;
+        p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].control_point_handle = charac.value_handle;
         break;
       case GATT_UUID_HID_INFORMATION:
         /* only one instance per HID service */
-        gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle,
+        gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, charac.value_handle,
                            read_hid_info_cb, p_dev_cb);
         break;
       case GATT_UUID_HID_REPORT_MAP:
         /* only one instance per HID service */
-        gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle,
+        gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, charac.value_handle,
                            read_hid_report_map_cb, p_dev_cb);
         /* descriptor is optional */
-        bta_hh_le_read_char_descriptor(p_dev_cb, p_char->handle,
+        bta_hh_le_read_char_descriptor(p_dev_cb, charac.value_handle,
                                        GATT_UUID_EXT_RPT_REF_DESCR,
                                        read_ext_rpt_ref_desc_cb, p_dev_cb);
         break;
@@ -1650,7 +1665,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
       case GATT_UUID_HID_REPORT:
         p_rpt = bta_hh_le_find_alloc_report_entry(p_dev_cb,
                 p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].srvc_inst_id,
-                GATT_UUID_HID_REPORT, p_char->handle);
+                GATT_UUID_HID_REPORT, charac.value_handle);
         if (p_rpt == NULL) {
           APPL_TRACE_ERROR("%s: Add report entry failed !!!", __func__);
           break;
@@ -1658,7 +1673,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
 
         if (p_rpt->rpt_type != BTA_HH_RPTT_INPUT) break;
 
-        bta_hh_le_read_char_descriptor(p_dev_cb, p_char->handle,
+        bta_hh_le_read_char_descriptor(p_dev_cb, charac.value_handle,
                                        GATT_UUID_RPT_REF_DESCR,
                                        read_report_ref_desc_cb, p_dev_cb);
         break;
@@ -1668,7 +1683,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
       case GATT_UUID_HID_BT_MOUSE_INPUT:
       case GATT_UUID_HID_BT_KB_INPUT:
         if (bta_hh_le_find_alloc_report_entry(p_dev_cb, service->handle, uuid16,
-                                              p_char->handle) == NULL)
+                                              charac.value_handle) == NULL)
           APPL_TRACE_ERROR("%s: Add report entry failed !!!", __func__);
 
         break;
@@ -1680,13 +1695,9 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
   }
 
   /* Make sure PROTO_MODE is processed as last */
-  for (list_node_t* cn = list_begin(service->characteristics);
-       cn != list_end(service->characteristics); cn = list_next(cn)) {
-    tBTA_GATTC_CHARACTERISTIC* p_char =
-        (tBTA_GATTC_CHARACTERISTIC*)list_node(cn);
-
-    if (p_char->uuid == Uuid::From16Bit(GATT_UUID_HID_PROTO_MODE)) {
-      p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].proto_mode_handle = p_char->handle;
+  for (const gatt::Characteristic& charac : service->characteristics) {
+    if (charac.uuid == Uuid::From16Bit(GATT_UUID_HID_PROTO_MODE)) {
+      p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].proto_mode_handle = charac.value_handle;
       bta_hh_le_set_protocol_mode(p_dev_cb, p_dev_cb->mode);
       break;
     }
@@ -1715,71 +1726,68 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL* p_data) {
     return;
   }
 
-  const list_t* services = BTA_GATTC_GetServices(p_data->conn_id);
+  const std::vector<gatt::Service>* services =
+      BTA_GATTC_GetServices(p_data->conn_id);
+  if (services == NULL) {
+    APPL_TRACE_ERROR("%s: error: service not found for conn_id: %d",
+        __func__, p_data->conn_id);
+    return;
+  }
   uint8_t srvc_index = p_dev_cb->cur_srvc_index;
   bool have_hid = false;
   tBTA_HH_LE_RPT* p_rpt;
-  for (list_node_t* sn = list_begin(services); sn != list_end(services);
-       sn = list_next(sn)) {
-    tBTA_GATTC_SERVICE* service = (tBTA_GATTC_SERVICE*)list_node(sn);
-
-    if (service->uuid == Uuid::From16Bit(UUID_SERVCLASS_LE_HID) &&
-        service->is_primary ) {
+  for (const gatt::Service& service : *services) {
+    if (service.uuid == Uuid::From16Bit(UUID_SERVCLASS_LE_HID) &&
+        service.is_primary ) {
       have_hid = true;
 
       /* found HID primamry service */
       srvc_index = p_dev_cb->cur_srvc_index;
       p_dev_cb->hid_srvc[srvc_index].in_use = true;
-      p_dev_cb->hid_srvc[srvc_index].srvc_inst_id = service->handle;
+      p_dev_cb->hid_srvc[srvc_index].srvc_inst_id = service.handle;
       p_dev_cb->hid_srvc[srvc_index].proto_mode_handle = 0;
       p_dev_cb->hid_srvc[srvc_index].control_point_handle = 0;
 
-      bta_hh_le_search_hid_chars(p_dev_cb, service);
+      bta_hh_le_search_hid_chars(p_dev_cb, &service);
       if (p_dev_cb->cur_srvc_index < BTA_HH_LE_HID_SRVC_MAX-1) {
          p_dev_cb->cur_srvc_index++;
          APPL_TRACE_DEBUG("%s: current service instance  %d", __func__,
                   srvc_index);
       }
-    } else if (service->uuid == Uuid::From16Bit(UUID_SERVCLASS_BATTERY)) {
-      for (list_node_t *cn = list_begin(service->characteristics);
-             cn != list_end(service->characteristics); cn = list_next(cn)) {
-         tBTA_GATTC_CHARACTERISTIC *p_char =
-              (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
-          if (p_char->uuid.As16Bit()== GATT_UUID_BATTERY_LEVEL) {
-            p_dev_cb->hid_srvc[srvc_index].incl_srvc_inst = service->handle;
-            p_rpt = bta_hh_le_find_alloc_report_entry(p_dev_cb, service->s_handle,
-                          GATT_UUID_BATTERY_LEVEL, p_char->handle);
+    } else if (service.uuid == Uuid::From16Bit(UUID_SERVCLASS_BATTERY)) {
+      for (const gatt::Characteristic& p_char : service.characteristics) {
+          if (p_char.uuid.As16Bit()== GATT_UUID_BATTERY_LEVEL) {
+            p_dev_cb->hid_srvc[srvc_index].incl_srvc_inst = service.handle;
+            p_rpt = bta_hh_le_find_alloc_report_entry(p_dev_cb, service.handle,
+                          GATT_UUID_BATTERY_LEVEL, p_char.value_handle);
             if (p_rpt == NULL)
               APPL_TRACE_ERROR("Add battery report entry failed !!!");
 
-            gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle,
+            gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char.value_handle,
                         read_report_descriptor_ccc_cb,p_dev_cb);
             if (p_rpt)
-              bta_hh_le_read_char_descriptor(p_dev_cb, p_char->handle,
+              bta_hh_le_read_char_descriptor(p_dev_cb, p_char.value_handle,
                            GATT_UUID_CHAR_CLIENT_CONFIG,
                            read_report_descriptor_ccc_cb, p_rpt);
           }
       }
-    } else if (service->uuid == Uuid::From16Bit(UUID_SERVCLASS_SCAN_PARAM)) {
+    } else if (service.uuid == Uuid::From16Bit(UUID_SERVCLASS_SCAN_PARAM)) {
       p_dev_cb->scan_refresh_char_handle = 0;
       p_dev_cb->scan_int_char_handle  = 0;
       p_dev_cb->scps_supported = TRUE;
 
-      for (list_node_t* cn = list_begin(service->characteristics);
-           cn != list_end(service->characteristics); cn = list_next(cn)) {
-        tBTA_GATTC_CHARACTERISTIC* p_char =
-            (tBTA_GATTC_CHARACTERISTIC*)list_node(cn);
-        if (p_char->uuid == Uuid::From16Bit(GATT_UUID_SCAN_REFRESH)) {
-          p_dev_cb->scan_refresh_char_handle = p_char->handle;
+      for (const gatt::Characteristic& charac : service.characteristics) {
+        if (charac.uuid == Uuid::From16Bit(GATT_UUID_SCAN_REFRESH)) {
+          p_dev_cb->scan_refresh_char_handle = charac.value_handle;
 
-          if (p_char->properties & BTA_GATT_CHAR_PROP_BIT_NOTIFY)
+          if (charac.properties & GATT_CHAR_PROP_BIT_NOTIFY)
             p_dev_cb->scps_notify |= BTA_HH_LE_SCPS_NOTIFY_SPT;
           else
             p_dev_cb->scps_notify = BTA_HH_LE_SCPS_NOTIFY_NONE;
 
         }
-        if (p_char->uuid == Uuid::From16Bit(GATT_UUID_SCAN_INT_WINDOW)) {
-           p_dev_cb->scan_int_char_handle = p_char->handle;
+        if (charac.uuid == Uuid::From16Bit(GATT_UUID_SCAN_INT_WINDOW)) {
+           p_dev_cb->scan_int_char_handle = charac.value_handle;
         }
         if (p_dev_cb->scan_refresh_char_handle &&  p_dev_cb->scan_int_char_handle)
            break;
@@ -1813,7 +1821,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY* p_data) {
     return;
   }
 
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id, p_data->handle);
   if (p_char == NULL) {
     APPL_TRACE_ERROR(
@@ -1832,12 +1840,12 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY* p_data) {
      return;
   }
   p_rpt = bta_hh_le_find_report_entry(p_dev_cb, p_dev_cb->hid_srvc[0].srvc_inst_id,
-                                      p_char->uuid.As16Bit(), p_char->handle);
+                                      p_char->uuid.As16Bit(), p_char->value_handle);
   if (p_rpt == NULL) {
     APPL_TRACE_ERROR(
         "%s: notification received for Unknown Report, uuid: %s, handle: "
         "0x%04x",
-        __func__, p_char->uuid.ToString().c_str(), p_char->handle);
+        __func__, p_char->uuid.ToString().c_str(), p_char->value_handle);
     return;
   }
 
@@ -2053,7 +2061,7 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB* p_cb) {
 static void read_report_cb(uint16_t conn_id, tGATT_STATUS status,
                            uint16_t handle, uint16_t len, uint8_t* value,
                            void* data) {
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(conn_id, handle);
 
   if (p_char == NULL) return;
@@ -2086,8 +2094,15 @@ static void read_report_cb(uint16_t conn_id, tGATT_STATUS status,
   hs_data.handle = p_dev_cb->hid_handle;
 
   if (status == BTA_GATT_OK) {
-    p_rpt = bta_hh_le_find_report_entry(p_dev_cb, p_char->service->handle,
-                                        char_uuid, p_char->handle);
+    const gatt::Service* p_svc =
+        BTA_GATTC_GetOwningService(conn_id, p_char->value_handle);
+    if (p_svc) {
+      p_rpt = bta_hh_le_find_report_entry(p_dev_cb, p_svc->handle, char_uuid,
+                                          p_char->value_handle);
+    } else {
+      APPL_TRACE_ERROR("%s: error: service not found for handle: %d, conn_id: %d"
+          ", status: %d", __func__, p_char->value_handle, conn_id, status);
+    }
 
     if (p_rpt != NULL && len) {
       p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + len + 1);
@@ -2165,8 +2180,10 @@ static void write_report_cb(uint16_t conn_id, tGATT_STATUS status,
   APPL_TRACE_DEBUG("bta_hh_le_write_cmpl w4_evt: %d", p_dev_cb->w4_evt);
 #endif
 
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(conn_id, handle);
+  if (p_char == nullptr) return;
+
   uint16_t uuid = p_char->uuid.As16Bit();
   if (uuid != GATT_UUID_HID_REPORT && uuid != GATT_UUID_HID_BT_KB_INPUT &&
       uuid != GATT_UUID_HID_BT_MOUSE_INPUT &&
@@ -2213,7 +2230,7 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB* p_cb, uint8_t srvc_inst, tBTA_HH_RPT_TY
   }
 
   p_cb->w4_evt = w4_evt;
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(p_cb->conn_id, p_rpt->char_inst_id);
 
   tBTA_GATTC_WRITE_TYPE write_type = BTA_GATTC_TYPE_WRITE;
@@ -2428,8 +2445,14 @@ static void write_scpp_cb(uint16_t conn_id, tGATT_STATUS status,
   APPL_TRACE_DEBUG("write_scpp_cb w4_evt: %d", p_dev_cb->w4_evt);
 #endif
 
-  const tBTA_GATTC_CHARACTERISTIC* p_char =
+  const gatt::Characteristic* p_char =
       BTA_GATTC_GetCharacteristic(conn_id, handle);
+  if (p_char == NULL) {
+    LOG_WARN(LOG_TAG, "%s No such characteristic: %d conn_id : %d", __func__,
+      handle, conn_id);
+    return;
+  }
+
   uint16_t uuid = p_char->uuid.As16Bit();
 
   if (uuid != GATT_UUID_SCAN_INT_WINDOW)

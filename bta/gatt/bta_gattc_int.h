@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -31,6 +32,7 @@
 
 #include "bta_gatt_api.h"
 #include "bta_sys.h"
+#include "database_builder.h"
 #include "osi/include/fixed_queue.h"
 
 #include "bt_common.h"
@@ -209,7 +211,8 @@ enum {
   BTA_GATTC_IDLE_ST = 0, /* Idle  */
   BTA_GATTC_W4_CONN_ST,  /* Wait for connection -  (optional) */
   BTA_GATTC_CONN_ST,     /* connected state */
-  BTA_GATTC_DISCOVER_ST  /* discover is in progress */
+  BTA_GATTC_DISCOVER_ST,  /* discover is in progress */
+  BTA_GATTC_DISCOVER_ST_RC /* discover is in progress with Robust caching support */
 };
 typedef uint8_t tBTA_GATTC_STATE;
 
@@ -226,18 +229,19 @@ typedef struct {
 
   uint8_t state;
 
-  list_t* p_srvc_cache; /* list of tBTA_GATTC_SERVICE */
+  gatt::Database gatt_database;
   uint8_t update_count; /* indication received */
   uint8_t num_clcb;     /* number of associated CLCB */
 
-  tBTA_GATTC_ATTR_REC* p_srvc_list;
-  uint8_t cur_srvc_idx;
-  uint8_t cur_char_idx;
-  uint8_t next_avail_idx;
-  uint8_t total_srvc;
-  uint8_t total_char;
+  gatt::DatabaseBuilder pending_discovery;
+
+  /* used only during service discovery, when reading Extended Characteristic
+   * Properties */
+  bool read_multiple_not_supported;
 
   uint8_t srvc_hdl_chg; /* service handle change indication pending */
+  bool srvc_hdl_db_hash;   /* read db hash pending */
+  uint8_t srvc_disc_count; /* current discovery retry count */
   uint16_t attr_index;  /* cahce NV saving/loading attribute index */
 
   uint16_t mtu;
@@ -274,6 +278,13 @@ typedef struct {
   tBTA_GATTC_SERV* p_srcb;  /* server cache CB */
   tBTA_GATTC_DATA* p_q_cmd; /* command in queue waiting for execution */
 
+  uint8_t request_during_discovery; /* request during discover state */
+
+  // request during discover state
+#define BTA_GATTC_DISCOVER_REQ_NONE 0
+#define BTA_GATTC_DISCOVER_REQ_READ_EXT_PROP_DESC 1
+#define BTA_GATTC_DISCOVER_REQ_READ_DB_HASH 2
+#define BTA_GATTC_DISCOVER_REQ_READ_DB_HASH_FOR_SVC_CHG 3
 #define BTA_GATTC_NO_SCHEDULE 0
 #define BTA_GATTC_DISC_WAITING 0x01
 #define BTA_GATTC_REQ_WAITING 0x10
@@ -284,6 +295,7 @@ typedef struct {
   tBTA_GATTC_STATE state;
   tBTA_GATT_STATUS status;
   uint16_t reason;
+  uint16_t handle;
 } tBTA_GATTC_CLCB;
 
 /* back ground connection tracking information */
@@ -372,6 +384,7 @@ extern void bta_gattc_disc_close(tBTA_GATTC_CLCB* p_clcb,
 
 extern void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
                                      tBTA_GATTC_DATA* p_data);
+extern void bta_gattc_start_discover_internal(tBTA_GATTC_CLCB* p_clcb);
 extern void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
                                 tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_read(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
@@ -387,8 +400,8 @@ extern void bta_gattc_read_multi(tBTA_GATTC_CLCB* p_clcb,
 extern void bta_gattc_ci_open(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_ci_close(tBTA_GATTC_CLCB* p_clcb,
                                tBTA_GATTC_DATA* p_data);
-extern void bta_gattc_ignore_op_cmpl(tBTA_GATTC_CLCB* p_clcb,
-                                     tBTA_GATTC_DATA* p_data);
+extern void bta_gattc_op_cmpl_during_discovery(tBTA_GATTC_CLCB* p_clcb,
+                                               tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_restart_discover(tBTA_GATTC_CLCB* p_clcb,
                                        tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN* p_data,
@@ -439,6 +452,7 @@ extern void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV* p_srcb,
                                                uint16_t end_handle);
 extern void bta_gattc_clear_notif_reg_on_disc(tBTA_GATTC_RCB *p_clreg, RawAddress bda);
 extern tBTA_GATTC_SERV* bta_gattc_find_srvr_cache(const RawAddress& bda);
+extern bool bta_gattc_is_robust_caching_enabled();
 
 /* discovery functions */
 extern void bta_gattc_disc_res_cback(uint16_t conn_id,
@@ -447,28 +461,28 @@ extern void bta_gattc_disc_res_cback(uint16_t conn_id,
 extern void bta_gattc_disc_cmpl_cback(uint16_t conn_id,
                                       tGATT_DISC_TYPE disc_type,
                                       tGATT_STATUS status);
-extern tBTA_GATT_STATUS bta_gattc_discover_procedure(
-    uint16_t conn_id, tBTA_GATTC_SERV* p_server_cb, uint8_t disc_type);
 extern tBTA_GATT_STATUS bta_gattc_discover_pri_service(
     uint16_t conn_id, tBTA_GATTC_SERV* p_server_cb, uint8_t disc_type);
 extern void bta_gattc_search_service(tBTA_GATTC_CLCB* p_clcb,
                                      bluetooth::Uuid* p_uuid);
-extern const list_t* bta_gattc_get_services(uint16_t conn_id);
-extern const tBTA_GATTC_SERVICE* bta_gattc_get_service_for_handle(
+extern const std::vector<gatt::Service>* bta_gattc_get_services(uint16_t conn_id);
+extern const gatt::Service* bta_gattc_get_service_for_handle(
     uint16_t conn_id, uint16_t handle);
-tBTA_GATTC_CHARACTERISTIC* bta_gattc_get_characteristic_srcb(
+extern const gatt::Service* bta_gattc_get_service_for_handle_srcb(
     tBTA_GATTC_SERV* p_srcb, uint16_t handle);
-extern tBTA_GATTC_CHARACTERISTIC* bta_gattc_get_characteristic(uint16_t conn_id,
+extern const gatt::Characteristic* bta_gattc_get_characteristic_srcb(
+    tBTA_GATTC_SERV* p_srcb, uint16_t handle);
+extern const gatt::Characteristic* bta_gattc_get_characteristic(uint16_t conn_id,
                                                                uint16_t handle);
-extern tBTA_GATTC_DESCRIPTOR* bta_gattc_get_descriptor(uint16_t conn_id,
+extern const gatt::Descriptor* bta_gattc_get_descriptor(uint16_t conn_id,
                                                        uint16_t handle);
+extern const gatt::Characteristic* bta_gattc_get_owning_characteristic(
+    uint16_t conn_id, uint16_t handle);
 extern void bta_gattc_get_gatt_db(uint16_t conn_id, uint16_t start_handle,
                                   uint16_t end_handle, btgatt_db_element_t** db,
                                   int* count);
-extern tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV* p_srvc_cb);
-extern void bta_gattc_rebuild_cache(tBTA_GATTC_SERV* p_srcv, uint16_t num_attr,
-                                    tBTA_GATTC_NV_ATTR* attr);
-extern void bta_gattc_cache_save(tBTA_GATTC_SERV* p_srvc_cb, uint16_t conn_id);
+extern void bta_gattc_init_cache(tBTA_GATTC_SERV* p_srvc_cb);
+extern bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb, bool is_svc_chg);
 extern void bta_gattc_reset_discover_st(tBTA_GATTC_SERV* p_srcb,
                                         tBTA_GATT_STATUS status);
 
@@ -477,7 +491,15 @@ extern tBTA_GATTC_CONN* bta_gattc_conn_find(const RawAddress& remote_bda);
 extern tBTA_GATTC_CONN* bta_gattc_conn_find_alloc(const RawAddress& remote_bda);
 extern bool bta_gattc_conn_dealloc(const RawAddress& remote_bda);
 
-extern bool bta_gattc_cache_load(tBTA_GATTC_CLCB* p_clcb);
+/* bta_gattc_db_storage */
+extern gatt::Database bta_gattc_hash_load(const Octet16& hash);
+extern bool bta_gattc_hash_write(const Octet16& hash,
+                                 const gatt::Database& database);
+extern gatt::Database bta_gattc_cache_load(const RawAddress& server_bda);
+extern void bta_gattc_cache_write(const RawAddress& server_bda,
+                                  const gatt::Database& database);
+extern void bta_gattc_cache_link(const RawAddress& server_bda,
+                                 const Octet16& hash);
 extern void bta_gattc_cache_reset(const RawAddress& server_bda);
 
 #endif /* BTA_GATTC_INT_H */

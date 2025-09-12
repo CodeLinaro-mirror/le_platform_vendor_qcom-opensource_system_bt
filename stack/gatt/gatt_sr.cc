@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -481,7 +485,7 @@ static tGATT_STATUS gatt_build_primary_service_rsp(
     if (!p_uuid) continue;
 
     if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
-      handle_len = 4 + p_uuid->GetShortestRepresentationSize();
+      handle_len = 4 + gatt_build_uuid_to_stream_len(*p_uuid);
 
     /* get the length byte in the repsonse */
     if (p_msg->offset == 0) {
@@ -504,8 +508,8 @@ static tGATT_STATUS gatt_build_primary_service_rsp(
 
     UINT16_TO_STREAM(p, el.s_hdl);
 
-    if (gatt_cb.last_primary_s_handle &&
-        gatt_cb.last_primary_s_handle == el.s_hdl) {
+    if (gatt_cb.last_service_handle &&
+        gatt_cb.last_service_handle == el.s_hdl) {
       VLOG(1) << "Use 0xFFFF for the last primary attribute";
       /* see GATT ERRATA 4065, 4063, ATT ERRATA 4062 */
       UINT16_TO_STREAM(p, 0xFFFF);
@@ -1150,6 +1154,9 @@ static bool gatts_proc_ind_ack(tGATT_TCB& tcb, uint16_t ack_handle) {
     /* there is no need to inform the application since srv chg is handled
      * internally by GATT */
     continue_processing = false;
+
+    // After receiving ack of svc_chg_ind, reset client status
+    gatt_sr_update_cl_status(tcb, /* chg_aware= */ true);
   }
 
   gatts_chk_pending_ind(tcb);
@@ -1192,11 +1199,78 @@ void gatts_process_value_conf(tGATT_TCB& tcb, uint8_t op_code) {
   }
 }
 
+static bool gatts_process_db_out_of_sync(tGATT_TCB& tcb,
+                                         uint8_t op_code, uint16_t len,
+                                         uint8_t* p_data) {
+  if (gatt_sr_is_cl_change_aware(tcb)) return false;
+
+  // default value
+  bool should_ignore = true;
+  bool should_rsp = true;
+
+  switch (op_code) {
+    case GATT_REQ_READ_BY_TYPE: {
+      // Check if read database hash by UUID
+      Uuid uuid = Uuid::kEmpty;
+      uint16_t s_hdl = 0, e_hdl = 0;
+      uint16_t db_hash_handle = gatt_get_db_hash_char_handle();
+      tGATT_STATUS reason = gatts_validate_packet_format(op_code, len, p_data,
+                                                         &uuid, s_hdl, e_hdl);
+      if (reason == GATT_SUCCESS &&
+          (s_hdl <= db_hash_handle && db_hash_handle <= e_hdl) &&
+          (uuid == Uuid::From16Bit(GATT_UUID_DATABASE_HASH)))
+        should_ignore = false;
+
+    } break;
+    case GATT_REQ_READ_BY_GRP_TYPE: /* discover primary services */
+    case GATT_REQ_FIND_TYPE_VALUE:  /* discover service by UUID */
+    case GATT_REQ_FIND_INFO:        /* discover char descrptor */
+    case GATT_REQ_READ:             /* read char/char descriptor */
+    case GATT_REQ_READ_BLOB:        /* read long char */
+    case GATT_REQ_READ_MULTI:       /* read multi char*/
+    case GATT_REQ_WRITE:            /* write char/char descriptor value */
+    case GATT_REQ_PREPARE_WRITE:    /* write long char */
+    case GATT_REQ_READ_MULTI_VARIABLE: /* read multi variable request */
+      // Use default value
+      break;
+    case GATT_CMD_WRITE:      /* cmd */
+    case GATT_SIGN_CMD_WRITE: /* sign cmd */
+      should_rsp = false;
+      break;
+    case GATT_REQ_MTU:           /* configure mtu */
+    case GATT_REQ_EXEC_WRITE:    /* execute write */
+    case GATT_HANDLE_VALUE_CONF: /* confirm for indication */
+    default:
+      should_ignore = false;
+  }
+
+  if (should_ignore) {
+    if (should_rsp) {
+      gatt_send_error_rsp(tcb, GATT_DATABASE_OUT_OF_SYNC, op_code, 0x0000,
+                          false);
+      tcb.is_db_out_of_sync_sent = true;
+    }
+    LOG(INFO) << __func__ << ": database out of sync, device=" << tcb.peer_bda
+              << ", op_code=" << loghex((uint16_t)op_code)
+              << ", should_rsp=" << should_rsp;
+  }
+
+  return should_ignore;
+}
+
 /** This function is called to handle the client requests to server */
 void gatt_server_handle_client_req(tGATT_TCB& tcb, uint8_t op_code,
                                    uint16_t len, uint8_t* p_data) {
   /* there is pending command, discard this one */
   if (!gatt_sr_cmd_empty(tcb) && op_code != GATT_HANDLE_VALUE_CONF) return;
+
+  if ((op_code != GATT_CMD_WRITE) && (op_code != GATT_SIGN_CMD_WRITE)
+      && (op_code != GATT_HANDLE_VALUE_CONF)) {
+    if (tcb.is_db_out_of_sync_sent) {
+      gatt_sr_update_cl_status(tcb, /* chg_aware= */ true);
+      tcb.is_db_out_of_sync_sent = false;
+    }
+  }
 
   /* the size of the message may not be bigger than the local max PDU size*/
   /* The message has to be smaller than the agreed MTU, len does not include op
@@ -1211,6 +1285,9 @@ void gatt_server_handle_client_req(tGATT_TCB& tcb, uint8_t op_code,
     }
     /* otherwise, ignore the pkt */
   } else {
+    // handle database out of sync
+    if (gatts_process_db_out_of_sync(tcb, op_code, len, p_data)) return;
+
     switch (op_code) {
       case GATT_REQ_READ_BY_GRP_TYPE: /* discover primary services */
       case GATT_REQ_FIND_TYPE_VALUE:  /* discover service by UUID */

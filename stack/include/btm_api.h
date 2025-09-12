@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -613,6 +617,21 @@ extern tBTM_STATUS BTM_ReadRemoteVersion(const RawAddress& addr,
                                          uint8_t* lmp_version,
                                          uint16_t* manufacturer,
                                          uint16_t* lmp_sub_version);
+
+/*******************************************************************************
+ *
+ * Function         BTM_ReadRemoteVersionByTransport
+ *
+ * Description      This function is called to read a remote device's version
+ *
+ * Returns          BTM_SUCCESS if successful, otherwise an error
+ *
+ ******************************************************************************/
+extern tBTM_STATUS BTM_ReadRemoteVersionByTransport(const RawAddress& addr,
+                                                    uint8_t* lmp_version,
+                                                    uint16_t* manufacturer,
+                                                    uint16_t* lmp_sub_version,
+                                                    uint8_t transport);
 
 /*******************************************************************************
  *

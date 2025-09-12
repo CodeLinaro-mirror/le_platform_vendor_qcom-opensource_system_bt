@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -37,6 +38,7 @@
 #include "bta_sys.h"
 #include "l2c_api.h"
 #include "utl.h"
+#include "osi/include/properties.h"
 
 /*******************************************************************************
  *
@@ -207,10 +209,7 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB* p_clcb) {
       p_srcb->mtu = 0;
 
       /* clean up cache */
-      if (p_srcb->p_srvc_cache) {
-        list_free(p_srcb->p_srvc_cache);
-        p_srcb->p_srvc_cache = NULL;
-      }
+      p_srcb->gatt_database.Clear();
     }
 
     osi_free_and_reset((void**)&p_clcb->p_q_cmd);
@@ -304,10 +303,9 @@ tBTA_GATTC_SERV* bta_gattc_srcb_alloc(const RawAddress& bda) {
     p_tcb = p_recycle;
 
   if (p_tcb != NULL) {
-    if (p_tcb->p_srvc_cache != NULL) list_free(p_tcb->p_srvc_cache);
-
-    osi_free_and_reset((void**)&p_tcb->p_srvc_list);
-    memset(p_tcb, 0, sizeof(tBTA_GATTC_SERV));
+    p_tcb->gatt_database.Clear();
+    p_tcb->pending_discovery.Clear();
+    *p_tcb = tBTA_GATTC_SERV();
 
     p_tcb->in_use = true;
     p_tcb->server_bda = bda;
@@ -692,3 +690,26 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg) {
   }
   return p_clcb;
 }
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_is_robust_caching_enabled
+ *
+ * Description      check if robust caching is enabled
+ *
+ * Returns          true if enabled; otherwise false
+ *
+ ******************************************************************************/
+bool bta_gattc_is_robust_caching_enabled() {
+  char gatt_caching_enabled_prop[PROPERTY_VALUE_MAX] = "false";
+  bool is_gatt_robust_caching_enabled = false;
+  if (property_get("persist.vendor.btstack.enable.gatt_robust_caching",
+      gatt_caching_enabled_prop, "true")
+      && !strcmp(gatt_caching_enabled_prop, "true")) {
+    is_gatt_robust_caching_enabled = true;
+  }
+
+  VLOG(1) << __func__ << " is_gatt_robust_caching_enabled:" << +is_gatt_robust_caching_enabled;
+  return is_gatt_robust_caching_enabled;
+}
+

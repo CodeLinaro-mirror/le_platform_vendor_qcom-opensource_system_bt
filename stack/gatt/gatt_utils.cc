@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -26,6 +30,7 @@
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 
 #include <string.h>
 #include "bt_common.h"
@@ -37,6 +42,9 @@
 #include "gattdefs.h"
 #include "l2cdefs.h"
 #include "sdp_api.h"
+#include "device/include/interop_config.h"
+#include "btif_storage.h"
+#include "stack_config.h"
 
 using base::StringPrintf;
 using bluetooth::Uuid;
@@ -334,6 +342,7 @@ tGATTS_SRV_CHG* gatt_is_bda_in_the_srv_chg_clt_list(const RawAddress& bda) {
        node = list_next(node)) {
     tGATTS_SRV_CHG* p_buf = (tGATTS_SRV_CHG*)list_node(node);
     if (bda == p_buf->bda) {
+      LOG(ERROR) << __func__ << " bda is in the srv chg clt list";
       VLOG(1) << "bda is in the srv chg clt list";
       return p_buf;
     }
@@ -453,10 +462,22 @@ tGATT_TCB* gatt_allocate_tcb_by_bdaddr(const RawAddress& bda,
     p_tcb->tcb_idx = i;
     p_tcb->transport = transport;
     p_tcb->peer_bda = bda;
+    if (stack_config_get_interface()->get_pts_configure_svc_chg_indication())
+      p_tcb->svc_chg_cccd = btif_storage_get_svc_chg_cccd(bda);
+    gatt_sr_init_cl_status(*p_tcb);
+    p_tcb->is_db_out_of_sync_sent = false;
     return p_tcb;
   }
 
   return NULL;
+}
+
+/** gatt_build_uuid_to_stream will convert 32bit UUIDs to 128bit. This function
+ * will return lenght required to build uuid, either |UUID:kNumBytes16| or
+ * |UUID::kNumBytes128| */
+uint8_t gatt_build_uuid_to_stream_len(const Uuid& uuid) {
+  size_t len = uuid.GetShortestRepresentationSize();
+  return len == Uuid::kNumBytes32 ? Uuid::kNumBytes128 : len;
 }
 
 /** Add UUID into stream. Returns UUID length. */
@@ -571,6 +592,18 @@ void gatt_start_ind_ack_timer(tGATT_TCB& tcb) {
                      gatt_ind_ack_timeout, &tcb);
 }
 
+static tGATT_PROFILE_CLCB* gatt_find_profile_clcb_by_conn_id(uint16_t conn_id) {
+  uint8_t i_clcb;
+  tGATT_PROFILE_CLCB* p_clcb = NULL;
+
+  for (i_clcb = 0, p_clcb = gatt_cb.profile_clcb; i_clcb < GATT_MAX_APPS;
+       i_clcb++, p_clcb++) {
+    if (p_clcb->in_use && p_clcb->conn_id == conn_id) return p_clcb;
+  }
+
+  return NULL;
+}
+
 /*******************************************************************************
  *
  * Function         gatt_rsp_timeout
@@ -586,6 +619,24 @@ void gatt_rsp_timeout(void* data) {
   if (p_clcb == NULL || p_clcb->p_tcb == NULL) {
     LOG(WARNING) << __func__ << " clcb is already deleted";
     return;
+  }
+
+  if (p_clcb->operation == GATTC_OPTYPE_READ &&
+      p_clcb->op_subtype == GATT_READ_BY_TYPE &&
+      p_clcb->uuid == Uuid::From16Bit(GATT_UUID_GATT_CL_SUPP_FEATURES)) {
+    tGATT_PROFILE_CLCB* p_pro_clcb;
+    p_pro_clcb = gatt_find_profile_clcb_by_conn_id(p_clcb->conn_id);
+    if (p_pro_clcb &&
+        p_pro_clcb->in_use && p_pro_clcb->connected &&
+        p_pro_clcb->transport == BT_TRANSPORT_LE &&
+        p_pro_clcb->robust_caching_stage == GATT_ROBUST_CACHING_CL_SUPP_FEAT_READ) {
+      BD_NAME bd_name;
+      VLOG(1) << __func__ << ": BTM_GetRemoteDeviceName peer_bda = " << p_pro_clcb->bda;
+      if (BTM_GetRemoteDeviceName(p_pro_clcb->bda, bd_name)) {
+        VLOG(1) << __func__ << ": interop_database_add_name Name = " << bd_name;
+        interop_database_add_name(INTEROP_SKIP_ROBUST_CACHING_READ, (char*) bd_name);
+      }
+    }
   }
   if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
       p_clcb->op_subtype == GATT_DISC_SRVC_ALL &&
@@ -1491,3 +1542,25 @@ bool gatt_update_auto_connect_dev(tGATT_IF gatt_if, bool add,
   }
   return ret;
 }
+
+/*******************************************************************************
+ *
+ * Function         gatt_is_robust_caching_enabled
+ *
+ * Description      check if robust caching is enabled
+ *
+ * Returns          true if enabled; otherwise false
+ *
+ ******************************************************************************/
+bool gatt_is_robust_caching_enabled() {
+  char gatt_caching_enabled_prop[PROPERTY_VALUE_MAX] = "false";
+  bool is_gatt_robust_caching_enabled = false;
+  if (property_get("persist.vendor.btstack.enable.gatt_robust_caching", gatt_caching_enabled_prop, "true")
+      && !strcmp(gatt_caching_enabled_prop, "true")) {
+    is_gatt_robust_caching_enabled = true;
+  }
+
+  VLOG(1) << __func__ << " is_gatt_robust_caching_enabled:" << +is_gatt_robust_caching_enabled;
+  return is_gatt_robust_caching_enabled;
+}
+

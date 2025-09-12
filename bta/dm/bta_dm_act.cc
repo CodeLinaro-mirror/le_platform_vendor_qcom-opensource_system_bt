@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -46,6 +50,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "sdp_api.h"
+#include "stack/include/gatt_api.h"
 #include "utl.h"
 #include "device/include/interop_config.h"
 #include "stack/sdp/sdpint.h"
@@ -4440,11 +4445,23 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
       if (p_data->complt.reason != 0) {
         sec_event.auth_cmpl.fail_reason =
             BTA_DM_AUTH_CONVERT_SMP_CODE(((uint8_t)p_data->complt.reason));
-        /* delete this device entry from Sec Dev DB */
-        bta_dm_remove_sec_dev_entry(bda);
+        if (btm_sec_is_a_bonded_dev(bda) &&
+            p_data->complt.reason == SMP_CONN_TOUT) {
+          // Bonded device failed to encrypt - to test this remove battery from
+          // HID device right after connection, but before encryption is
+          // established
+          APPL_TRACE_EVENT("%s: bonded device disconnected when encrypting - no "
+                       "reason to unbond", __func__);
+        } else {
+          /* delete this device entry from Sec Dev DB */
+          bta_dm_remove_sec_dev_entry(bda);
+        }
       } else {
         sec_event.auth_cmpl.success = true;
+        sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
         sec_event.auth_cmpl.smp_over_br = p_data->complt.smp_over_br;
+        if (!p_data->complt.smp_over_br)
+          GATT_ConfigServiceChangeCCC(bda, true, BT_TRANSPORT_LE);
       }
 
       if (bta_dm_cb.p_sec_cback) {

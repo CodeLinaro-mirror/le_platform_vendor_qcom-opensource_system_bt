@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -183,7 +187,7 @@ static tGATT_STATUS read_attr_value(tGATT_ATTR& attr16, uint16_t offset,
   uint16_t uuid16 = attr16.uuid.As16Bit();
 
   if (uuid16 == GATT_UUID_PRI_SERVICE || uuid16 == GATT_UUID_SEC_SERVICE) {
-    *p_len = attr16.p_value->uuid.GetShortestRepresentationSize();
+    *p_len = gatt_build_uuid_to_stream_len(attr16.p_value->uuid);
     if (mtu < *p_len) return GATT_NO_RESOURCES;
 
     gatt_build_uuid_to_stream(&p, attr16.p_value->uuid);
@@ -230,7 +234,18 @@ static tGATT_STATUS read_attr_value(tGATT_ATTR& attr16, uint16_t offset,
     return GATT_SUCCESS;
   }
 
-  /* characteristic description or characteristic value (again) */
+  if (uuid16 == GATT_UUID_CHAR_EXT_PROP) {
+    // sometimes this descriptor is added by users manually, we need to check if
+    // the p_value is nullptr.
+    uint16_t char_ext_prop =
+        attr16.p_value ? attr16.p_value->char_ext_prop : 0x0000;
+    *p_len = 2;
+    UINT16_TO_STREAM(p, char_ext_prop);
+    *p_data = p;
+    return GATT_SUCCESS;
+  }
+
+  /* characteristic descriptor or characteristic value (again) */
   return GATT_PENDING;
 }
 
@@ -359,6 +374,7 @@ uint16_t gatts_add_included_service(tGATT_SVC_DB& db, uint16_t s_handle,
  * Parameter        db: database.
  *                  perm: permission (authentication and key size requirements)
  *                  property: property of the characteristic.
+ *                  extended_properties: characteristic extended properties.
  *                  p_char: characteristic value information.
  *
  * Returns          Status of te operation.
@@ -380,6 +396,33 @@ uint16_t gatts_add_characteristic(tGATT_SVC_DB& db, tGATT_PERM perm,
   char_decl.p_value->char_decl.char_val_handle = char_val.handle;
   char_val.gatt_type = BTGATT_DB_CHARACTERISTIC;
   return char_val.handle;
+}
+
+/*******************************************************************************
+ *
+ * Function         gatts_add_char_ext_prop_descr
+ *
+ * Description      add a characteristics extended properties descriptor.
+ *
+ * Parameter        db: database pointer.
+ *                  extended_properties: characteristic descriptors values.
+ *
+ * Returns          Status of the operation.
+ *
+ ******************************************************************************/
+uint16_t gatts_add_char_ext_prop_descr(
+    tGATT_SVC_DB& db, uint16_t extended_properties) {
+  Uuid descr_uuid = Uuid::From16Bit(GATT_UUID_CHAR_EXT_PROP);
+
+  VLOG(1) << StringPrintf("gatts_add_char_ext_prop_descr uuid=%s",
+                          descr_uuid.ToString().c_str());
+
+  tGATT_ATTR& char_dscptr = allocate_attr_in_db(db, descr_uuid, GATT_PERM_READ);
+  char_dscptr.gatt_type = BTGATT_DB_DESCRIPTOR;
+  char_dscptr.p_value.reset(new tGATT_ATTR_VALUE);
+  char_dscptr.p_value->char_ext_prop = extended_properties;
+
+  return char_dscptr.handle;
 }
 
 /*******************************************************************************
