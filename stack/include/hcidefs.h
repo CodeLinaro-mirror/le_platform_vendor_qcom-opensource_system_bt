@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #ifndef HCIDEFS_H
@@ -31,6 +32,7 @@
 #define HCI_PROTO_VERSION_4_1 0x07 /* Version for BT spec 4.1          */
 #define HCI_PROTO_VERSION_4_2 0x08 /* Version for BT spec 4.2          */
 #define HCI_PROTO_VERSION_5_0 0x09 /* Version for BT spec 5.0          */
+#define HCI_PROTO_VERSION_5_1 0x0A /* Version for BT spec 5.1          */
 
 /*
  *  Definitions for HCI groups

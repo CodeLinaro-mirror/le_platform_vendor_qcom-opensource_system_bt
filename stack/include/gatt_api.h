@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 #ifndef GATT_API_H
 #define GATT_API_H
@@ -44,6 +48,8 @@
 #define GATT_INSUF_ENCRYPTION 0x0f
 #define GATT_UNSUPPORT_GRP_TYPE 0x10
 #define GATT_INSUF_RESOURCE 0x11
+#define GATT_DATABASE_OUT_OF_SYNC 0x12
+#define GATT_VALUE_NOT_ALLOWED 0x13
 
 #define GATT_ILLEGAL_PARAMETER 0x87
 #define GATT_NO_RESOURCES 0x80
@@ -102,6 +108,9 @@ typedef uint8_t tGATT_STATUS;
 #define GATT_HANDLE_VALUE_NOTIF 0x1B
 #define GATT_HANDLE_VALUE_IND 0x1D
 #define GATT_HANDLE_VALUE_CONF 0x1E
+#define GATT_REQ_READ_MULTI_VARIABLE 0x20
+#define GATT_RSP_READ_MULTI_VARIABLE 0x21
+#define GATT_MULTI_HANDLE_VALUE_NOTIF 0x23
 /* changed in V4.0 1101-0010 (signed write)  see write cmd above*/
 #define GATT_SIGN_CMD_WRITE 0xD2
 /* 0x1E = 30 + 1 = 31*/
@@ -315,6 +324,8 @@ typedef uint16_t tGATT_SVR_CHAR_CONFIG;
 #define GATT_AUTH_REQ_SIGNED_NO_MITM 3
 #define GATT_AUTH_REQ_SIGNED_MITM 4
 typedef uint8_t tGATT_AUTH_REQ;
+
+#define GATT_WRITE_ROBUST_CACHING_SUPPORT_VALUE 0x01
 
 /* Attribute Value structure
 */
@@ -832,6 +843,8 @@ extern tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu);
  ******************************************************************************/
 extern tGATT_STATUS GATTC_Discover(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                                    tGATT_DISC_PARAM* p_param);
+extern tGATT_STATUS GATTC_Discover(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
+                                   uint16_t start_handle, uint16_t end_handle);
 /*******************************************************************************
  *
  * Function         GATTC_Read
@@ -1072,6 +1085,18 @@ extern bool GATT_GetConnIdIfConnected(tGATT_IF gatt_if,
  ******************************************************************************/
 extern void GATT_ConfigServiceChangeCCC(const RawAddress& remote_bda,
                                         bool enable, tBT_TRANSPORT transport);
+
+/*******************************************************************************
+ *
+ * Function         GATT_EnableRobustCaching
+ *
+ * Description      Perform EATT support discovery procedure on remote device
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
+extern void GATT_EnableRobustCaching(const RawAddress& remote_bda,
+                                     tBT_TRANSPORT transport);
 
 // Enables the GATT profile on the device.
 // It clears out the control blocks, and registers with L2CAP.

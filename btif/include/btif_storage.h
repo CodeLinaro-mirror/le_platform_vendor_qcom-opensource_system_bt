@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #ifndef BTIF_STORAGE_H
@@ -280,6 +284,51 @@ bt_status_t btif_storage_remove_hidd(RawAddress* remote_bd_addr);
 // Note: |name| should point to a buffer that can store string of length
 // |BTM_MAX_REM_BD_NAME_LEN|.
 bool btif_storage_get_stored_remote_name(const RawAddress& bd_addr, char* name);
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_get_cl_supp_feat
+ *
+ * Description      BTIF storage API - Fetches the GATT client supported features
+ *                  characteristic value from NVRAM.
+  *
+ * Returns          client supported features char value
+ *
+ ******************************************************************************/
+uint8_t btif_storage_get_cl_supp_feat(const RawAddress& bda);
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_set_cl_supp_feat
+ *
+ * Description      BTIF storage API - Stores the GATT client supported features
+ *                  characteristic value in NVRAM.
+  *
+ * Returns          void
+ *
+ ******************************************************************************/
+void btif_storage_set_cl_supp_feat(const RawAddress& bda, uint8_t value);
+
+/** Remove client supported features */
+void btif_storage_remove_gatt_cl_supp_feat(const RawAddress& bd_addr);
+
+/** Store last server database hash for remote client */
+void btif_storage_set_gatt_cl_db_hash(const RawAddress& bd_addr, Octet16 hash);
+
+/** Get last server database hash for remote client */
+Octet16 btif_storage_get_gatt_cl_db_hash(const RawAddress& bd_addr);
+
+/** Remove last server database hash for remote client */
+void btif_storage_remove_gatt_cl_db_hash(const RawAddress& bd_addr);
+
+/** Store service changed CCCD value for remote client */
+void btif_storage_set_svc_chg_cccd(const RawAddress& bd_addr, uint8_t cccd);
+
+/** Get service changed CCCD value for remote client */
+uint8_t btif_storage_get_svc_chg_cccd(const RawAddress& bda);
+
+/** Remove service changed CCCD value for remote client */
+void btif_storage_remove_svc_chg_cccd(const RawAddress& bd_addr);
 
 /******************************************************************************
  * Exported for unit tests

@@ -48,9 +48,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
- *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /*******************************************************************************
@@ -681,6 +682,8 @@ void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
   if (state == BT_BOND_STATE_NONE) {
     // Update Pbap 1.2 entry, set rebonded to true
     update_pce_entry_after_cancelling_bonding(bd_addr);
+    // remove remote GATT database
+    BTA_GATTC_ResetGattDb(bd_addr);
   }
 }
 
@@ -975,6 +978,21 @@ uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr) {
   }
 
   return rc;
+}
+
+/*******************************************************************************
+*
+*  Function         btif_dm_get_conn_handle
+*
+*  Description      Get role of dut with a given remote device
+*
+*  Returns          connection handle or 0xFFFF if not connected
+*
+*******************************************************************************/
+uint16_t btif_dm_get_conn_handle(const RawAddress* bd_addr)
+{
+    BTIF_TRACE_DEBUG("%s, bd address : %s", __func__,bd_addr->ToString().c_str());
+    return  BTM_GetHCIConnHandle(*bd_addr, BT_TRANSPORT_LE);
 }
 
 /*******************************************************************************

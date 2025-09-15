@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #ifndef GATT_INT_H
@@ -99,6 +103,8 @@ typedef uint8_t tGATT_SEC_FLAG;
 #define GATT_INFO_TYPE_PAIR_16 0x01
 #define GATT_INFO_TYPE_PAIR_128 0x02
 
+#define CL_MULTI_NOTIF_SUPPORTED 0x04
+
 /*  GATT client FIND_TYPE_VALUE_Request data */
 typedef struct {
   bluetooth::Uuid uuid; /* type of attribute to be found */
@@ -155,6 +161,7 @@ typedef union {
   bluetooth::Uuid uuid;        /* service declaration */
   tGATT_CHAR_DECL char_decl;   /* characteristic declaration */
   tGATT_INCL_SRVC incl_handle; /* included service */
+  uint16_t char_ext_prop;      /* Characteristic Extended Properties */
 } tGATT_ATTR_VALUE;
 
 /* Attribute UUID type
@@ -292,8 +299,16 @@ typedef struct {
   std::queue<tGATT_CMD_Q> cl_cmd_q;
   alarm_t* ind_ack_timer; /* local app confirm to indication timer */
 
+  /* Client supported feature*/
+  uint8_t cl_supp_feat;
+  /* Use for server. if false, should handle database out of sync. */
+  bool is_robust_cache_change_aware;
+
   bool in_use;
   uint8_t tcb_idx;
+
+  uint8_t svc_chg_cccd;
+  bool is_db_out_of_sync_sent;
 } tGATT_TCB;
 
 /* logic channel */
@@ -342,6 +357,16 @@ typedef struct {
 #define GATT_SVC_CHANGED_DESCRIPTOR 4     /* service change CCC discoery */
 #define GATT_SVC_CHANGED_CONFIGURE_CCCD 5 /* config CCC */
 
+#define GATT_SR_SUPP_FEAT_CONNECTING 6     /* wait for connection */
+#define GATT_SR_SUPP_FEAT_SERVICE 7        /* GATT service discovery */
+#define GATT_SR_SUPP_FEAT_READ 8 /* Read Server supported features char */
+#define GATT_CL_SUPP_FEAT_READ 9 /*Read client supported features char */
+#define GATT_CL_SUPP_FEAT_WRITE 10 /* Write client supported features char */
+
+#define GATT_ROBUST_CACHING_CL_SUPP_FEAT_CONNECTING  11 /*wait for connection */
+#define GATT_ROBUST_CACHING_CL_SUPP_FEAT_READ        12 /*Read client supported features char */
+#define GATT_ROBUST_CACHING_CL_SUPP_FEAT_WRITE       13 /* Write client supported features char */
+
 typedef struct {
   uint16_t conn_id;
   bool in_use;
@@ -354,6 +379,23 @@ typedef struct {
   uint8_t ccc_result;
   uint16_t s_handle;
   uint16_t e_handle;
+
+  /* GATT server supported features char variables */
+  uint8_t sr_supp_feat_stage;
+  uint8_t sr_supp_feat_result;
+  uint16_t sr_supp_feat_s_handle;
+  uint16_t sr_supp_feat_e_handle;
+
+  /* GATT client supported features char variables */
+  uint8_t cl_supp_feat_stage;
+  uint8_t cl_supp_feat_result;
+  uint16_t cl_supp_feat_s_handle;
+  uint16_t cl_supp_feat_e_handle;
+
+  /* GATT robust caching variables */
+  uint8_t robust_caching_stage;
+  uint8_t robust_caching_result;
+  uint16_t robust_caching_handle;
 } tGATT_PROFILE_CLCB;
 
 typedef struct {
@@ -361,7 +403,7 @@ typedef struct {
   fixed_queue_t* sign_op_queue;
 
   uint16_t next_handle;     /* next available handle */
-  uint16_t last_primary_s_handle; /* handle of last primary service */
+  uint16_t last_service_handle; /* handle of last service */
   tGATT_SVC_CHG gattp_attr; /* GATT profile attribute service change */
   tGATT_IF gatt_if;
   std::list<tGATT_HDL_LIST_ELEM>* hdl_list_info;
@@ -383,10 +425,19 @@ typedef struct {
   uint16_t
       handle_of_h_r; /* Handle of the handles reused characteristic value */
 
+  uint16_t handle_of_database_hash;
+  Octet16 database_hash;
+
   tGATT_APPL_INFO cb_info;
 
   tGATT_HDL_CFG hdl_cfg;
   std::list<tGATT_BG_CONN_DEV> bgconn_dev;
+
+  /* Supported features as a client. To be written to remote device.
+   * Note this is NOT a value of the characteristic with handle
+   * handle_cl_support_feat, as that one should be written by remote device.
+   */
+  uint8_t gatt_cl_supported_feat_mask;
 } tGATT_CB;
 
 #define GATT_SIZE_OF_SRV_CHG_HNDL_RANGE 4
@@ -419,9 +470,14 @@ extern void gatt_proc_srv_chg(void);
 extern void gatt_send_srv_chg_ind(const RawAddress& peer_bda);
 extern void gatt_chk_srv_chg(tGATTS_SRV_CHG* p_srv_chg_clt);
 extern void gatt_add_a_bonded_dev_for_srv_chg(const RawAddress& bda);
+extern bool gatt_is_robust_caching_enabled(void);
 
 /* from gatt_attr.cc */
 extern uint16_t gatt_profile_find_conn_id_by_bd_addr(const RawAddress& bda);
+
+extern bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb);
+extern void gatt_sr_init_cl_status(tGATT_TCB& tcb);
+extern void gatt_sr_update_cl_status(tGATT_TCB& tcb, bool chg_unaware);
 
 /* Functions provided by att_protocol.cc */
 extern tGATT_STATUS attp_send_cl_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
@@ -437,6 +493,7 @@ extern uint32_t gatt_add_sdp_record(const bluetooth::Uuid& uuid,
                                     uint16_t start_hdl, uint16_t end_hdl);
 extern bool gatt_parse_uuid_from_cmd(bluetooth::Uuid* p_uuid, uint16_t len,
                                      uint8_t** p_data);
+extern uint8_t gatt_build_uuid_to_stream_len(const bluetooth::Uuid& uuid);
 extern uint8_t gatt_build_uuid_to_stream(uint8_t** p_dst,
                                          const bluetooth::Uuid& uuid);
 extern void gatt_sr_get_sec_info(const RawAddress& rem_bda,
@@ -564,6 +621,8 @@ extern uint16_t gatts_add_included_service(tGATT_SVC_DB& db, uint16_t s_handle,
 extern uint16_t gatts_add_characteristic(tGATT_SVC_DB& db, tGATT_PERM perm,
                                          tGATT_CHAR_PROP property,
                                          const bluetooth::Uuid& char_uuid);
+extern uint16_t gatts_add_char_ext_prop_descr(tGATT_SVC_DB& db,
+                                              uint16_t extended_properties);
 extern uint16_t gatts_add_char_descr(tGATT_SVC_DB& db, tGATT_PERM perm,
                                      const bluetooth::Uuid& dscp_uuid);
 extern tGATT_STATUS gatts_db_read_attr_value_by_type(
@@ -583,4 +642,13 @@ extern tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB* p_db, bool is_long,
                                                tGATT_SEC_FLAG sec_flag,
                                                uint8_t key_size);
 extern bluetooth::Uuid* gatts_get_service_uuid(tGATT_SVC_DB* p_db);
+
+extern uint16_t gatt_get_db_hash_char_handle();
+
+/* gatt_sr_hash.cc */
+extern Octet16 gatts_calculate_database_hash(std::list<tGATT_SRV_LIST_ELEM>* lst_ptr);
+
+// Saves DB hash
+extern void gatt_save_cl_db_hash(tGATT_TCB tcb);
+
 #endif

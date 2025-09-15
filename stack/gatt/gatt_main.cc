@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -30,6 +34,7 @@
 #include "btm_ble_int.h"
 #include "btm_int.h"
 #include "device/include/interop.h"
+#include "device/include/interop_config.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "l2c_int.h"
@@ -479,8 +484,8 @@ static void gatt_le_connect_cback(uint16_t chan, const RawAddress& bd_addr,
         p_tcb->payload_size = GATT_DEF_BLE_MTU_SIZE;
 
         gatt_send_conn_cback(p_tcb);
+        if (check_srv_chg) gatt_chk_srv_chg(p_srv_chg_clt);
       }
-      if (check_srv_chg) gatt_chk_srv_chg(p_srv_chg_clt);
     }
     /* this is incoming connection or background connection callback */
 
@@ -529,7 +534,7 @@ static void gatt_channel_congestion(tGATT_TCB* p_tcb, bool congested) {
   /* notifying all applications for the connection up event */
   for (i = 0, p_reg = gatt_cb.cl_rcb; i < GATT_MAX_APPS; i++, p_reg++) {
     if (p_reg->in_use) {
-      if (p_reg->app_cb.p_congestion_cb) {
+      if (p_reg->app_cb.p_congestion_cb && p_tcb) {
         conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
         (*p_reg->app_cb.p_congestion_cb)(conn_id, congested);
       }

@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #define LOG_TAG "bt_stack_config"
@@ -44,6 +48,9 @@ const char* PTS_L2CAP_LE_INSUFF_ENCRYP = "PTS_L2capLeInsuffEnc";
 const char* PTS_BREDR_INVALID_ENCRYPTION_KEYSIZE = "PTS_BredrInvalidEncryKeysize";
 const char* PTS_TRACE_INFO_ENABLE = "PTS_TraceInfoEnable";
 const char* PTS_DISABLE_AUTH_CHECK = "PTS_DisableAuthCheck";
+const char* PTS_DISABLE_SERVICE_CHG_INDICATION = "PTS_DisableServiceChangeIndication";
+const char* PTS_CONFIGURE_SERVICE_CHG_INDICATION = "PTS_ConfigureServiceChangeIndication";
+const char* PTS_SAVE_DB_HASH = "PTS_SaveDbHash";
 
 static config_t* config;
 bool trace_pts_info = false; // use for certification test
@@ -182,6 +189,21 @@ static bool get_pts_disable_auth_check(void) {
                          PTS_DISABLE_AUTH_CHECK, false);
 }
 
+static bool get_pts_service_chg_indication_disable(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_DISABLE_SERVICE_CHG_INDICATION, false);
+}
+
+static bool get_pts_configure_svc_chg_indication(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_CONFIGURE_SERVICE_CHG_INDICATION, false);
+}
+
+static bool get_pts_save_db_hash(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_SAVE_DB_HASH, false);
+}
+
 static config_t* get_all(void) { return config; }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -203,6 +225,9 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_bredr_invalid_encryption_keysize,
                                   get_pts_trace_info_enable,
                                   get_pts_disable_auth_check,
+                                  get_pts_service_chg_indication_disable,
+                                  get_pts_configure_svc_chg_indication,
+                                  get_pts_save_db_hash,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }

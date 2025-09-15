@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #pragma once
@@ -228,6 +232,15 @@ typedef enum {
   // send the AVDTP START or send the AVDTP START before media transport channel opned
   // due to this we are rejecting AVDTP START.
   INTEROP_DISABLE_AVDTP_DISCOVER_COMMAND,
+
+  // Skip Robust Caching Read of client supported featuresc characteristic for specific devices
+  // Some remote devices do not respond to ATT_READ_BY_TYPE_REQ(for Client Supported Features
+  // characteristic) sent  by local device for Robust caching support and this results in
+  // GATT response timeout and LE link disconnection. This interop arrangement will make local
+  // device to skip reading of Client supported features characteristic with devices in the
+  // interop list.
+  INTEROP_SKIP_ROBUST_CACHING_READ,
+
   END_OF_INTEROP_LIST
 } interop_feature_t;
 

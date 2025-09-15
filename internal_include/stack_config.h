@@ -14,6 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ *  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ *  SPDX-License-Identifier: BSD-3-Clause-Clear
+ *
  ******************************************************************************/
 
 #pragma once
@@ -45,6 +49,9 @@ typedef struct {
   int (*get_pts_bredr_invalid_encryption_keysize)(void);
   bool (*get_pts_trace_info_enable)(void);
   bool (*get_pts_disable_auth_check)(void);
+  bool (*get_pts_service_chg_indication_disable)(void);
+  bool (*get_pts_configure_svc_chg_indication)(void);
+  bool (*get_pts_save_db_hash)(void);
   config_t* (*get_all)(void);
 } stack_config_t;
 
