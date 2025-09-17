@@ -126,10 +126,12 @@ void bta_pan_co_close(uint16_t handle, uint8_t app_id) {
     // conn->handle = -1;
     conn->state = PAN_STATE_CLOSE;
     btpan_cb.open_count--;
-
     if (btpan_cb.open_count == 0 && btpan_cb.tap_fd != -1) {
-      btpan_tap_close(btpan_cb.tap_fd);
+      // btpan_tap_close takes time to close tap_fd, so deactivate tap_fd
+      // in advance to avoid other thread to close tap_fd at the same time
+      int fd = btpan_cb.tap_fd;
       btpan_cb.tap_fd = -1;
+      btpan_tap_close(fd);
     }
   }
 }
