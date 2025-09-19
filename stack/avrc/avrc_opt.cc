@@ -28,6 +28,12 @@
 #include "avrc_int.h"
 #include "bt_common.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /******************************************************************************
  *
  * Function         avrc_vendor_msg

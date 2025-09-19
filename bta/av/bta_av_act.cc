@@ -1447,7 +1447,8 @@ void bta_av_conn_chg(tBTA_AV_DATA* p_data) {
       }
     }
 
-    if (p_cb->conn_audio == 0 && p_cb->conn_video == 0) {
+    if (index >= 0 && index < BTA_AV_NUM_STRS &&
+        p_cb->conn_audio == 0 && p_cb->conn_video == 0) {
       APPL_TRACE_DEBUG("bta_av_conn_chg: signalling timer on index %d is %d",
               BTA_AV_NUM_STRS-index-1,
               alarm_is_scheduled(bta_av_cb.accept_signalling_timer[BTA_AV_NUM_STRS-index-1]));
@@ -2213,7 +2214,8 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA* p_data) {
         (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, &bta_av_data);
       }
     }
-  } else {
+  } else if (rc_handle >= 0 &&
+    rc_handle < BTA_AV_NUM_RCB) {
     tBTA_AV_RC_FEAT rc_feat;
     p_cb->rcb[rc_handle].peer_features = peer_features;
     rc_feat.cover_art_psm = cover_art_psm;

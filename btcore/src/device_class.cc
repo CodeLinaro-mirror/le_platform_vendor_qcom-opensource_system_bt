@@ -24,6 +24,12 @@
 #include "btcore/include/device_class.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 typedef struct _bt_device_class_t {
   uint32_t unused : 2;  // LSBs
   uint32_t minor_device : 6;

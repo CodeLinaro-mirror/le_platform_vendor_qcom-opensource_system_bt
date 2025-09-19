@@ -34,6 +34,12 @@
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 typedef enum {
   HCI_PACKET_COMMAND = 1,
   HCI_PACKET_ACL_DATA = 2,

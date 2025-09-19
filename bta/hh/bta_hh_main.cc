@@ -416,7 +416,7 @@ bool bta_hh_hdl_event(BT_HDR* p_msg) {
            * treat this as a NULL p_cb. Hence we
             * force the index to be IDX_INVALID
             */
-          if ((index != BTA_HH_IDX_INVALID) &&
+          if ((index != BTA_HH_IDX_INVALID) && (index < BTA_HH_MAX_DEVICE) &&
               (bta_hh_cb.kdev[index].in_use == false)) {
             index = BTA_HH_IDX_INVALID;
           }

@@ -39,6 +39,12 @@
 #include "osi/include/reactor.h"
 #include "osi/include/semaphore.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct thread_t {
   std::atomic<bool> is_joined{false};
   pthread_t pthread;

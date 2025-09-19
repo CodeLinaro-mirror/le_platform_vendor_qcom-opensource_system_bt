@@ -33,6 +33,12 @@
 #include "osi/include/ringbuffer.h"
 #include "osi/include/time.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type) ((type) >> 8)
 
 // Total btsnoop memory log buffer size

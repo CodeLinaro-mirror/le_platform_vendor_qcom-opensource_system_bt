@@ -1111,7 +1111,7 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
                                         uint8_t* p_cmd,
                                         void* p_vsc_status_cback) {
   RawAddress bd_addr;
-  uint16_t handle;
+  uint16_t handle = HCI_INVALID_HANDLE;
 #if (BTM_SCO_INCLUDED == TRUE)
   tBTM_ESCO_DATA esco_data;
 #endif

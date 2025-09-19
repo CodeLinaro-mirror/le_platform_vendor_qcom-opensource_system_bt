@@ -44,6 +44,12 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define config_free bt_config_free
 #define BT_CONFIG_SOURCE_TAG_NUM 1010001
 
@@ -162,13 +168,13 @@ static future_t* init(void) {
     file_source = "Empty";
   }
 
-  if (!file_source.empty())
-    config_set_string(config, INFO_SECTION, FILE_SOURCE, file_source.c_str());
-
   if (!config) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
     goto error;
   }
+
+  if (!file_source.empty())
+    config_set_string(config, INFO_SECTION, FILE_SOURCE, file_source.c_str());
 
   btif_config_remove_unpaired(config);
 

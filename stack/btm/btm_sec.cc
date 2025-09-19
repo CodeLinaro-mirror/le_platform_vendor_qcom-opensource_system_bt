@@ -1348,7 +1348,7 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
       (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)) {
     BTM_TRACE_EVENT("Security Manager: BTM_SetEncryption already encrypted");
 
-    if (*p_callback)
+    if (p_callback)
       (*p_callback)(&bd_addr, transport, p_ref_data, BTM_SUCCESS);
 
     return (BTM_SUCCESS);

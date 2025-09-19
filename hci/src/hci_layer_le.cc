@@ -42,6 +42,12 @@
 #include "HidlSupport.h"
 using android::hardware::hidl_vec;
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define LOG_PATH "/data/misc/bluetooth/firmware_events.log"
 #define LAST_LOG_PATH "/data/misc/bluetooth/firmware_events.log.last"
 

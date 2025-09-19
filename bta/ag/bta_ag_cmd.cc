@@ -436,7 +436,7 @@ static bool bta_ag_parse_cmer(char* p_s, bool* p_enabled) {
   int16_t n[4] = {-1, -1, -1, -1};
   int i;
   char* p;
-
+  if (p_s == NULL) return false;
   for (i = 0; i < 4; i++) {
     /* skip to comma delimiter */
     for (p = p_s; *p != ',' && *p != 0; p++)
@@ -850,6 +850,7 @@ static bool bta_ag_parse_biev_response(tBTA_AG_SCB* p_scb, tBTA_AG_VAL* val) {
   uint16_t rcv_ind_id = atoi(p_token);
 
   p_token = strtok_r(NULL, ",", &saveptr);
+  if(!p_token) return false;
   uint16_t rcv_ind_val = atoi(p_token);
 
   APPL_TRACE_DEBUG("%s BIEV indicator id %d, value %d", __func__, rcv_ind_id,

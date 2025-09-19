@@ -27,6 +27,12 @@
 #include "hcimsgs.h"
 #include "osi/include/log.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 static const command_opcode_t NO_OPCODE_CHECKING = 0;
 
 static const allocator_t* buffer_allocator;

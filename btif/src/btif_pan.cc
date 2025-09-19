@@ -146,8 +146,11 @@ static void pan_disable() {
     btpan_cb.enabled = 0;
     BTA_PanDisable();
     if (btpan_cb.tap_fd != INVALID_FD) {
-      btpan_tap_close(btpan_cb.tap_fd);
+      // btpan_tap_close takes time to close tap_fd, so deactivate tap_fd
+      // in advance to avoid other thread to close tap_fd at the same time
+      int fd = btpan_cb.tap_fd;
       btpan_cb.tap_fd = INVALID_FD;
+      btpan_tap_close(fd);
     }
   }
 }
@@ -521,8 +524,11 @@ static void btpan_close_conn(btpan_conn_t* conn) {
     if (btpan_cb.open_count == 0) {
       destroy_tap_read_thread();
       if (btpan_cb.tap_fd != INVALID_FD) {
-        btpan_tap_close(btpan_cb.tap_fd);
+        // btpan_tap_close takes time to close tap_fd, so deactivate tap_fd
+        // in advance to avoid other thread to close tap_fd at the same time
+        int fd = btpan_cb.tap_fd;
         btpan_cb.tap_fd = INVALID_FD;
+        btpan_tap_close(fd);
       }
     }
   }
