@@ -414,7 +414,7 @@ extern void BTM_BleStartAutoConn();
 /**
  * Set BLE connectable mode to auto connect
  */
-extern bool BTM_BleStartAutoConnV2();
+extern bool BTM_BleStartAutoConnV2(uint8_t advertising_handle);
 
 /*******************************************************************************
  *

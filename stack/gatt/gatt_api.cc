@@ -1012,7 +1012,7 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, tGATT_CBACK* p_cb_info) {
 void GATT_Deregister(tGATT_IF gatt_if) {
   bool is_gatt_connected = false;
   VLOG(1) << __func__ << " gatt_if=" << +gatt_if;
-  
+
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   /* Index 0 is GAP and is never deregistered */
   if ((gatt_if == 0) || (p_reg == NULL)) {
@@ -1182,7 +1182,7 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
  *
  ******************************************************************************/
 bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
-                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
+                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport,
                   bool opportunistic) {
   uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
   return GATT_Connect_v2(gatt_if, advertising_handle, subevent, bd_addr, is_direct, transport, opportunistic,
@@ -1190,7 +1190,7 @@ bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subev
 }
 
 bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subevent,
-                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport, 
+                  const RawAddress& bd_addr, bool is_direct, tBT_TRANSPORT transport,
                   bool opportunistic, uint8_t initiating_phys) {
   tGATT_REG* p_reg;
   bool status = false;
@@ -1208,7 +1208,7 @@ bool GATT_Connect_v2(tGATT_IF gatt_if, uint8_t advertising_handle, uint8_t subev
                               initiating_phys);
   else {
     if (transport == BT_TRANSPORT_LE)
-      status = gatt_start_auto_fast_connection();
+      status = gatt_start_auto_fast_connection(advertising_handle);
     else {
       LOG(ERROR) << "Unsupported transport for background connection";
     }

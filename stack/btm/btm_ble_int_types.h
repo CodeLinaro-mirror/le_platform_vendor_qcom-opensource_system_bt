@@ -102,6 +102,7 @@ inline bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x) {
 
 #ifdef SUPPORT_VENDOR_AP
 #define BTM_BLE_MAX_FAST_DEV_SIZE 128
+#define BTM_BLE_INVALID_PA_ADVERTISE_HANDLE 0xFF
 #endif
 
 typedef struct {
