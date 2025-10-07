@@ -577,6 +577,11 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
     return BT_STATUS_SUCCESS;
   } else if (property->type == BT_PROPERTY_ADAPTER_BONDED_DEVICES) {
     list_t *bonded_devices = list_new(osi_free);
+    if (bonded_devices == NULL) {
+      LOG_ERROR(LOG_TAG,
+              "%s: unable to allocate list for bonded_devices", __func__);
+      return BT_STATUS_FAIL;
+    }
     int i = 0;
     property->len = 0;
 
@@ -814,7 +819,7 @@ bt_status_t btif_storage_remove_bonded_device(
 *******************************************************************************/
 bt_status_t btif_storage_is_device_bonded(RawAddress *remote_bd_addr) {
 
-  
+
   char bdstr[18] = {'\0'};
   snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
                                   remote_bd_addr->address[0],
@@ -1228,7 +1233,8 @@ static bt_status_t btif_in_fetch_bonded_ble_device(
     if (device_added) {
         RawAddress *remote_addr =  (RawAddress*)osi_malloc(sizeof(RawAddress));
         memcpy(remote_addr, &bd_addr, RawAddress::kLength);
-        list_append(*p_bonded_devices, remote_addr);
+        if (p_bonded_devices)
+          list_append(*p_bonded_devices, remote_addr);
         btif_gatts_add_bonded_dev_from_nv(bd_addr);
     }
 

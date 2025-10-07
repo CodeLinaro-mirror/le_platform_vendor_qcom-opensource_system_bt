@@ -30,6 +30,12 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 typedef enum {
   MODULE_STATE_NONE = 0,
   MODULE_STATE_INITIALIZED = 1,
@@ -184,7 +190,8 @@ void module_start_up_callbacked_wrapper(const module_t* module,
   wrapper->callback = callback;
 
   // Run the actual module start up
-  thread_post(wrapper->lifecycle_thread, run_wrapped_start_up, wrapper);
+  if (wrapper->lifecycle_thread)
+    thread_post(wrapper->lifecycle_thread, run_wrapped_start_up, wrapper);
 }
 
 static void run_wrapped_start_up(void* context) {

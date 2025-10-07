@@ -100,7 +100,8 @@ void bta_hh_api_enable(tBTA_HH_DATA* p_data) {
   } else
 #endif
     /* signal BTA call back event */
-    (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH*)&status);
+    if (bta_hh_cb.p_cback)
+      (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH*)&status);
 }
 /*******************************************************************************
  *

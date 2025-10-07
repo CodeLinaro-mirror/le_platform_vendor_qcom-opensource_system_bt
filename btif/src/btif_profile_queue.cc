@@ -37,6 +37,13 @@
 #include "osi/include/list.h"
 #include "stack_manager.h"
 #include "osi/include/thread.h"
+
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /*******************************************************************************
  *  Local type definitions
  ******************************************************************************/

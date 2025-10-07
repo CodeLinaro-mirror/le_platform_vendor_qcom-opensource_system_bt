@@ -49,6 +49,12 @@
 #include "osi/include/osi.h"
 #include "hardware/bt_hh_vendor.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 using base::Bind;
 using base::Owned;
 

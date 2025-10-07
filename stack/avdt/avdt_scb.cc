@@ -1009,19 +1009,21 @@ uint8_t avdt_scb_verify(tAVDT_CCB* p_ccb, uint8_t state, uint8_t* p_seid,
     else if (p_scb->cs.nsc_mask & nsc_mask)
       *p_err_code = AVDT_ERR_NSC;
 
-    switch (state) {
-      case AVDT_VERIFY_OPEN:
-      case AVDT_VERIFY_START:
-        if (p_scb->state != AVDT_SCB_OPEN_ST &&
-            p_scb->state != AVDT_SCB_STREAM_ST)
-          *p_err_code = AVDT_ERR_BAD_STATE;
-        break;
+    if (p_scb) {
+      switch (state) {
+        case AVDT_VERIFY_OPEN:
+        case AVDT_VERIFY_START:
+          if (p_scb->state != AVDT_SCB_OPEN_ST &&
+              p_scb->state != AVDT_SCB_STREAM_ST)
+            *p_err_code = AVDT_ERR_BAD_STATE;
+          break;
 
-      case AVDT_VERIFY_SUSPEND:
-      case AVDT_VERIFY_STREAMING:
-        if (p_scb->state != AVDT_SCB_STREAM_ST)
-          *p_err_code = AVDT_ERR_BAD_STATE;
-        break;
+        case AVDT_VERIFY_SUSPEND:
+        case AVDT_VERIFY_STREAMING:
+          if (p_scb->state != AVDT_SCB_STREAM_ST)
+            *p_err_code = AVDT_ERR_BAD_STATE;
+          break;
+      }
     }
   }
 

@@ -26,6 +26,12 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 std::unordered_map<std::string, std::string>
 hash_map_utils_new_from_string_params(const char* params) {
   CHECK(params != NULL);

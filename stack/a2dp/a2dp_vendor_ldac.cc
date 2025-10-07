@@ -306,6 +306,7 @@ bool A2DP_VendorCodecEqualsLdac(const uint8_t* p_codec_info_a,
 
 int A2DP_VendorGetBitRateLdac(const uint8_t* p_codec_info) {
   A2dpCodecConfig* current_codec = bta_av_get_a2dp_current_codec();
+  if (current_codec == NULL) return 0;
   btav_a2dp_codec_config_t codec_config_ = current_codec->getCodecConfig();
   int samplerate = A2DP_GetTrackSampleRate(p_codec_info);
   switch (codec_config_.codec_specific_1) {

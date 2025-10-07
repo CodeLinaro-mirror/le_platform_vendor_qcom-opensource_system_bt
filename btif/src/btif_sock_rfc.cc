@@ -60,6 +60,12 @@
  * L2CAP functions from this file. */
 #include "btif_sock_l2cap.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define MODEM_SIGNAL_DTRDSR        0x01
 #define MODEM_SIGNAL_RTSCTS        0x02
 #define MODEM_SIGNAL_RI            0x04

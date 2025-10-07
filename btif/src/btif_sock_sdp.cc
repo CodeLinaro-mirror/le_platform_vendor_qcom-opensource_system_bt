@@ -541,7 +541,7 @@ bool is_reserved_rfc_channel(const int channel) {
             return true;
     }
     /* Code to check number of email instances in use */
-    char no_of_email_instance[2] = {0};
+    char no_of_email_instance[PROPERTY_VALUE_MAX] = {0};
     osi_property_get(NO_OF_EMAIL_ACCOUNTS_PROPERTY, no_of_email_instance, DEFAULT_ACTIVE_ACCOUNTS);
     if (channel > RESERVED_SCN_MAP
             && channel <= (RESERVED_SCN_MAP + atoi(no_of_email_instance))) {

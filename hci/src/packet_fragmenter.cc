@@ -31,6 +31,12 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define APPLY_CONTINUATION_FLAG(handle) (((handle)&0xCFFF) | 0x1000)
 #define APPLY_START_FLAG(handle) (((handle)&0xCFFF) | 0x2000)
 #define SUB_EVENT(event) ((event)&MSG_SUB_EVT_MASK)

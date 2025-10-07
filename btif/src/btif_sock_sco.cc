@@ -40,6 +40,12 @@
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 // This module provides a socket abstraction for SCO connections to a higher
 // layer. It returns file descriptors representing two types of sockets:
 // listening (server) and connected (client) sockets. No SCO data is

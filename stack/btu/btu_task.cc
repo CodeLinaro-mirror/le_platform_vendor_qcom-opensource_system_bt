@@ -126,6 +126,7 @@ void btu_task_start_up(UNUSED_ATTR void* context) {
   message_loop_thread_ = thread_new("btu message loop");
   if (!message_loop_thread_) {
     LOG(FATAL) << __func__ << " unable to create btu message loop thread.";
+    return;
   }
 
   thread_set_rt_priority(message_loop_thread_, THREAD_RT_PRIORITY);

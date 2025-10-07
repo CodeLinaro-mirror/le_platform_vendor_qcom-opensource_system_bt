@@ -30,6 +30,12 @@
 #include "osi/include/osi.h"
 #include "stack/include/l2c_api.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct l2cap_client_t {
   l2cap_client_callbacks_t callbacks;
   void* context;

@@ -34,6 +34,12 @@
 
 #include "btu.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 /*******************************************************************************
  *
  * Function         mca_process_timeout

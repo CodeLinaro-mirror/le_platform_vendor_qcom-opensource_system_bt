@@ -79,6 +79,12 @@
 #include "btif/include/btif_storage.h"
 #include <hardware/bt_gatt.h>
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 #define MAX_2MBPS_AVDTP_MTU 663
 extern const btgatt_interface_t* btif_gatt_get_interface();
 

@@ -26,6 +26,12 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 struct buffer_t {
   buffer_t* root;
   size_t refcount;
