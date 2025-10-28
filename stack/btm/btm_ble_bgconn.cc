@@ -45,10 +45,6 @@
 
 static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state);
 static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state);
-#ifdef SUPPORT_VENDOR_AP
-static void btm_suspend_fc_activity(tBTM_BLE_FC_STATE fc_state);
-static void btm_resume_fc_activity(tBTM_BLE_FC_STATE fc_state);
-#endif
 
 // Unfortunately (for now?) we have to maintain a copy of the device whitelist
 // on the host to determine if a device is pending to be connected or not. This
@@ -901,7 +897,7 @@ void btm_ble_pdconn_cancel_if_disconnected(const RawAddress& bd_addr) {
     fastdevice_connection_t* connection = &map_it->second;
     if (!connection->in_controller_fc && !connection->pending_removal &&
         !BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-      btm_ble_start_auto_conn_v2(false);
+      btm_ble_start_auto_conn_v2(false, BTM_BLE_INVALID_PA_ADVERTISE_HANDLE);
     }
   }
 }
@@ -1082,7 +1078,6 @@ bool btm_execute_fc_dev_operation(void) {
  ******************************************************************************/
 bool btm_update_dev_to_fast_dev(bool to_add, const RawAddress& bd_addr, uint8_t advertising_handle, uint8_t subevent) {
   tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
-
   btm_add_dev_to_controller_fast_dev(to_add, bd_addr, advertising_handle, subevent);
   btm_execute_fc_dev_operation();
   return true;
@@ -1157,16 +1152,16 @@ void btm_ble_remove_from_fast_dev_complete(uint8_t* p,
  * Description      This function is to start/stop auto connection procedure.
  *
  * Parameters       start: true to start; false to stop.
+ *                  advertising_handle: PA advertising set id.
  *
  * Returns          void
  *
  ******************************************************************************/
-bool btm_ble_start_auto_conn_v2(bool start) {
+bool btm_ble_start_auto_conn_v2(bool start, uint8_t advertising_handle) {
   tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
   bool exec = true;
   uint16_t scan_int;
   uint16_t scan_win;
-  uint8_t advertising_handle = 0x01;
   uint8_t subevent = 0x00;
   uint8_t own_addr_type = BLE_ADDR_PUBLIC;
   uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
@@ -1260,33 +1255,6 @@ bool btm_ble_start_auto_conn_v2(bool start) {
 
 /*******************************************************************************
  *
- * Function         btm_suspend_fc_activity
- *
- * Description      This function is to suspend fast device related activity
- *
- * Returns          none.
- *
- ******************************************************************************/
-static void btm_suspend_fc_activity(tBTM_BLE_FC_STATE fc_state) {
-  if (fc_state & BTM_BLE_FC_INIT) {
-    btm_ble_start_auto_conn_v2(false);
-  }
-}
-/*******************************************************************************
- *
- * Function         btm_resume_fc_activity
- *
- * Description      This function is to resume fast device related activity
- *
- * Returns          none.
- *
- ******************************************************************************/
-static void btm_resume_fc_activity(tBTM_BLE_FC_STATE fc_state) {
-  btm_ble_resume_fc_conn();
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_suspend_bg_conn
  *
  * Description      This function is to suspend an fastdevice auto connection
@@ -1299,27 +1267,7 @@ static void btm_resume_fc_activity(tBTM_BLE_FC_STATE fc_state) {
  ******************************************************************************/
 bool btm_ble_suspend_fc_conn(void) {
   if (btm_cb.ble_ctr_cb.fc_conn_type == BTM_BLE_CONN_AUTO)
-    return btm_ble_start_auto_conn_v2(false);
-
-  return false;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_resume_fc_conn
- *
- * Description      This function is to resume a fastdevice auto connection
- *                  procedure.
- *
- * Parameters       none.
- *
- * Returns          none.
- *
- ******************************************************************************/
-bool btm_ble_resume_fc_conn(void) {
-  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
-  if (p_cb->fc_conn_type == BTM_BLE_CONN_AUTO)
-    return btm_ble_start_auto_conn_v2(true);
+    return btm_ble_start_auto_conn_v2(false, BTM_BLE_INVALID_PA_ADVERTISE_HANDLE);
 
   return false;
 }

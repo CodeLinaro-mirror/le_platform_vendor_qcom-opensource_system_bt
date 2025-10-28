@@ -804,7 +804,7 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
 /**
  * Set BLE connectable mode to auto connect
  */
-bool BTM_BleStartAutoConnV2() {
+bool BTM_BleStartAutoConnV2(uint8_t advertising_handle) {
   BTM_TRACE_EVENT("%s", __func__);
   if (!controller_get_interface()->supports_ble()) {
     return false;
@@ -812,7 +812,7 @@ bool BTM_BleStartAutoConnV2() {
   if (btm_cb.ble_ctr_cb.fc_conn_type != BTM_BLE_CONN_AUTO) {
     btm_cb.ble_ctr_cb.fc_conn_type = BTM_BLE_CONN_AUTO;
   }
-  return btm_ble_start_auto_conn_v2(true);
+  return btm_ble_start_auto_conn_v2(true, advertising_handle);
 }
 /*******************************************************************************
  *
@@ -828,7 +828,7 @@ bool BTM_BleStartAutoConnV2() {
  *
  ******************************************************************************/
 void BTM_BleClearFcConnDev(uint8_t advertising_handle) {
-  btm_ble_start_auto_conn_v2(false);
+  btm_ble_start_auto_conn_v2(false, advertising_handle);
   btm_ble_clear_fast_dev(advertising_handle);
   gatt_reset_fcdev_list();
 }

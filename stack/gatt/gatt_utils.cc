@@ -1655,8 +1655,8 @@ bool gatt_clear_fc_connect_dev(tGATT_IF gatt_if, uint8_t advertising_handle)
   return ret;
 }
 
-bool gatt_start_auto_fast_connection() {
-  return BTM_BleStartAutoConnV2();
+bool gatt_start_auto_fast_connection(uint8_t advertising_handle) {
+  return BTM_BleStartAutoConnV2(advertising_handle);
 }
 
 /** Add a device to the background white list.  Returns true if device
