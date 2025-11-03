@@ -55,7 +55,7 @@ AC_ARG_ENABLE([audio],
 
 
 if test "x$audio" = "xtrue"; then
-   PKG_CHECK_MODULES([AROUTE], [audioroute])
+   PKG_CHECK_MODULES([AROUTE], [audio_route])
 fi
 
 AC_SUBST([AROUTE_CFLAGS])
