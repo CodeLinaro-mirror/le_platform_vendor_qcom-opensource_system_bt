@@ -155,8 +155,8 @@ common_LDFLAGS = -ldl -lrt -lresolv -lz -ldiag -lbtnv @QMIFW_LIBS@ -lqmi_cci \
                  -Wl,--whole-archive,../hci/.libs/libbthci.a,--no-whole-archive \
                  -laudioutils -lchrome -llog -lcutils -lpthread
 
-common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
-common_CPPFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB)
+common_CFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB) -DUSE_ANDROID_LOGGING
+common_CPPFLAGS =  $(AM_CFLAGS) -fPIC -DUSE_AUDIO_TRACK -D_GNU_SOURCE $(Z_LIB) -DUSE_ANDROID_LOGGING
 library_includedir = $(pkgincludedir)
 lib_LTLIBRARIES = libbluetoothdefault.la
 libbluetoothdefault_la_CC = @CC@

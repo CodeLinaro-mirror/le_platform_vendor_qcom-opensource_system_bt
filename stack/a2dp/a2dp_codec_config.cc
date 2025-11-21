@@ -550,14 +550,24 @@ A2dpCodecs::A2dpCodecs(
 }
 
 A2dpCodecs::~A2dpCodecs() {
+  LOG_DEBUG(LOG_TAG,"Destructor of ~A2dpCodecs");
+}
+
+void A2dpCodecs::cleanup() {
   std::unique_lock<std::recursive_mutex> lock(codec_mutex_);
-  for (const auto& iter : indexed_codecs_) {
-    delete iter.second;
+  LOG_DEBUG(LOG_TAG,"cleanup of a2dp codecs");
+
+  std::list<A2dpCodecConfig*>::iterator it;
+  for (it=ordered_source_codecs_.begin(); it!=ordered_source_codecs_.end(); ++it){
+    A2dpCodecConfig* codec_config = (*it);
+    delete codec_config;
   }
-  for (const auto& iter : disabled_codecs_) {
-    delete iter.second;
+  ordered_source_codecs_.clear();
+  for (it=ordered_sink_codecs_.begin(); it!=ordered_sink_codecs_.end(); ++it){
+    A2dpCodecConfig* codec_config = (*it);
+    delete codec_config;
   }
-  lock.unlock();
+  ordered_sink_codecs_.clear();
 }
 
 
@@ -582,9 +592,7 @@ void add_mandatory_codec(std::vector<btav_a2dp_codec_config_t>* p_codec_config_l
         it++;
     }
     it--;
-    A2dpCodecConfig* codec_config[BTAV_A2DP_CODEC_INDEX_SOURCE_MAX];
-    for(int xx=0; xx < BTAV_A2DP_CODEC_INDEX_SOURCE_MAX; xx++)
-        codec_config[xx] = nullptr;
+    A2dpCodecConfig* codec_config[BTAV_A2DP_CODEC_INDEX_SOURCE_MAX] = {nullptr};
     for(int codec_index = BTAV_A2DP_CODEC_INDEX_SOURCE_MAX-1; codec_index >= BTAV_A2DP_CODEC_INDEX_SOURCE_MIN; codec_index--){
       if ((codec_type_added[codec_index]) && (codec_index != BTAV_A2DP_CODEC_INDEX_SOURCE_SBC)) {
       /* Copy Mandatory codec parameters if particular codec is added by user */
@@ -603,10 +611,12 @@ void add_mandatory_codec(std::vector<btav_a2dp_codec_config_t>* p_codec_config_l
         LOG_DEBUG(LOG_TAG," Added Mandatory SBC codec at index %d", ++num_codec_configs);
       }
     }
-    for(int xx=0; xx < BTAV_A2DP_CODEC_INDEX_SOURCE_MAX; xx++)
+    for(int xx=0; xx < BTAV_A2DP_CODEC_INDEX_SOURCE_MAX; xx++) {
+      LOG_DEBUG(LOG_TAG," removing codec at index %d\n", xx);
+      if (codec_config[xx] != nullptr)
         delete codec_config[xx];
+    }
 }
-
 
 bool A2dpCodecs::init(bool isMulticastEnabled, bool isShoEnabled, std::vector<btav_a2dp_codec_config_t> codec_user_list) {
   LOG_DEBUG(LOG_TAG, "%s", __func__);

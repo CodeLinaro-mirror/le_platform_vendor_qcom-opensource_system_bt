@@ -270,6 +270,8 @@ class A2dpCodecs {
   A2dpCodecs(const std::vector<btav_a2dp_codec_config_t>& codec_priorities);
   ~A2dpCodecs();
 
+  void cleanup();
+
   // Initializes all supported codecs.
   // Returns true if at least one Source codec and one Sink codec were
   // initialized, otherwise false.

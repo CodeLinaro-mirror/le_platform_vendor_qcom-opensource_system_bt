@@ -143,6 +143,10 @@ void hci_close() {
 
     btHci = nullptr;
   }
+  if (callbacks != nullptr) {
+    delete callbacks;
+    callbacks = nullptr;
+  }
 }
 
 bool hci_transmit(BT_HDR* packet) {

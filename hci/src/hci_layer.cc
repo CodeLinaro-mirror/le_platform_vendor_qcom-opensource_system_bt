@@ -284,6 +284,15 @@ static future_t* hci_module_shut_down() {
 
   {
     std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
+    for (const list_node_t* node = list_begin(commands_pending_response);
+         node != list_end(commands_pending_response); node = list_next(node)) {
+      waiting_command_t* wait_entry =
+          reinterpret_cast<waiting_command_t*>(list_node(node));
+      if (wait_entry) {
+        buffer_allocator->free(wait_entry->command);
+        osi_free(wait_entry);
+      }
+    }
     list_free(commands_pending_response);
     commands_pending_response = NULL;
   }

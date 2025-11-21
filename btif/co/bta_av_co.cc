@@ -1674,6 +1674,18 @@ std::vector<btav_a2dp_codec_config_t> remove_codec_duplicate(const std::vector<b
     return p_codec_config_list_without_duplicate;
 }
 
+void bta_av_co_cleanup() {
+  APPL_TRACE_ERROR(" bta_av_co_cleanup");
+  for (size_t i = 0; i < BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers); i++) {
+    tBTA_AV_CO_PEER* p_peer;
+    p_peer = &bta_av_co_cb.peers[i];
+    if ((p_peer != NULL) && (p_peer->codecs != nullptr)) {
+      p_peer->codecs->cleanup();
+      delete p_peer->codecs;
+      p_peer->codecs = nullptr;
+    }
+  }
+}
 
 void bta_av_co_init(std::vector<btav_a2dp_codec_config_t>& codec_user_list) {
   APPL_TRACE_DEBUG("%s", __func__);
@@ -1681,6 +1693,8 @@ void bta_av_co_init(std::vector<btav_a2dp_codec_config_t>& codec_user_list) {
   tBTA_AV_CO_PEER* p_peer;
   /* Protect access to bta_av_co_cb.codec_config */
   mutex_global_lock();
+  /* cleanup the codec, codecconfig */
+  bta_av_co_cleanup();
   /* Reset the control block */
   bta_av_co_cb.reset();
 

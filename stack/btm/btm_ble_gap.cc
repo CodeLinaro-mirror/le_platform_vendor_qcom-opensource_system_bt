@@ -3251,6 +3251,10 @@ void btm_ble_free(void)
     alarm_free(btm_cb.ble_ctr_cb.addr_mgnt_cb.refresh_raddr_timer);
     btm_cb.ble_ctr_cb.addr_mgnt_cb.refresh_raddr_timer = NULL;
   }
+  if (sync_timeout_alarm) {
+    alarm_free(sync_timeout_alarm);
+    sync_timeout_alarm = NULL;
+  }
 
 #if BLE_VND_INCLUDED == FALSE
   btm_ble_adv_filter_cleanup();

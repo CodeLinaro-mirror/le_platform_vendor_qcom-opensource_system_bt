@@ -308,7 +308,6 @@ void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle) {
   memset(client_cb, 0, sizeof(tBTA_HF_CLIENT_CB));
 
   // Re allocate any variables required
-  client_cb->collision_timer = alarm_new("bta_hf_client.scb_collision_timer");
   client_cb->handle = handle;
   client_cb->sco_idx = BTM_INVALID_SCO_INDEX;
 }
@@ -604,6 +603,7 @@ bool bta_hf_client_allocate_handle(const RawAddress& bd_addr,
     APPL_TRACE_DEBUG("%s: marking CB handle %d to true", __func__,
                      client_cb->handle);
 
+    client_cb->collision_timer = alarm_new("bta_hf_client.scb_collision_timer");
     client_cb->is_allocated = true;
     client_cb->peer_addr = bd_addr;
     bta_hf_client_at_init(client_cb);
