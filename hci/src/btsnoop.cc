@@ -205,8 +205,9 @@ static void do_in_btsnoop_thread(const base::Closure& task) {
 
 // Interface functions
 static void capture(const BT_HDR* buffer, bool is_received) {
-  if (!buffer)
+  if (!buffer || !btsnoop_message_loop_ || !btsnoop_message_loop_->task_runner().get())
     return;
+
   uint16_t data_len = buffer->len + buffer->offset;
   BT_HDR* buffer_new = (BT_HDR*)malloc(BT_HDR_SIZE + data_len);
   buffer_new->event = buffer->event;

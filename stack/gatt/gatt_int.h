@@ -612,7 +612,7 @@ extern bool gatt_act_connect_v2(tGATT_REG* p_reg, uint8_t advertising_handle, ui
                                 int8_t initiating_phys);
 extern bool gatt_connect_v2(const RawAddress& rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
                          uint8_t advertising_handle, uint8_t subevent,uint8_t initiating_phys);
-extern bool gatt_start_auto_fast_connection();
+extern bool gatt_start_auto_fast_connection(uint8_t advertising_handle);
 #endif
 
 #endif

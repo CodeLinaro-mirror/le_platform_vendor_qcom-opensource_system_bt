@@ -158,9 +158,8 @@ extern void btm_send_hci_create_connection_v2(
     const RawAddress& bda_peer,uint8_t addr_type_own,uint16_t conn_int_min,
     uint16_t conn_int_max, uint16_t conn_latency,uint16_t conn_timeout,
     int16_t min_ce_len, uint16_t max_ce_len, uint8_t initiating_phys);
-extern bool btm_ble_start_auto_conn_v2(bool start);
+extern bool btm_ble_start_auto_conn_v2(bool start, uint8_t advertising_handle);
 extern bool btm_ble_suspend_fc_conn(void);
-extern bool btm_ble_resume_fc_conn(void);
 extern bool btm_update_dev_to_fast_dev(bool to_add, const RawAddress& bd_addr,
                                            uint8_t advertising_handle, uint8_t subevent);
 extern void btm_ble_clear_fast_dev(uint8_t advertising_handle);
