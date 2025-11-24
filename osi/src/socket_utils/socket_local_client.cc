@@ -76,8 +76,8 @@ int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
         goto error;
       }
 
-      strcpy(p_addr->sun_path, ANDROID_RESERVED_SOCKET_PREFIX);
-      strcat(p_addr->sun_path, name);
+      strlcpy(p_addr->sun_path, ANDROID_RESERVED_SOCKET_PREFIX, sizeof(p_addr->sun_path));
+      strlcat(p_addr->sun_path, name, sizeof(p_addr->sun_path));
       break;
 
     case ANDROID_SOCKET_NAMESPACE_FILESYSTEM:
@@ -88,7 +88,7 @@ int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
         goto error;
       }
 
-      strcpy(p_addr->sun_path, name);
+      strlcpy(p_addr->sun_path, name, sizeof(p_addr->sun_path));
       break;
     default:
       // invalid namespace id
