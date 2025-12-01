@@ -126,9 +126,9 @@ static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle,
                    code, port_handle, handle);
 
   p_scb = bta_ag_scb_by_idx(handle);
-  VLOG(1) << __func__ << " p_scb addr:" << p_scb->peer_addr;
-  APPL_TRACE_DEBUG("%s: p_scb->conn_handle: %d", __func__, p_scb->conn_handle);
   if (p_scb != NULL) {
+    VLOG(1) << __func__ << " p_scb addr:" << p_scb->peer_addr;
+    APPL_TRACE_DEBUG("%s: p_scb->conn_handle: %d", __func__, p_scb->conn_handle);
     /* ignore close event for port handles other than connected handle */
     if ((code != PORT_SUCCESS) && (port_handle != p_scb->conn_handle)) {
       APPL_TRACE_DEBUG("ag_mgmt_cback ignoring handle:%d", port_handle);

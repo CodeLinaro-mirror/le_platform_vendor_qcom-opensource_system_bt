@@ -42,6 +42,12 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
+#ifdef CHECK
+#undef CHECK
+#include <assert.h>
+#define CHECK(condition) assert((condition))
+#endif
+
 using base::StringPrintf;
 
 extern fixed_queue_t* btu_general_alarm_queue;

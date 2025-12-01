@@ -308,6 +308,8 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT* p_kb_data, uint8_t* p_report,
   /***************************************************************************/
   /*  Now, process all the characters in the report, up to 6 keycodes        */
   /***************************************************************************/
+  if (report_len == BTA_HH_MAX_RPT_CHARS)
+    report_len--;
   for (xx = 0; xx < report_len; xx++) {
 #if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("this_char = %02x", this_report[xx]);

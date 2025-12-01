@@ -1096,11 +1096,12 @@ bt_status_t HeadsetInterface::Init(bthf_callbacks_t* callbacks, int max_hf_clien
     btif_hf_features &= ~BTA_AG_FEAT_INBAND;
   }
 
-  CHECK_LE(max_hf_clients, BTA_AG_MAX_NUM_CLIENTS)
-      << __func__
-      << "Too many HF clients,"
-         " maximum is "
-      << BTA_AG_MAX_NUM_CLIENTS << " was given " << max_hf_clients;
+  if (max_hf_clients > BTA_AG_MAX_NUM_CLIENTS) {
+    BTIF_TRACE_ERROR(
+        "%s: Too many HF clients, maximum is %d, given is %d",
+        __func__, BTA_AG_MAX_NUM_CLIENTS, max_hf_clients);
+    max_hf_clients = BTA_AG_MAX_NUM_CLIENTS;
+  }
 
   btif_max_hf_clients = max_hf_clients;
 

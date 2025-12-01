@@ -413,7 +413,7 @@ tGATT_STATUS GATTS_HandleValueIndication(uint16_t conn_id, uint16_t attr_handle,
                                          uint16_t val_len, uint8_t* p_val) {
   tGATT_STATUS cmd_status = GATT_NO_RESOURCES;
 
-  tGATT_VALUE indication;
+  tGATT_VALUE indication = {};
   BT_HDR* p_msg;
   tGATT_VALUE* p_buf;
   tGATT_IF gatt_if = GATT_GET_GATT_IF(conn_id);
@@ -990,7 +990,7 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, tGATT_CBACK* p_cb_info) {
 void GATT_Deregister(tGATT_IF gatt_if) {
   bool is_gatt_connected = false;
   VLOG(1) << __func__ << " gatt_if=" << +gatt_if;
-  
+
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   /* Index 0 is GAP and is never deregistered */
   if ((gatt_if == 0) || (p_reg == NULL)) {

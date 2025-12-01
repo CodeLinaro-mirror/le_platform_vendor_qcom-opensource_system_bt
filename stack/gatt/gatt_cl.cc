@@ -1020,7 +1020,8 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
       tGATT_CLCB* p_clcb = gatt_cmd_dequeue(tcb, &rsp_code);
 
       /* send command complete callback here */
-      gatt_end_operation(p_clcb, att_ret, NULL);
+      if (p_clcb)
+        gatt_end_operation(p_clcb, att_ret, NULL);
 
       /* if no ack needed, keep sending */
       if (att_ret == GATT_SUCCESS) continue;

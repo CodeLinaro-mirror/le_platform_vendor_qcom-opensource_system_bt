@@ -245,7 +245,8 @@ tBTA_JV_RFC_CB* bta_jv_rfc_port_to_cb(uint16_t port_handle) {
     handle = bta_jv_cb.port_cb[port_handle - 1].handle;
     handle &= BTA_JV_RFC_HDL_MASK;
     handle &= ~BTA_JV_RFCOMM_MASK;
-    if (handle) p_cb = &bta_jv_cb.rfc_cb[handle - 1];
+    if (handle > 0 && handle <= BTA_JV_MAX_RFC_CONN)
+      p_cb = &bta_jv_cb.rfc_cb[handle - 1];
   } else {
     APPL_TRACE_WARNING(
         "bta_jv_rfc_port_to_cb(port_handle:0x%x):jv handle:0x%x not"
@@ -957,13 +958,15 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event,
   evt_data.l2c_open.handle = gap_handle;
 
   switch (event) {
-    case GAP_EVT_CONN_OPENED:
-      evt_data.l2c_open.rem_bda = *GAP_ConnGetRemoteAddr(gap_handle);
+    case GAP_EVT_CONN_OPENED: {
+      const RawAddress* rem_bda = GAP_ConnGetRemoteAddr(gap_handle);
+      if (rem_bda)
+        evt_data.l2c_open.rem_bda = *rem_bda;
       evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
       p_cb->state = BTA_JV_ST_CL_OPEN;
       p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
-
+    }
     case GAP_EVT_CONN_CLOSED:
      // p_cb->state = BTA_JV_ST_NONE;
       bta_jv_free_sec_id(&p_cb->sec_id);
@@ -1135,13 +1138,15 @@ static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event,
   evt_data.l2c_open.handle = gap_handle;
 
   switch (event) {
-    case GAP_EVT_CONN_OPENED:
-      evt_data.l2c_open.rem_bda = *GAP_ConnGetRemoteAddr(gap_handle);
+    case GAP_EVT_CONN_OPENED: {
+      const RawAddress* rem_bda = GAP_ConnGetRemoteAddr(gap_handle);
+      if (rem_bda)
+        evt_data.l2c_open.rem_bda = *rem_bda;
       evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
       p_cb->state = BTA_JV_ST_SR_OPEN;
       p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
-
+    }
     case GAP_EVT_CONN_CLOSED:
       evt_data.l2c_close.async = true;
       evt_data.l2c_close.handle = p_cb->handle;
@@ -1469,7 +1474,7 @@ static void bta_jv_port_mgmt_cl_cback(uint32_t code, uint16_t port_handle) {
 
   APPL_TRACE_DEBUG("bta_jv_port_mgmt_cl_cback:code:%d, port_handle%d", code,
                    port_handle);
-  if (NULL == p_cb || NULL == p_cb->p_cback) return;
+  if (NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb) return;
 
   APPL_TRACE_DEBUG("bta_jv_port_mgmt_cl_cback code=%d port_handle:%d handle:%d",
                    code, port_handle, p_cb->handle);
@@ -1514,7 +1519,7 @@ static void bta_jv_port_event_cl_cback(uint32_t code, uint16_t port_handle) {
   tBTA_JV evt_data;
 
   APPL_TRACE_DEBUG("bta_jv_port_event_cl_cback:%d", port_handle);
-  if (NULL == p_cb || NULL == p_cb->p_cback) return;
+  if (NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb) return;
 
   APPL_TRACE_DEBUG(
       "bta_jv_port_event_cl_cback code=x%x port_handle:%d handle:%d", code,
@@ -1681,7 +1686,7 @@ static void bta_jv_port_mgmt_sr_cback(uint32_t code, uint16_t port_handle) {
   uint16_t lcid;
   APPL_TRACE_DEBUG("bta_jv_port_mgmt_sr_cback, code:%d, port_handle:%d", code,
                    port_handle);
-  if (NULL == p_cb || NULL == p_cb->p_cback) {
+  if (NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb) {
     APPL_TRACE_ERROR("bta_jv_port_mgmt_sr_cback, p_cb:%p, p_cb->p_cback%p",
                      p_cb, p_cb ? p_cb->p_cback : NULL);
     return;
@@ -2447,7 +2452,8 @@ static void fcchan_conn_chng_cbk(uint16_t chan, const RawAddress& bd_addr,
     }
   }
 
-  if (call_init) p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &init_evt, l2cap_socket_id);
+  if (call_init && t)
+    p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &init_evt, l2cap_socket_id);
 
   // call this with lock taken so socket does not disappear from under us */
   if (p_cback) {
@@ -2473,6 +2479,8 @@ static void fcchan_data_cbk(uint16_t chan, const RawAddress& bd_addr,
       // no socket -> drop it
       return;
     }
+  } else {
+    return;
   }
 
   sock_cback = t->p_cback;
@@ -2529,7 +2537,8 @@ void bta_jv_l2cap_connect_le(tBTA_JV_MSG* p_data) {
   }
   if (call_init_f)
     cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &evt, cc->l2cap_socket_id);
-  t->init_called = true;
+  if (t)
+    t->init_called = true;
 }
 
 /*******************************************************************************

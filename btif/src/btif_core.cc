@@ -864,7 +864,7 @@ static void execute_storage_request(uint16_t event, char* p_param) {
       prop.len = sizeof(buf);
       if (prop.type == BT_PROPERTY_LOCAL_LE_FEATURES) {
         tBTM_BLE_VSC_CB cmn_vsc_cb;
-        bt_local_le_features_t local_le_features;
+        bt_local_le_features_t local_le_features = {};
 
         /* LE features are not stored in storage. Should be retrived from stack
          */

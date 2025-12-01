@@ -232,12 +232,11 @@ uint16_t Battery_Instantiate(uint8_t app_id, tBA_REG_INFO* p_reg_info) {
 
   GATTS_AddService(srvc_eng_cb.gatt_if, service, i);
 
+  battery_cb.inst_id++;
   if (status != GATT_SUCCESS) {
     battery_cb.inst_id--;
     LOG(ERROR) << __func__ << " Failed to add battery servuce!";
   }
-
-  battery_cb.inst_id++;
 
   p_inst->app_id = app_id;
   p_inst->p_cback = p_reg_info->p_cback;
