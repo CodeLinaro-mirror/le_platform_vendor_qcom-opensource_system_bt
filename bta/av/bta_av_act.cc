@@ -1014,6 +1014,7 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
       char avrcp_ct_support[PROPERTY_VALUE_MAX];
       osi_property_get("bluetooth.pts.avrcp_ct.support", avrcp_ct_support,
                        "false");
+      APPL_TRACE_DEBUG("%s: pass.op_id:%x", __func__, p_data->rc_msg.msg.pass.op_id);
       if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR) {
         p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
 #if (TWS_ENABLED == TRUE)
@@ -1033,16 +1034,19 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
               p_data->rc_msg.msg.pass.pass_len,
               p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
 #endif
-      } else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP) ||
-                  (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
-                 !strcmp(avrcp_ct_support, "true")) {
-        p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_ACCEPT;
+      } else if ((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP) ||
+                  (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) {
+        /* vol up/down is only supported for TG category 2 */
+        if (!strcmp(avrcp_ct_support, "true") && (p_bta_av_cfg->avrc_tg_cat & AVRC_SUPF_TG_CAT2))
+            p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_ACCEPT;
+        else
+            p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
       } else {
         p_data->rc_msg.msg.hdr.ctype =
             bta_av_op_supported(p_data->rc_msg.msg.pass.op_id, is_inquiry);
       }
 
-      APPL_TRACE_DEBUG("ctype %d", p_data->rc_msg.msg.hdr.ctype)
+      APPL_TRACE_DEBUG("ctype %d", p_data->rc_msg.msg.hdr.ctype);
 
       /* send response */
       if (p_data->rc_msg.msg.hdr.ctype != BTA_AV_RSP_INTERIM)
