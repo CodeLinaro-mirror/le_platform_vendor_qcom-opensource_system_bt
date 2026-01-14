@@ -118,49 +118,60 @@ void nvmAccessGet_cb(tBTM_VSC_CMPL *p1) {
             for(unsigned int i=0;i < p1->param_len;i++){
                 param[i]=p1->p_param_buf[i+1];
             }
-        //SubOpcode for SET
-        param[0] = 0x01;
-        if(tagId == 0x2C)
-        {
-            LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 51->%02X,52->%02X,53->%02X,54->%02X,55->%02X,59->%02X,62->%02X",
-            param[51],param[52],param[53],param[54],param[55],param[59],param[62]);
-            param[51] = 0xDC;
-            param[52] = 0x05;
-            param[53] = 0xA4;
-            param[54] = 0x06;
-            param[55] = 0x9F;
-            param[59] = 0x01;
-            param[62] = 0x01;
-        }
-        else if(tagId == 0x9A)
-        {
-            LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 21->%02X,25->%02X,29->%02X,30->%02X,33->%02X,37->%02X,38->%02X,42->%02X,45->%02X,46->%02X",
-                   param[21],param[25],param[29],param[30],param[33],param[37],param[38],param[42],param[45],param[46]);
-            LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 49->%02X,50->%02X,54->%02X,57->%02X,59->%02X,61->%02X,62->%02X,92->%02X,236->%02X,240->%02X",
-                  param[49],param[50],param[54],param[57],param[59],param[61],param[62],param[92],param[236],param[240]);
-            param[21] = 0x60;
-            param[25] = 0x80;
-            param[29] = 0xC0;
-            param[30] = 0x00;
-            param[33] = 0x00;
-            param[37] = 0x80;
-            param[38] = 0x01;
-            param[42] = 0x02;
-            param[45] = 0x00;
-            param[46] = 0x03;
-            param[49] = 0x08;
-            param[50] = 0x04;
-            param[54] = 0x05;
-            param[57] = 0x00;
-            param[59] = 0x01;
-            param[61] = 0x80;
-            param[62] = 0x06;
-            param[92] = 0x14;
-            param[236] = 0x04;
-            param[240] = 0x04;
-        }
-        LOG_INFO(LOG_TAG, "%s Sending HCI_VS_HOST_NVM_ACCESS_OPCODE cmd for NVM_ACCESS_SET ", __func__);
-        BTM_VendorSpecificCommand(HCI_VS_HOST_NVM_ACCESS_OPCODE,(p1->param_len)-1,param,nvmAccessSet_cb);
+
+            ALOGI("Params: ");
+            for (unsigned int i = 0; i < p1->param_len; i++) {
+                ALOGI("%02X ", param[i]);
+            }
+            //SubOpcode for SET
+            param[0] = 0x01;
+            if(tagId == 0x2C)
+            {
+                LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 51->%02X,52->%02X,53->%02X,54->%02X,55->%02X,59->%02X,62->%02X",
+                param[51],param[52],param[53],param[54],param[55],param[59],param[62]);
+                param[51] = 0xDC;
+                param[52] = 0x05;
+                param[53] = 0xA4;
+                param[54] = 0x06;
+                param[55] = 0x9F;
+                param[59] = 0x01;
+                param[62] = 0x01;
+            }
+            else if(tagId == 0x9A)
+            {
+                LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 21->%02X,25->%02X,29->%02X,30->%02X,33->%02X,37->%02X,38->%02X,42->%02X,45->%02X,46->%02X",
+                       param[21],param[25],param[29],param[30],param[33],param[37],param[38],param[42],param[45],param[46]);
+                LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 49->%02X,50->%02X,54->%02X,57->%02X,59->%02X,61->%02X,62->%02X,92->%02X,236->%02X,240->%02X",
+                      param[49],param[50],param[54],param[57],param[59],param[61],param[62],param[92],param[236],param[240]);
+                param[21] = 0x60;
+                param[25] = 0x80;
+                param[29] = 0xC0;
+                param[30] = 0x00;
+                param[33] = 0x00;
+                param[37] = 0x80;
+                param[38] = 0x01;
+                param[42] = 0x02;
+                param[45] = 0x00;
+                param[46] = 0x03;
+                param[49] = 0x08;
+                param[50] = 0x04;
+                param[54] = 0x05;
+                param[57] = 0x00;
+                param[59] = 0x01;
+                param[61] = 0x80;
+                param[62] = 0x06;
+                param[92] = 0x14;
+                param[236] = 0x04;
+                param[240] = 0x04;
+            }
+            if(tagId == 0xA3)
+            {
+                LOG_DEBUG(LOG_TAG,"nvm Access:: GET:: Index->Value:: 3->%02X,4->%02X,5->%02X,6->%02X,7->%02X,8->%02X,9->%02X,10->%02X",
+                param[3],param[4],param[5],param[6],param[7],param[8],param[9],param[10]);
+                param[4] = 0x01;
+            }
+            LOG_INFO(LOG_TAG, "%s Sending HCI_VS_HOST_NVM_ACCESS_OPCODE cmd for NVM_ACCESS_SET ", __func__);
+            BTM_VendorSpecificCommand(HCI_VS_HOST_NVM_ACCESS_OPCODE,(p1->param_len)-1,param,nvmAccessSet_cb);
         }
     }
 }
@@ -422,6 +433,8 @@ static future_t* start_up(void) {
   }
   send_nvmAccessGet_command(param);
   param[1]=0x9A;/*TAG ID*/
+  send_nvmAccessGet_command(param);
+  param[1]=0xA3;/*TAG ID*/
   send_nvmAccessGet_command(param);
 
   readable = true;
