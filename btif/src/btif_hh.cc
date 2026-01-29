@@ -508,7 +508,7 @@ void btif_hh_remove_device(RawAddress bd_addr) {
   }
 
   p_dev->hh_keep_polling = 0;
-  p_dev->hh_poll_thread_id = -1;
+//  p_dev->hh_poll_thread_id = -1;
   BTIF_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
   if (p_dev->fd >= 0) {
     bta_hh_co_destroy(p_dev->fd);

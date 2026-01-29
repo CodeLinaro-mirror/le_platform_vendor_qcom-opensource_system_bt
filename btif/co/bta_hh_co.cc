@@ -389,7 +389,7 @@ static void* btif_hh_poll_event_thread(void* arg) {
     }
   }
 
-  p_dev->hh_poll_thread_id = -1;
+//  p_dev->hh_poll_thread_id = -1;
   APPL_TRACE_DEBUG("%s: Thread destroyed", __func__);
   return 0;
 }
