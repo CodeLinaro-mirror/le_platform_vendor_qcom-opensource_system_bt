@@ -61,7 +61,7 @@
 #ifdef ANDROID
 #define DEFAULT_BTSNOOP_PATH "/data/misc/bluetooth/logs/btsnoop_hci.log"
 #else
-#define DEFAULT_BTSNOOP_PATH "/etc/bluetooth/btsnoop_hci.log"
+#define DEFAULT_BTSNOOP_PATH "/data/misc/bluetooth/btsnoop_hci.log"
 #endif
 #define BTSNOOP_MAX_PACKETS_PROPERTY "persist.bluetooth.btsnoopsize"
 

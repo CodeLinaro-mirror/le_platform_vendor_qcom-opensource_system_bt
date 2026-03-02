@@ -37,12 +37,12 @@ using gatt::StoredAttribute;
 using std::string;
 using std::vector;
 
-#define GATT_CACHE_PREFIX "/etc/bluetooth/gatt_cache_"
+#define GATT_CACHE_PREFIX "/data/misc/bluetooth/gatt_cache_"
 #define GATT_CACHE_VERSION 6
 
 #define GATT_HASH_MAX_SIZE 30
-#define GATT_HASH_PATH_PREFIX "/etc/bluetooth/gatt_hash_"
-#define GATT_HASH_PATH "/etc/bluetooth"
+#define GATT_HASH_PATH_PREFIX "/data/misc/bluetooth/gatt_hash_"
+#define GATT_HASH_PATH "/data/misc/bluetooth"
 #define GATT_HASH_FILE_PREFIX "gatt_hash_"
 
 // Default expired time is 7 days

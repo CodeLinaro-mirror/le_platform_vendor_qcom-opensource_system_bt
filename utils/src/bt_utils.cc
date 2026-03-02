@@ -49,7 +49,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#define SOCKETNAME  "/etc/bluetooth/btprop"
+#define SOCKETNAME  "/data/misc/bluetooth/btprop"
 #endif
 
 #include "bt_types.h"
@@ -158,7 +158,7 @@ static intmax_t property_get_bt_imax(const char *key, intmax_t lower_bound,
             ALOGE("%s(%s,%" PRIdMAX ") - overflow", __FUNCTION__, key,
                 default_value);
         } else if (result < lower_bound || result > upper_bound) {
-            // Out of range of requested bounds 
+            // Out of range of requested bounds
             result = default_value;
             ALOGE("%s(%s,%" PRIdMAX ") - out of range", __FUNCTION__, key,
                 default_value);
