@@ -3195,8 +3195,8 @@ void btif_dm_proc_io_req(UNUSED_ATTR const RawAddress& bd_addr,
 void btif_dm_proc_io_rsp(UNUSED_ATTR const RawAddress& bd_addr,
                          tBTA_IO_CAP io_cap, UNUSED_ATTR tBTA_OOB_DATA oob_data,
                          tBTA_AUTH_REQ auth_req) {
+  BTIF_TRACE_DEBUG("%s auth_req:%d", __func__, auth_req);
   if (auth_req & BTA_AUTH_BONDS) {
-    BTIF_TRACE_DEBUG("%s auth_req:%d", __func__, auth_req);
     pairing_cb.auth_req = auth_req;
     pairing_cb.io_cap = io_cap;
   }
@@ -3540,10 +3540,6 @@ void btif_dm_get_ble_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
 
 void btif_dm_save_ble_bonding_keys(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
-  if( (pairing_cb.auth_req & BTM_LE_AUTH_REQ_BOND) == 0 && !stack_config_get_interface()->get_pts_disable_auth_check()) {
-      return;
-  }
-
   RawAddress bd_addr = pairing_cb.bd_addr;
 
   if (pairing_cb.ble.is_penc_key_rcvd) {
