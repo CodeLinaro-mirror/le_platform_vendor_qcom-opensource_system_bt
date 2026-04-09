@@ -64,6 +64,7 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 
+
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
@@ -437,7 +438,7 @@ static bool bta_ag_parse_cmer(char* p_s, char* p_end, bool* p_enabled) {
   int16_t n[4] = {-1, -1, -1, -1};
   int i;
   char* p;
-
+  if (p_s == NULL) return false;
   for (i = 0; i < 4; i++, p_s = p + 1) {
     /* skip to comma delimiter */
     for (p = p_s; p < p_end && *p != ',' && *p != 0; p++)
