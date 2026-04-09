@@ -274,7 +274,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
             /* read str */
             BE_STREAM_TO_UINT16(player->name.charset_id, p);
             BE_STREAM_TO_UINT16(player->name.str_len, p);
-            player->name.p_str = (uint8_t*)osi_malloc(
+            player->name.p_str = (uint8_t*)osi_calloc(
                 (player->name.str_len + 1) * sizeof(uint8_t));
             BE_STREAM_TO_ARRAY(p, player->name.p_str, player->name.str_len);
             pkt_len_read += (4 + player->name.str_len);
@@ -298,7 +298,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
             /* read str, encoding to be handled by upper layers */
             BE_STREAM_TO_UINT16(folder->name.charset_id, p);
             BE_STREAM_TO_UINT16(folder->name.str_len, p);
-            folder->name.p_str = (uint8_t*)osi_malloc(
+            folder->name.p_str = (uint8_t*)osi_calloc(
                 (folder->name.str_len + 1) * sizeof(uint8_t));
             BE_STREAM_TO_ARRAY(p, folder->name.p_str, folder->name.str_len);
             pkt_len_read += (4 + folder->name.str_len);
@@ -472,7 +472,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
         AVRC_TRACE_DEBUG("%s AVRC_PDU_SET_BROWSED_PLAYER item: %d len: %d",
                          __func__, i, folder_name->str_len);
         folder_name->p_str =
-            (uint8_t*)osi_malloc((folder_name->str_len + 1) * sizeof(uint8_t));
+            (uint8_t*)osi_calloc((folder_name->str_len + 1) * sizeof(uint8_t));
         BE_STREAM_TO_ARRAY(p, folder_name->p_str, folder_name->str_len);
         pkt_len_read += (2 + folder_name->str_len);
       }
