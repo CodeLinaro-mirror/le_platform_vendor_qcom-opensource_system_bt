@@ -42,8 +42,8 @@
 #include "HidlSupport.h"
 using android::hardware::hidl_vec;
 
-#define LOG_PATH "/etc/bluetooth/firmware_events.log"
-#define LAST_LOG_PATH "/etc/bluetooth/firmware_events.log.last"
+#define LOG_PATH "/data/misc/bluetooth/firmware_events.log"
+#define LAST_LOG_PATH "/data/misc/bluetooth/firmware_events.log.last"
 
 static void *lib_handle;
 static const char TRANSPORT_LIBRARY_NAME[] = "bttransport.so";

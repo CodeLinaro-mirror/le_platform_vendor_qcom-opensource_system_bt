@@ -44,9 +44,9 @@
 #define A2DP_CTRL_PATH "/data/misc/bluedroid/.a2dp_ctrl"
 #define A2DP_DATA_PATH "/data/misc/bluedroid/.a2dp_data"
 #else
-#define A2DP_CTRL_PATH "/tmp/a2dp_ctrl.socket"
+#define A2DP_CTRL_PATH "/data/misc/bluetooth/a2dp_ctrl.socket"
 #define A2DP_DATA_PATH "/dev/socket/.a2dp_data"
-#define A2DP_AVK_CTRL_PATH "/tmp/a2dp_avk_ctrl.socket"
+#define A2DP_AVK_CTRL_PATH "/data/misc/bluetooth/a2dp_avk_ctrl.socket"
 #define A2DP_AVK_DATA_PATH "/dev/socket/.a2dp_avk_data"
 #endif
 

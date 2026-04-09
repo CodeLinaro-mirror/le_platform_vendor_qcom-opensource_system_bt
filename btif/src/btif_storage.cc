@@ -1023,6 +1023,7 @@ bt_status_t btif_storage_add_ble_bonding_key(RawAddress* remote_bd_addr,
       name = "LE_KEY_LID";
       break;
     default:
+      BTIF_TRACE_DEBUG(" %s unkown key type :%d", __func__, key_type);
       return BT_STATUS_FAIL;
   }
   int ret = btif_config_set_bin(remote_bd_addr->ToString().c_str(), name,

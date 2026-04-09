@@ -56,8 +56,8 @@ using android::hardware::hidl_vec;
 #define LOG_PATH "/etc/bluetooth/firmware_events.log"
 #define LAST_LOG_PATH "/etc/bluetooth/firmware_events.log.last"
 using android::hardware::bluetooth::V1_0::HciPacket;
-#define CTRL_SOCK "/etc/bluetooth/ctrl_sock"
-#define BT_SOCK "/etc/bluetooth/bt_sock"
+#define CTRL_SOCK "/data/misc/bluetooth/ctrl_sock"
+#define BT_SOCK "/data/misc/bluetooth/bt_sock"
 #define STOP_CHANNEL 0xDD
 int connect_to_local_socket(char* name);
 uint16_t transmit_data(serial_data_type_t type, uint8_t *data, uint16_t length);
