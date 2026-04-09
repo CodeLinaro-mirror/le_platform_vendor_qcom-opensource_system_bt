@@ -224,10 +224,11 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR* packet) {
         }
 
         LOG_WARN(LOG_TAG, ""
-              "%s got packet which would exceed expected length of %d. "
-              "Truncating.",
-              __func__, partial_packet->len);
-        packet->len = (partial_packet->len - partial_packet->offset) + packet->offset;
+                 "%s got packet which would exceed expected length of %d. "
+                 "Truncating.",
+                 __func__, partial_packet->len);
+        packet->len =
+            (partial_packet->len - partial_packet->offset) + packet->offset;
         projected_offset = partial_packet->len;
       }
 

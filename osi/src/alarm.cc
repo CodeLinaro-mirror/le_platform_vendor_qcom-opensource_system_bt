@@ -195,9 +195,8 @@ static alarm_t* alarm_new_internal(const char* name, bool is_periodic) {
 void alarm_free(alarm_t* alarm) {
   if (alarm == NULL) return;
 
-  if (alarm_is_scheduled(alarm)) {
-    alarm_cancel(alarm);
-  }
+  alarm_cancel(alarm);
+
   osi_free((void*)alarm->stats.name);
   alarm->callback_mutex.reset();
   alarm->closure.i.Cancel();
@@ -260,7 +259,7 @@ void alarm_cancel(alarm_t* alarm) {
   CHECK(alarms != NULL);
   if (!alarm) return;
 
-  std::shared_ptr<std::recursive_mutex> local_mutex_ref;
+  std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
   {
     std::lock_guard<std::mutex> lock(alarms_mutex);
     local_mutex_ref = alarm->callback_mutex;
@@ -602,10 +601,9 @@ static void alarm_ready_generic(alarm_t* alarm,
   }
 
   // Increment the reference count of the mutex so it doesn't get freed
- // before the callback gets finished executing.
+  // before the callback gets finished executing.
   std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
   std::lock_guard<std::recursive_mutex> cb_lock(*local_mutex_ref);
-
   lock.unlock();
 
   if (callback) {

@@ -56,6 +56,7 @@ class LogMessage {
 //#define LOG(severity) LogMessage(__FILE__, __LINE__, #severity).stream()
 
 #define android_errorWriteLog(tag, subTag) 2
+#define android_errorWriteWithInfoLog(tag, subTag, uid, data, dataLen) 2
 #if defined(OS_GENERIC)
 
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
