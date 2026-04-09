@@ -1018,7 +1018,7 @@ static uint8_t avdt_msg_prs_rej(tAVDT_MSG* p_msg, uint8_t* p, uint16_t len,
   }
 
   return error;
- }
+}
 
 /*******************************************************************************
  *
