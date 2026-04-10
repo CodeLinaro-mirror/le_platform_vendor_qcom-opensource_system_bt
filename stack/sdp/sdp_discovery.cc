@@ -755,6 +755,7 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     sdp_disconnect(p_ccb, SDP_INVALID_PDU);
     return;
   }
+
   p_end = &p_ccb->rsp_list[p_ccb->list_len];
 
   if ((p + seq_len) != p_end) {
@@ -796,6 +797,8 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     SDP_TRACE_WARNING("SDP - Wrong type: 0x%02x in attr_rsp", type);
     return (NULL);
   }
+
+
   p = sdpu_get_len_from_type(p, p_msg_end, type, &seq_len);
   if (p == NULL || (p + seq_len) > p_msg_end) {
     SDP_TRACE_WARNING("SDP - Bad len in attr_rsp %d", seq_len);
@@ -907,6 +910,8 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
     SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
     return NULL;
   }
+
+
   attr_len &= SDP_DISC_ATTR_LEN_MASK;
   attr_type = (type >> 3) & 0x0f;
 
