@@ -732,13 +732,12 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     return;
   }
 
-  p = sdpu_get_len_from_type(p, p + p_ccb->list_len, type, &seq_len);
-  if (p == NULL || (p + seq_len) > (p + p_ccb->list_len)) {
+  p_end = &p_ccb->rsp_list[p_ccb->list_len];
+  p = sdpu_get_len_from_type(p, p_end, type, &seq_len);
+  if (p == NULL || (p + seq_len) > p_end) {
     SDP_TRACE_WARNING("%s: bad length", __func__);
     return;
   }
-
-  p_end = &p_ccb->rsp_list[p_ccb->list_len];
 
   if ((p + seq_len) != p_end) {
     sdp_disconnect(p_ccb, SDP_INVALID_CONT_STATE);
@@ -797,8 +796,9 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
 
   while (p < p_seq_end) {
     /* First get the attribute ID */
-    p = sdpu_get_len_from_type(p, p_msg_end, type, &seq_len);
-    if (p == NULL || (p + seq_len) > p_msg_end) {
+    type = *p++;
+    p = sdpu_get_len_from_type(p, p_msg_end, type, &attr_len);
+    if (p == NULL || (p + attr_len) > p_msg_end) {
       SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
       return NULL;
     }

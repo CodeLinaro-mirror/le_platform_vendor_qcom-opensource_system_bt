@@ -984,7 +984,7 @@ void smp_proc_srk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   le_key.pcsrk_key.sec_level = p_cb->sec_level;
 
   /* get peer CSRK */
-  maybe_non_aligned_memcpy(le_key.pcsrk_key.csrk, p_data->p_data, BT_OCTET16_LEN);
+  maybe_non_aligned_memcpy(le_key.pcsrk_key.csrk, (uint8_t*)p_data, BT_OCTET16_LEN);
 
   /* initialize the peer counter */
   le_key.pcsrk_key.counter = 0;
