@@ -99,7 +99,7 @@ struct alarm_t {
   // potentially long-running callback is executing. |alarm_cancel| uses this
   // mutex to provide a guarantee to its caller that the callback will not be
   // in progress when it returns.
-  std::shared_ptr<std::recursive_mutex> callback_mutex;
+  std::recursive_mutex* callback_mutex;
   period_ms_t creation_time;
   period_ms_t period;
   period_ms_t deadline;
@@ -182,8 +182,7 @@ static alarm_t* alarm_new_internal(const char* name, bool is_periodic) {
 
   alarm_t* ret = static_cast<alarm_t*>(osi_calloc(sizeof(alarm_t)));
 
-  std::shared_ptr<std::recursive_mutex> ptr(new std::recursive_mutex());
-  ret->callback_mutex = ptr;
+  ret->callback_mutex = new std::recursive_mutex;
   ret->is_periodic = is_periodic;
   ret->stats.name = osi_strdup(name);
 
@@ -201,6 +200,7 @@ void alarm_free(alarm_t* alarm) {
 
   alarm_cancel(alarm);
 
+  delete alarm->callback_mutex;
   osi_free((void*)alarm->stats.name);
   alarm->closure.~CancelableClosureInStruct();
   osi_free(alarm);
@@ -253,10 +253,9 @@ void alarm_cancel(alarm_t* alarm) {
   CHECK(alarms != NULL);
   if (!alarm) return;
 
-  std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
+  std::recursive_mutex* local_mutex_ref = alarm->callback_mutex;
   {
     std::lock_guard<std::mutex> lock(alarms_mutex);
-    local_mutex_ref = alarm->callback_mutex;
     alarm_cancel_internal(alarm);
   }
 
@@ -594,7 +593,7 @@ static void alarm_ready_generic(alarm_t* alarm,
 
   // Increment the reference count of the mutex so it doesn't get freed
   // before the callback gets finished executing.
-  std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
+  std::recursive_mutex* local_mutex_ref = alarm->callback_mutex;
   std::lock_guard<std::recursive_mutex> cb_lock(*local_mutex_ref);
   lock.unlock();
 
