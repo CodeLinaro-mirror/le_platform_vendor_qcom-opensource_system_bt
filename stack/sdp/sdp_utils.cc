@@ -577,7 +577,8 @@ uint8_t* sdpu_extract_attr_seq(uint8_t* p, uint16_t param_len,
  * Returns          void
  *
  ******************************************************************************/
-uint8_t* sdpu_get_len_from_type(uint8_t* p, uint8_t type, uint32_t* p_len) {
+uint8_t* sdpu_get_len_from_type(uint8_t* p, uint8_t* p_end, uint8_t type,
+                                uint32_t* p_len) {
   uint8_t u8;
   uint16_t u16;
   uint32_t u32;
@@ -599,14 +600,26 @@ uint8_t* sdpu_get_len_from_type(uint8_t* p, uint8_t type, uint32_t* p_len) {
       *p_len = 16;
       break;
     case SIZE_IN_NEXT_BYTE:
+      if (p + 1 > p_end) {
+        *p_len = 0;
+        return NULL;
+      }
       BE_STREAM_TO_UINT8(u8, p);
       *p_len = u8;
       break;
     case SIZE_IN_NEXT_WORD:
+      if (p + 2 > p_end) {
+        *p_len = 0;
+        return NULL;
+      }
       BE_STREAM_TO_UINT16(u16, p);
       *p_len = u16;
       break;
     case SIZE_IN_NEXT_LONG:
+      if (p + 4 > p_end) {
+        *p_len = 0;
+        return NULL;
+      }
       BE_STREAM_TO_UINT32(u32, p);
       *p_len = (uint16_t)u32;
       break;
@@ -723,8 +736,29 @@ bool sdpu_compare_uuid_arrays(uint8_t* p_uuid1, uint32_t len1, uint8_t* p_uuid2,
  ******************************************************************************/
 bool sdpu_compare_uuid_with_attr(const Uuid& uuid, tSDP_DISC_ATTR* p_attr) {
   int len = uuid.GetShortestRepresentationSize();
-  if (len == 2) return uuid.As16Bit() == p_attr->attr_value.v.u16;
-  if (len == 4) return uuid.As32Bit() == p_attr->attr_value.v.u32;
+ 
+  if (len == 2) {
+    if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == Uuid::kNumBytes16) {
+      return uuid.As16Bit() == p_attr->attr_value.v.u16;
+    } else {
+      LOG(ERROR) << "invalid length for discovery attribute";
+      return (false);
+    }
+  }
+  if (len == 4) {
+    if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == Uuid::kNumBytes32) {
+      return uuid.As32Bit() == p_attr->attr_value.v.u32;
+    } else {
+      LOG(ERROR) << "invalid length for discovery attribute";
+      return (false);
+    }
+  }
+
+  if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) != Uuid::kNumBytes128) {
+    LOG(ERROR) << "invalid length for discovery attribute";
+    return (false);
+  }
+  
   if (memcmp(uuid.To128BitBE().data(), (void*)p_attr->attr_value.v.array,
              Uuid::kNumBytes128) == 0)
     return (true);

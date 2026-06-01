@@ -55,7 +55,7 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end);
 static tSDP_DISC_REC* add_record(tSDP_DISCOVERY_DB* p_db,
                                  const RawAddress& p_bda);
-static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
+static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
                          tSDP_DISC_REC* p_rec, uint16_t attr_id,
                          tSDP_DISC_ATTR* p_parent_attr, uint8_t nest_level);
 
@@ -74,9 +74,14 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
  *
  ******************************************************************************/
 static uint8_t* sdpu_build_uuid_seq(uint8_t* p_out, uint16_t num_uuids,
-                                    Uuid* p_uuid_list) {
+                                    Uuid* p_uuid_list, uint16_t& bytes_left) {
   uint16_t xx;
   uint8_t* p_len;
+
+  if (bytes_left < 2) {
+    DCHECK(0) << "SDP: No space for data element header";
+    return (p_out);
+  }
 
   /* First thing is the data element header */
   UINT8_TO_BE_STREAM(p_out, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
@@ -85,9 +90,21 @@ static uint8_t* sdpu_build_uuid_seq(uint8_t* p_out, uint16_t num_uuids,
   p_len = p_out;
   p_out += 1;
 
+  /* Account for data element header and length */
+  bytes_left -= 2;
+
   /* Now, loop through and put in all the UUID(s) */
   for (xx = 0; xx < num_uuids; xx++, p_uuid_list++) {
     int len = p_uuid_list->GetShortestRepresentationSize();
+
+    if (len + 1 > bytes_left) {
+      DCHECK(0) << "SDP: Too many UUIDs for internal buffer";
+      break;
+    } else {
+      bytes_left -= (len + 1);
+    }
+
+
     if (len == Uuid::kNumBytes16) {
       UINT8_TO_BE_STREAM(p_out, (UUID_DESC_TYPE << 3) | SIZE_TWO_BYTES);
       UINT16_TO_BE_STREAM(p_out, p_uuid_list->As16Bit());
@@ -124,6 +141,7 @@ static void sdp_snd_service_search_req(tCONN_CB* p_ccb, uint8_t cont_len,
   uint8_t *p, *p_start, *p_param_len;
   BT_HDR* p_cmd = (BT_HDR*)osi_malloc(SDP_DATA_BUF_SIZE);
   uint16_t param_len;
+  uint16_t bytes_left = SDP_DATA_BUF_SIZE;
 
   /* Prepare the buffer for sending the packet to L2CAP */
   p_cmd->offset = L2CAP_MIN_OFFSET;
@@ -138,14 +156,25 @@ static void sdp_snd_service_search_req(tCONN_CB* p_ccb, uint8_t cont_len,
   p_param_len = p;
   p += 2;
 
+  /* Account for header size, max service record count and
+   * continuation state */
+  const uint16_t base_bytes = (sizeof(BT_HDR) + L2CAP_MIN_OFFSET +
+                               3u + /* service search request header */
+                               2u + /* param len */
+                               3u + ((p_cont) ? cont_len : 0));
+
+  if (base_bytes > bytes_left) {
+    DCHECK(0) << "SDP: Overran SDP data buffer";
+    osi_free(p_cmd);
+    return;
+  }
+
+  bytes_left -= base_bytes;
+
 /* Build the UID sequence. */
-#if (SDP_BROWSE_PLUS == TRUE)
-  p = sdpu_build_uuid_seq(p, 1,
-                          &p_ccb->p_db->uuid_filters[p_ccb->cur_uuid_idx]);
-#else
   p = sdpu_build_uuid_seq(p, p_ccb->p_db->num_uuid_filters,
-                          p_ccb->p_db->uuid_filters);
-#endif
+                          p_ccb->p_db->uuid_filters, bytes_left);
+
 
   /* Set max service record count */
   UINT16_TO_BE_STREAM(p, sdp_cb.max_recs_per_search);
@@ -298,7 +327,7 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 
   orig = p_ccb->num_handles;
   p_ccb->num_handles += cur_handles;
-  if (p_ccb->num_handles == 0) {
+  if (p_ccb->num_handles == 0 || p_ccb->num_handles < orig) {
     SDP_TRACE_WARNING("SDP - Rcvd ServiceSearchRsp, no matches");
     sdp_disconnect(p_ccb, SDP_NO_RECS_MATCH);
     return;
@@ -352,9 +381,10 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
  ******************************************************************************/
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
 static void sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
-  unsigned int    cpy_len, rem_len;
+  unsigned int cpy_len, rem_len;
   uint32_t list_len;
   uint8_t* p;
+  uint8_t* p_end;
   uint8_t type;
 
 #if (SDP_DEBUG_RAW == TRUE)
@@ -373,10 +403,15 @@ static void sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
     cpy_len = p_ccb->p_db->raw_size - p_ccb->p_db->raw_used;
     list_len = p_ccb->list_len;
     p = &p_ccb->rsp_list[0];
+    p_end = &p_ccb->rsp_list[0] + list_len;
 
     if (offset) {
       type = *p++;
-      p = sdpu_get_len_from_type(p, type, &list_len);
+      p = sdpu_get_len_from_type(p, p_end, type, &list_len);
+      if (p == NULL || (p + list_len) > p_end) {
+        SDP_TRACE_WARNING("%s: bad length", __func__);
+        return;
+      }
     }
     if (list_len && list_len < cpy_len) {
       cpy_len = list_len;
@@ -608,6 +643,7 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
   if ((cont_request_needed) || (!p_reply)) {
     BT_HDR* p_msg = (BT_HDR*)osi_malloc(SDP_DATA_BUF_SIZE);
     uint8_t* p;
+    uint16_t bytes_left = SDP_DATA_BUF_SIZE;
 
     p_msg->offset = L2CAP_MIN_OFFSET;
     p = p_start = (uint8_t*)(p_msg + 1) + L2CAP_MIN_OFFSET;
@@ -621,14 +657,24 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     p_param_len = p;
     p += 2;
 
+    /* Account for header size, max service record count and
+     * continuation state */
+    const uint16_t base_bytes = (sizeof(BT_HDR) + L2CAP_MIN_OFFSET +
+                                 3u + /* service search request header */
+                                 2u + /* param len */
+                                 3u + /* max service record count */
+                                 ((p_reply) ? (*p_reply) : 0));
+
+    if (base_bytes > bytes_left) {
+      sdp_disconnect(p_ccb, SDP_INVALID_CONT_STATE);
+      return;
+    }
+
+    bytes_left -= base_bytes;
+
 /* Build the UID sequence. */
-#if (SDP_BROWSE_PLUS == TRUE)
-    p = sdpu_build_uuid_seq(p, 1,
-                            &p_ccb->p_db->uuid_filters[p_ccb->cur_uuid_idx]);
-#else
     p = sdpu_build_uuid_seq(p, p_ccb->p_db->num_uuid_filters,
-                            p_ccb->p_db->uuid_filters);
-#endif
+                            p_ccb->p_db->uuid_filters, bytes_left);
 
     /* Max attribute byte count */
     UINT16_TO_BE_STREAM(p, sdp_cb.max_attr_list_size);
@@ -685,9 +731,13 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     SDP_TRACE_WARNING("SDP - Wrong type: 0x%02x in attr_rsp", type);
     return;
   }
-  p = sdpu_get_len_from_type(p, type, &seq_len);
 
   p_end = &p_ccb->rsp_list[p_ccb->list_len];
+  p = sdpu_get_len_from_type(p, p_end, type, &seq_len);
+  if (p == NULL || (p + seq_len) > p_end) {
+    SDP_TRACE_WARNING("%s: bad length", __func__);
+    return;
+  }
 
   if ((p + seq_len) != p_end) {
     sdp_disconnect(p_ccb, SDP_INVALID_CONT_STATE);
@@ -729,8 +779,8 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     return (NULL);
   }
 
-  p = sdpu_get_len_from_type(p, type, &seq_len);
-  if ((p + seq_len) > p_msg_end) {
+  p = sdpu_get_len_from_type(p, p_msg_end, type, &seq_len);
+  if (p == NULL || (p + seq_len) > p_msg_end) {
     SDP_TRACE_WARNING("SDP - Bad len in attr_rsp %d", seq_len);
     return (NULL);
   }
@@ -747,7 +797,12 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
   while (p < p_seq_end) {
     /* First get the attribute ID */
     type = *p++;
-    p = sdpu_get_len_from_type(p, type, &attr_len);
+    p = sdpu_get_len_from_type(p, p_msg_end, type, &attr_len);
+    if (p == NULL || (p + attr_len) > p_msg_end) {
+      SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
+      return NULL;
+    }
+
     if (((type >> 3) != UINT_DESC_TYPE) || (attr_len != 2)) {
       SDP_TRACE_WARNING("SDP - Bad type: 0x%02x or len: %d in attr_rsp", type,
                         attr_len);
@@ -756,7 +811,7 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     BE_STREAM_TO_UINT16(attr_id, p);
 
     /* Now, add the attribute value */
-    p = add_attr(p, p_ccb->p_db, p_rec, attr_id, NULL, 0);
+    p = add_attr(p, p_seq_end, p_ccb->p_db, p_rec, attr_id, NULL, 0);
 
     if (!p) {
       SDP_TRACE_WARNING("SDP - DB full add_attr");
@@ -816,7 +871,7 @@ tSDP_DISC_REC* add_record(tSDP_DISCOVERY_DB* p_db, const RawAddress& p_bda) {
  * Returns          pointer to next byte in data stream
  *
  ******************************************************************************/
-static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
+static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
                          tSDP_DISC_REC* p_rec, uint16_t attr_id,
                          tSDP_DISC_ATTR* p_parent_attr, uint8_t nest_level) {
   tSDP_DISC_ATTR* p_attr;
@@ -825,13 +880,17 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
   uint16_t attr_type;
   uint16_t id;
   uint8_t type;
-  uint8_t* p_end;
+  uint8_t* p_attr_end;
   uint8_t is_additional_list = nest_level & SDP_ADDITIONAL_LIST_MASK;
 
   nest_level &= ~(SDP_ADDITIONAL_LIST_MASK);
 
   type = *p++;
-  p = sdpu_get_len_from_type(p, type, &attr_len);
+  p = sdpu_get_len_from_type(p, p_end, type, &attr_len);
+  if (p == NULL || (p + attr_len) > p_end) {
+    SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
+    return NULL;
+  }
 
   attr_len &= SDP_DISC_ATTR_LEN_MASK;
   attr_type = (type >> 3) & 0x0f;
@@ -841,6 +900,13 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
     total_len = attr_len - 4 + (uint16_t)sizeof(tSDP_DISC_ATTR);
   else
     total_len = sizeof(tSDP_DISC_ATTR);
+
+  p_attr_end = p + attr_len;
+  if (p_attr_end > p_end) {
+    android_errorWriteLog(0x534e4554, "115900043");
+    SDP_TRACE_WARNING("%s: SDP - Attribute length beyond p_end", __func__);
+    return NULL;
+  }
 
   /* Ensure it is a multiple of 4 */
   total_len = (total_len + 3) & ~3;
@@ -865,18 +931,17 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
            * sub-attributes */
           p_db->p_free_mem += sizeof(tSDP_DISC_ATTR);
           p_db->mem_free -= sizeof(tSDP_DISC_ATTR);
-          p_end = p + attr_len;
           total_len = 0;
 
           /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d(list)", nest_level); */
           if (nest_level >= MAX_NEST_LEVELS) {
             SDP_TRACE_ERROR("SDP - attr nesting too deep");
-            return (p_end);
+            return p_attr_end;
           }
 
           /* Now, add the list entry */
-          p = add_attr(p, p_db, p_rec, ATTR_ID_PROTOCOL_DESC_LIST, p_attr,
-                       (uint8_t)(nest_level + 1));
+          p = add_attr(p, p_end, p_db, p_rec, ATTR_ID_PROTOCOL_DESC_LIST,
+                       p_attr, (uint8_t)(nest_level + 1));
 
           break;
         }
@@ -935,7 +1000,7 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
           break;
         default:
           SDP_TRACE_WARNING("SDP - bad len in UUID attr: %d", attr_len);
-          return (p + attr_len);
+          return p_attr_end;
       }
       break;
 
@@ -945,22 +1010,22 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
        * sub-attributes */
       p_db->p_free_mem += sizeof(tSDP_DISC_ATTR);
       p_db->mem_free -= sizeof(tSDP_DISC_ATTR);
-      p_end = p + attr_len;
       total_len = 0;
 
       /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d", nest_level); */
       if (nest_level >= MAX_NEST_LEVELS) {
         SDP_TRACE_ERROR("SDP - attr nesting too deep");
-        return (p_end);
+        return p_attr_end;
       }
       if (is_additional_list != 0 ||
           attr_id == ATTR_ID_ADDITION_PROTO_DESC_LISTS)
         nest_level |= SDP_ADDITIONAL_LIST_MASK;
       /* SDP_TRACE_DEBUG ("SDP - attr nest level:0x%x(finish)", nest_level); */
 
-      while (p < p_end) {
+      while (p < p_attr_end) {
         /* Now, add the list entry */
-        p = add_attr(p, p_db, p_rec, 0, p_attr, (uint8_t)(nest_level + 1));
+        p = add_attr(p, p_end, p_db, p_rec, 0, p_attr,
+                     (uint8_t)(nest_level + 1));
 
         if (!p) return (NULL);
       }
@@ -978,7 +1043,7 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
           break;
         default:
           SDP_TRACE_WARNING("SDP - bad len in boolean attr: %d", attr_len);
-          return (p + attr_len);
+          return p_attr_end;
       }
       break;
 
