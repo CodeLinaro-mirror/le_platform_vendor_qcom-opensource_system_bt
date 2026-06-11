@@ -199,6 +199,7 @@ void alarm_free(alarm_t* alarm) {
   if (!alarm) return;
 
   alarm_cancel(alarm);
+
   delete alarm->callback_mutex;
   osi_free((void*)alarm->stats.name);
   alarm->closure.~CancelableClosureInStruct();
@@ -252,13 +253,14 @@ void alarm_cancel(alarm_t* alarm) {
   CHECK(alarms != NULL);
   if (!alarm) return;
 
+  std::recursive_mutex* local_mutex_ref = alarm->callback_mutex;
   {
     std::lock_guard<std::mutex> lock(alarms_mutex);
     alarm_cancel_internal(alarm);
   }
 
   // If the callback for |alarm| is in progress, wait here until it completes.
-  std::lock_guard<std::recursive_mutex> lock(*alarm->callback_mutex);
+  std::lock_guard<std::recursive_mutex> lock(*local_mutex_ref);
 }
 
 // Internal implementation of canceling an alarm.
@@ -589,7 +591,10 @@ static void alarm_ready_generic(alarm_t* alarm,
     alarm->queue = NULL;
   }
 
-  std::lock_guard<std::recursive_mutex> cb_lock(*alarm->callback_mutex);
+  // Increment the reference count of the mutex so it doesn't get freed
+  // before the callback gets finished executing.
+  std::recursive_mutex* local_mutex_ref = alarm->callback_mutex;
+  std::lock_guard<std::recursive_mutex> cb_lock(*local_mutex_ref);
   lock.unlock();
 
   callback(data);
