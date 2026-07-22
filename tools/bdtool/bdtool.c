@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
   }
 
   if (discover) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     fprintf(stdout, "Starting to start discovery\n");
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
   }
 
   if (discoverable) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     bt_property_t* property =
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     int rc = bt_interface->create_bond(
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
   }
 
   if (up) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     fprintf(stdout, "Waiting for %d seconds\n", timeout_in_sec);
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
   }
 
   if (get_name) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
     int error;
     CALL_AND_WAIT(
@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
   }
 
   if (set_name) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     bt_property_t* property = property_new_name(bd_name);
@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
   const int app_uid = 0;
 
   if (sco_listen) {
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     bt_property_t* property =
@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
     const btsock_interface_t* sock =
