@@ -40,6 +40,11 @@
 #include "device/include/interop.h"
 #include "osi/include/osi.h"
 
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) \
+  ({ typeof(exp) _rc; do { _rc = (exp); } while (_rc == -1 && errno == EINTR); _rc; })
+#endif
+
 const char* dev_path = "/dev/uhid";
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
@@ -159,7 +164,7 @@ void uhid_set_non_blocking(int fd) {
 static int uhid_write(int fd, const struct uhid_event* ev) {
   ssize_t ret;
 
-  OSI_NO_INTR(ret = write(fd, ev, sizeof(*ev)));
+  ret = TEMP_FAILURE_RETRY(write(fd, ev, sizeof(*ev)));
 
   if (ret < 0) {
     int rtn = -errno;
@@ -183,7 +188,7 @@ static int uhid_read_event(btif_hh_device_t* p_dev) {
   memset(&ev, 0, sizeof(ev));
 
   ssize_t ret;
-  OSI_NO_INTR(ret = read(p_dev->fd, &ev, sizeof(ev)));
+  ret = TEMP_FAILURE_RETRY(read(p_dev->fd, &ev, sizeof(ev)));
 
   if (ret == 0) {
     APPL_TRACE_ERROR("%s: Read HUP on uhid-cdev %s", __func__, strerror(errno));
@@ -371,7 +376,7 @@ static void* btif_hh_poll_event_thread(void* arg) {
 
   while (p_dev->hh_keep_polling) {
     int ret;
-    OSI_NO_INTR(ret = poll(pfds, 1, 50));
+    ret = TEMP_FAILURE_RETRY(poll(pfds, 1, 50));
     if (ret < 0) {
       APPL_TRACE_ERROR("%s: Cannot poll for fds: %s\n", __func__,
                        strerror(errno));
@@ -469,7 +474,7 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
       //as, we are not using uhid driver node in LE builds.
       //p_dev->fd = 1;
       if (p_dev->fd < 0) {
-        p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+        p_dev->fd = TEMP_FAILURE_RETRY(open(dev_path, O_RDWR | O_CLOEXEC));
         if (p_dev->fd < 0) {
           APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
                            strerror(errno));
@@ -503,7 +508,7 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
         //as, we are not using uhid driver node in LE builds.
         //p_dev->fd = 1;
         // This is a new device,open the uhid driver now.
-        p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+        p_dev->fd = TEMP_FAILURE_RETRY(open(dev_path, O_RDWR | O_CLOEXEC));
         if (p_dev->fd < 0) {
           APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
                            strerror(errno));

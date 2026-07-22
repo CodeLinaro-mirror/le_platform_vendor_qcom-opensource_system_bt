@@ -106,6 +106,11 @@
 #include "osi/include/metrics.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) \
+  ({ typeof(exp) _rc; do { _rc = (exp); } while (_rc == -1 && errno == EINTR); _rc; })
+#endif
 #include "stack/btm/btm_int.h"
 #include "stack_config.h"
 #include "stack/sdp/sdpint.h"
@@ -2204,7 +2209,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       BTIF_TRACE_ERROR("Received H/W Error. ");
       /* Flush storage data */
       btif_config_flush();
-      usleep(100000); /* 100milliseconds */
+      TEMP_FAILURE_RETRY(usleep(100000)); /* 100milliseconds */
 #if (defined(SSR_CLEANUP) && SSR_CLEANUP == TRUE)
       HAL_CBACK(bt_vendor_callbacks, ssr_cleanup_cb);
 #else
