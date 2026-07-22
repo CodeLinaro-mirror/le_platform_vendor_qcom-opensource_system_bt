@@ -829,11 +829,17 @@ static tAVRC_STS bta_av_chk_notif_evt_id(tAVRC_MSG_VENDOR* p_vendor) {
   tAVRC_STS status = BTA_AV_STS_NO_RSP;
   uint8_t xx;
   uint16_t u16;
-  uint8_t* p = p_vendor->p_vendor_data + 2;
+  uint8_t* p = NULL;
+
+  if (!p_vendor || !p_vendor->p_vendor_data ||
+      (p_vendor->vendor_len != 9)) {
+    return AVRC_STS_INTERNAL_ERR;
+  }
+  p = p_vendor->p_vendor_data + 2;
 
   BE_STREAM_TO_UINT16(u16, p);
   /* double check the fixed length */
-  if ((u16 != 5) || (p_vendor->vendor_len != 9)) {
+  if (u16 != 5) {
     status = AVRC_STS_INTERNAL_ERR;
   } else {
     /* make sure the player_id is valid */
@@ -870,6 +876,13 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE* p_rc_rsp,
   RawAddress     addr;
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
+  if (!p_vendor || !p_vendor->p_vendor_data || (p_vendor->vendor_len == 0)) {
+    APPL_TRACE_ERROR("%s: invalid p_vendor data", __func__);
+    evt = 0;
+    p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
+    return evt;
+  }
+
   pdu = *(p_vendor->p_vendor_data);
   p_rc_rsp->pdu = pdu;
   *p_ctype = AVRC_RSP_REJ;
@@ -900,12 +913,17 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE* p_rc_rsp,
     switch (pdu) {
       case AVRC_PDU_GET_CAPABILITIES:
         /* process GetCapabilities command without reporting the event to app */
+        if (p_vendor->vendor_len != 5) {
+          evt = 0;
+          p_rc_rsp->get_caps.status = AVRC_STS_INTERNAL_ERR;
+          break;
+        }
         evt = 0;
         u8 = *(p_vendor->p_vendor_data + 4);
         p = p_vendor->p_vendor_data + 2;
         p_rc_rsp->get_caps.capability_id = u8;
         BE_STREAM_TO_UINT16(u16, p);
-        if ((u16 != 1) || (p_vendor->vendor_len != 5)) {
+        if (u16 != 1) {
           p_rc_rsp->get_caps.status = AVRC_STS_INTERNAL_ERR;
         } else {
           p_rc_rsp->get_caps.status = AVRC_STS_NO_ERROR;
