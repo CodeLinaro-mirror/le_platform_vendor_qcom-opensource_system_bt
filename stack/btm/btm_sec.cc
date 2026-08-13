@@ -232,8 +232,12 @@ static bool btm_serv_trusted(tBTM_SEC_DEV_REC* p_dev_rec,
  ******************************************************************************/
 static bool access_secure_service_from_temp_bond(const tBTM_SEC_DEV_REC* p_dev_rec,
                                                  bool locally_initiated,
-                                                 uint16_t security_req) {
-  return !locally_initiated && (security_req & BTM_SEC_IN_AUTHENTICATE) &&
+                                                 uint16_t security_req,
+                                                 uint16_t psm) {
+  bool is_hid = (psm == HID_PSM_CONTROL || psm == HID_PSM_INTERRUPT);
+
+  return !locally_initiated && is_hid &&
+         (security_req & BTM_SEC_IN_AUTHENTICATE) &&
          p_dev_rec->bond_type == BOND_TYPE_TEMPORARY;
 }
 
@@ -2246,10 +2250,17 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
     }
 
     if (rc == BTM_SUCCESS) {
-      if (p_callback)
-        (*p_callback)(&bd_addr, transport, (void*)p_ref_data, BTM_SUCCESS);
+      if (access_secure_service_from_temp_bond(p_dev_rec, is_originator,
+                                               security_required, psm)) {
+        BTM_TRACE_ERROR(
+            "Trying to access HID secure service from a temp bonding, rejecting");
+        rc = BTM_FAILED_ON_SECURITY;
+      }
 
-      return (BTM_SUCCESS);
+      if (p_callback)
+        (*p_callback)(&bd_addr, transport, (void*)p_ref_data, rc);
+
+      return (rc);
     }
   } else
 #endif
@@ -2358,9 +2369,16 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
       }
 
       if (rc == BTM_SUCCESS) {
+        if (access_secure_service_from_temp_bond(p_dev_rec, is_originator,
+                                                 security_required, psm)) {
+          BTM_TRACE_ERROR(
+              "Trying to access HID secure service from a temp bonding, rejecting");
+          rc = BTM_FAILED_ON_SECURITY;
+        }
+
         if (p_callback)
-          (*p_callback)(&bd_addr, transport, (void*)p_ref_data, BTM_SUCCESS);
-        return (BTM_SUCCESS);
+          (*p_callback)(&bd_addr, transport, (void*)p_ref_data, rc);
+        return (rc);
       }
     }
 
@@ -5609,6 +5627,16 @@ extern tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
       BTM_TRACE_EVENT("Security Manager: Start authorization");
       return (btm_sec_start_authorization(p_dev_rec));
     }
+  }
+
+  uint16_t psm = p_dev_rec->p_cur_service ? p_dev_rec->p_cur_service->psm : 0;
+  if (access_secure_service_from_temp_bond(p_dev_rec,
+                                           p_dev_rec->is_originator,
+                                           p_dev_rec->security_required,
+                                           psm)) {
+    BTM_TRACE_ERROR(
+        "Trying to access HID secure service from a temp bonding, rejecting");
+    return (BTM_FAILED_ON_SECURITY);
   }
 
   /* All required  security procedures already established */
