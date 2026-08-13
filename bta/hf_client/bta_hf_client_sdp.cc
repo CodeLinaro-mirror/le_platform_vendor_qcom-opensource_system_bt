@@ -315,6 +315,22 @@ void bta_hf_client_do_disc(tBTA_HF_CLIENT_CB* client_cb) {
     uuid_list[0] = Uuid::From16Bit(UUID_SERVCLASS_AG_HANDSFREE);
   }
 
+  /* If we already have a non-null discovery database at this point, we can get
+   * into a race condition leading to UAF once this connection is closed.
+   * This should only happen with malicious modifications to a client. */
+  if (client_cb->p_disc_db != NULL) {
+    APPL_TRACE_ERROR("%s: Tried to set up a HF client with a preexisting discovery database.", __func__);
+    client_cb->p_disc_db = NULL;
+    // Manually reset state machine to INIT state to prevent use-after-free.
+    // This bypasses the normal state machine transitions because we need to
+    // handle the error case where discovery is called with an existing database,
+    // which could be caused by malicious client modifications or race conditions.
+    // The discovery fail event may be ignored in certain states (e.g., OPEN),
+    // so we must directly set the state to ensure consistent cleanup.
+    client_cb->state = BTA_HF_CLIENT_INIT_ST;
+    return;
+  }
+
   /* allocate buffer for sdp database */
   client_cb->p_disc_db = (tSDP_DISCOVERY_DB*)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
 
