@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "bnep_api.h"
-#include <log.h>
+#include "osi/include/log.h"
 #include <string.h>
 #include "bnep_int.h"
 

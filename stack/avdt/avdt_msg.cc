@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 
-#include "osi/include/log.h"
 #include <string.h>
 #include "avdt_api.h"
 #include "avdt_int.h"
@@ -37,6 +36,7 @@
 #include "bt_utils.h"
 #include "btu.h"
 #include "osi/include/osi.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************
  * constants

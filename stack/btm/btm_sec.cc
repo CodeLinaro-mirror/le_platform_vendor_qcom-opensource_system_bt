@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "btif/include/btif_storage.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
 #include "osi/include/log.h"
@@ -44,7 +45,6 @@
 #include "l2c_int.h"
 
 #include "gatt_int.h"
-#include "btif/include/btif_storage.h"
 
 #define BTM_SEC_MAX_COLLISION_DELAY (5000)
 

@@ -316,8 +316,6 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
 
   tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
 
-
-
   SMP_TRACE_DEBUG("SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",
                   (p_cb->role == HCI_ROLE_SLAVE) ? "Slave" : "Master",
                   smp_get_br_state_name(p_cb->br_state), p_cb->br_state,
