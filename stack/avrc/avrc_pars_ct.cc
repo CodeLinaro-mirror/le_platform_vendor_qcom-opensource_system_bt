@@ -147,7 +147,7 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
 
 tAVRC_STS avrc_parse_notification_rsp(uint8_t* p_stream, uint16_t len,
                                       tAVRC_REG_NOTIF_RSP* p_rsp) {
-  uint16_t min_len = 1;
+  uint32_t min_len = 1;
 
   if (len < min_len) goto length_error;
   BE_STREAM_TO_UINT8(p_rsp->event_id, p_stream);
@@ -555,7 +555,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
   p++; /* skip the reserved/packe_type byte */
 
   uint16_t len;
-  uint16_t min_len = 0;
+  uint32_t min_len = 0;
   BE_STREAM_TO_UINT16(len, p);
   AVRC_TRACE_DEBUG("%s ctype:0x%x pdu:0x%x, len:%d  vendor_len=0x%x", __func__,
                    p_msg->hdr.ctype, p_result->pdu, len, p_msg->vendor_len);
@@ -595,7 +595,15 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
                        p_result->get_caps.capability_id,
                        p_result->get_caps.count);
       if (p_result->get_caps.capability_id == AVRC_CAP_COMPANY_ID) {
-        min_len += MIN(p_result->get_caps.count, AVRC_CAP_MAX_NUM_COMP_ID) * 3;
+        if (p_result->get_caps.count > AVRC_CAP_MAX_NUM_COMP_ID) {
+          android_errorWriteLog(0x534e4554, "205837191");
+          return AVRC_STS_INTERNAL_ERR;
+        }
+        // count is already validated to be <= AVRC_CAP_MAX_NUM_COMP_ID (4)
+        // Each company ID is 3 bytes, so: min_len += count * 3
+        min_len += p_result->get_caps.count * 3;
+        // Type asymmetry note: len is uint16_t, min_len is uint32_t
+        // Comparison is safe due to implicit promotion of len to uint32_t
         if (len < min_len) goto length_error;
         for (int xx = 0; ((xx < p_result->get_caps.count) &&
                           (xx < AVRC_CAP_MAX_NUM_COMP_ID));
@@ -604,7 +612,15 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
         }
       } else if (p_result->get_caps.capability_id ==
                  AVRC_CAP_EVENTS_SUPPORTED) {
-        min_len += MIN(p_result->get_caps.count, AVRC_CAP_MAX_NUM_EVT_ID);
+        if (p_result->get_caps.count > AVRC_CAP_MAX_NUM_EVT_ID) {
+          android_errorWriteLog(0x534e4554, "205837191");
+          return AVRC_STS_INTERNAL_ERR;
+        }
+        // count is already validated to be <= AVRC_CAP_MAX_NUM_EVT_ID (16)
+        // Each event ID is 1 byte, so: min_len += count * 1
+        min_len += p_result->get_caps.count;
+        // Type asymmetry note: len is uint16_t, min_len is uint32_t
+        // Comparison is safe due to implicit promotion of len to uint32_t
         if (len < min_len) goto length_error;
         for (int xx = 0; ((xx < p_result->get_caps.count) &&
                           (xx < AVRC_CAP_MAX_NUM_EVT_ID));
