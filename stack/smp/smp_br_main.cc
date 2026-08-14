@@ -308,13 +308,15 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
     return;
   }
 
-  tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
-
   if (p_cb->role > HCI_ROLE_SLAVE) {
     SMP_TRACE_ERROR("%s: invalid role %d", __func__, p_cb->role);
     android_errorWriteLog(0x534e4554, "80145946");
     return;
   }
+
+  tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
+
+
 
   SMP_TRACE_DEBUG("SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",
                   (p_cb->role == HCI_ROLE_SLAVE) ? "Slave" : "Master",
