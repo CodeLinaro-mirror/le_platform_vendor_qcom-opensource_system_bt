@@ -15,6 +15,7 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#include <algorithm>
 #include <string.h>
 
 #include "avrc_api.h"
