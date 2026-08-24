@@ -26,7 +26,7 @@
  *  control block state machine.
  *
  ******************************************************************************/
-#include <log.h>
+#include "osi/include/log.h"
 #include <string.h>
 #include "a2dp_codec_api.h"
 #include "avdt_api.h"
@@ -293,7 +293,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB* p_scb, tAVDT_SCB_EVT* p_data) {
     p += ex_len * 4;
   }
 
-  if ((p - p_start) > len) {
+  if ((p - p_start) >= len) {
     //android_errorWriteLog(0x534e4554, "142546355");
     osi_free_and_reset((void**)&p_data->p_pkt);
     return;
@@ -303,11 +303,11 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB* p_scb, tAVDT_SCB_EVT* p_data) {
   /* adjust length for any padding at end of packet */
   if (o_p) {
     /* padding length in last byte of packet */
-    pad_len = *(p_start + len);
+    pad_len = *(p_start + len - 1);
   }
 
   /* do sanity check */
-  if (pad_len > (len - offset)) {
+  if (pad_len >= (len - offset)) {
     AVDT_TRACE_WARNING("Got bad media packet");
     osi_free_and_reset((void**)&p_data->p_pkt);
   }
@@ -352,7 +352,7 @@ uint8_t* avdt_scb_hdl_report(tAVDT_SCB* p_scb, uint8_t* p, uint16_t len) {
   uint8_t* p_start = p;
   uint32_t ssrc;
   uint8_t o_v, o_p, o_cc;
-  uint16_t min_len = 0;
+  uint32_t min_len = 0;
   AVDT_REPORT_TYPE pt;
   tAVDT_REPORT_DATA report;
 

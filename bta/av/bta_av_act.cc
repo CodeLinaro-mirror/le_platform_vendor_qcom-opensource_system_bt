@@ -1137,16 +1137,20 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
                      &p_data->rc_msg.msg.vendor);
     }
   } else if (p_data->rc_msg.opcode == AVRC_OP_BROWSE) {
-    /* set up for callback */
-    av.meta_msg.rc_handle = p_data->rc_msg.handle;
-    av.meta_msg.company_id = p_vendor->company_id;
-    av.meta_msg.code = p_data->rc_msg.msg.hdr.ctype;
-    av.meta_msg.label = p_data->rc_msg.label;
-    av.meta_msg.p_msg = &p_data->rc_msg.msg;
-    av.meta_msg.p_data = p_data->rc_msg.msg.browse.p_browse_data;
-    av.meta_msg.len = p_data->rc_msg.msg.browse.browse_len;
-    APPL_TRACE_DEBUG("%s: meta msg length: %d", __func__, av.meta_msg.len);
-    evt = BTA_AV_META_MSG_EVT;
+    if (p_data->rc_msg.msg.browse.p_browse_data == NULL) {
+      APPL_TRACE_DEBUG("%s : AVRC_OP_BROWSE with data NULL skip buffer clear", __func__);
+    } else {
+      /* set up for callback */
+      av.meta_msg.rc_handle = p_data->rc_msg.handle;
+      av.meta_msg.company_id = p_vendor->company_id;
+      av.meta_msg.code = p_data->rc_msg.msg.hdr.ctype;
+      av.meta_msg.label = p_data->rc_msg.label;
+      av.meta_msg.p_msg = &p_data->rc_msg.msg;
+      av.meta_msg.p_data = p_data->rc_msg.msg.browse.p_browse_data;
+      av.meta_msg.len = p_data->rc_msg.msg.browse.browse_len;
+      APPL_TRACE_DEBUG("%s: meta msg length: %d", __func__, av.meta_msg.len);
+      evt = BTA_AV_META_MSG_EVT;
+    }
   }
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
