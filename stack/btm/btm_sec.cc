@@ -5065,6 +5065,13 @@ void btm_sec_link_key_notification(const RawAddress& p_bda, uint8_t* p_link_key,
     }
   }
 
+  if (p_dev_rec->bond_type == BOND_TYPE_PERSISTENT &&
+      (p_dev_rec->device_type == BT_DEVICE_TYPE_BREDR ||
+       p_dev_rec->device_type == BT_DEVICE_TYPE_DUMO)) {
+    btm_sec_store_device_sc_support(p_dev_rec->hci_handle,
+                                    p_dev_rec->remote_supports_secure_connections);
+  }
+
   /* If name is not known at this point delay calling callback until the name is
    */
   /* resolved. Unless it is a HID Device and we really need to send all link
@@ -6220,6 +6227,20 @@ static bool btm_sec_queue_encrypt_request(const RawAddress& bd_addr,
  ******************************************************************************/
 void btm_sec_set_peer_sec_caps(tACL_CONN* p_acl_cb,
                                tBTM_SEC_DEV_REC* p_dev_rec) {
+  // Drop the connection here if the remote attempts to downgrade from Secure
+  // Connections mode.
+  uint16_t hci_handle = p_acl_cb->hci_handle;
+  bool sc_supported =
+      (HCI_SC_HOST_SUPPORTED(p_acl_cb->peer_lmp_feature_pages[1]) != 0);
+  if (btm_sec_is_device_sc_downgrade(hci_handle, sc_supported)) {
+    btm_cb.acl_disc_reason = HCI_ERR_HOST_REJECT_SECURITY;
+    btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_AUTH_FAILURE, hci_handle);
+    LOG_WARN(LOG_TAG,
+             "%s: Remote attempted to downgrade from Secure Connections mode",
+             __func__);
+    return;
+  }
+
   if ((btm_cb.security_mode == BTM_SEC_MODE_SP ||
        btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
        btm_cb.security_mode == BTM_SEC_MODE_SC) &&
