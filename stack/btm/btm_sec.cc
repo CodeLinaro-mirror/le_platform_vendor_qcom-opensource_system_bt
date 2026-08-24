@@ -51,6 +51,8 @@
 bool(APPL_AUTH_WRITE_EXCEPTION)(const RawAddress& bd_addr);
 #endif
 
+extern void bta_dm_process_remove_device(const RawAddress& bd_addr);
+
 /*******************************************************************************
  *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
  ******************************************************************************/
@@ -3369,6 +3371,12 @@ void btm_io_capabilities_req(const RawAddress& p) {
   BTM_TRACE_EVENT("%s: State: %s", __func__,
                   btm_pair_state_descr(btm_cb.pairing_state));
 
+  if (btm_sec_is_a_bonded_dev(evt_data.bd_addr)) {
+    BTM_TRACE_WARNING(
+        "%s: Incoming bond request, but device is already bonded (removing)",
+        __func__);
+    bta_dm_process_remove_device(evt_data.bd_addr);
+  }
   p_dev_rec = btm_find_or_alloc_dev(evt_data.bd_addr);
 
   BTM_TRACE_DEBUG("%s:Security mode: %d, Num Read Remote Feat pages: %d",
