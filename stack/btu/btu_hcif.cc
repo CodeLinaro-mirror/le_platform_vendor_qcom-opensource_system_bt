@@ -18,7 +18,6 @@
  *  Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  *  SPDX-License-Identifier: BSD-3-Clause-Clear
  ******************************************************************************/
-
 /******************************************************************************
  *
  *  This file contains functions that interface with the HCI transport. On
@@ -1996,6 +1995,12 @@ static void btu_ble_data_length_change_evt(uint8_t* p, uint16_t evt_len) {
 
   if (!controller_get_interface()->supports_ble_packet_extension()) {
     HCI_TRACE_WARNING("%s, request not supported", __func__);
+    return;
+  }
+
+  // 2 bytes each for handle, tx_data_len, TxTimer, rx_data_len
+  if (evt_len < 8) {
+    LOG(ERROR) << __func__ << ": Event packet too short";
     return;
   }
 
