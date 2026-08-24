@@ -528,6 +528,7 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
   if (p_ccb->cur_handle < p_ccb->num_handles) {
     BT_HDR* p_msg = (BT_HDR*)osi_malloc(SDP_DATA_BUF_SIZE);
     uint8_t* p;
+    uint16_t bytes_left = SDP_DATA_BUF_SIZE;
 
     p_msg->offset = L2CAP_MIN_OFFSET;
     p = p_start = (uint8_t*)(p_msg + 1) + L2CAP_MIN_OFFSET;
@@ -541,6 +542,19 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     p_param_len = p;
     p += 2;
 
+    /* Account for header size, handles, max attr count and continuation state */
+    const uint16_t base_bytes =
+            (sizeof(BT_HDR) + L2CAP_MIN_OFFSET + 3u + /* service attr request header */
+             2u + 4u + 2u +                           /* param len, handles, max attr count */
+             1u + ((p_reply) ? (*p_reply) : 0));      /* continuation state */
+
+    if (base_bytes > bytes_left) {
+      sdp_disconnect(p_ccb, SDP_INVALID_CONT_STATE);
+      osi_free(p_msg);
+      return;
+    }
+    bytes_left -= base_bytes;
+
     UINT32_TO_BE_STREAM(p, p_ccb->handles[p_ccb->cur_handle]);
 
     /* Max attribute byte count */
@@ -549,9 +563,9 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     /* If no attribute filters, build a wildcard attribute sequence */
     if (p_ccb->p_db->num_attr_filters)
       p = sdpu_build_attrib_seq(p, p_ccb->p_db->attr_filters,
-                                p_ccb->p_db->num_attr_filters);
+                                p_ccb->p_db->num_attr_filters, bytes_left);
     else
-      p = sdpu_build_attrib_seq(p, NULL, 0);
+      p = sdpu_build_attrib_seq(p, NULL, 0, bytes_left);
 
     /* Was this a continuation request ? */
     if (cont_request_needed) {
@@ -704,9 +718,9 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     /* If no attribute filters, build a wildcard attribute sequence */
     if (p_ccb->p_db->num_attr_filters)
       p = sdpu_build_attrib_seq(p, p_ccb->p_db->attr_filters,
-                                p_ccb->p_db->num_attr_filters);
+                                p_ccb->p_db->num_attr_filters, bytes_left);
     else
-      p = sdpu_build_attrib_seq(p, NULL, 0);
+      p = sdpu_build_attrib_seq(p, NULL, 0, bytes_left);
 
     /* No continuation for first request */
     if (p_reply) {
