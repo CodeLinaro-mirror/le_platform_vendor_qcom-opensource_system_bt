@@ -818,9 +818,9 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     /* First get the attribute ID */
     type = *p++;
     p = sdpu_get_len_from_type(p, p_msg_end, type, &attr_len);
-    if (p == NULL || (p + attr_len) > p_seq_end) {
-      SDP_TRACE_WARNING("%s: Bad len in attr_rsp %d", __func__, attr_len);
-      return (NULL);
+    if (p == NULL || (p + attr_len) > p_msg_end) {
+      SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
+      return NULL;
     }
     if (((type >> 3) != UINT_DESC_TYPE) || (attr_len != 2)) {
       SDP_TRACE_WARNING("SDP - Bad type: 0x%02x or len: %d in attr_rsp", type,
