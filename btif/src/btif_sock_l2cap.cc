@@ -1022,7 +1022,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
     // app sending data
     if (sock->connected) {
       int size = 0;
-      bool ioctl_success = ioctl(sock->our_fd, FIONREAD, &size) == 0;
+      bool ioctl_success = TEMP_FAILURE_RETRY(ioctl(sock->our_fd, FIONREAD, &size)) == 0;
       if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl_success && size)) {
         /* FIONREAD return number of bytes that are immediately available for
            reading, might be bigger than awaiting packet.
@@ -1073,7 +1073,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
   }
   if (drop_it || (flags & SOCK_THREAD_FD_EXCEPTION)) {
     int size = 0;
-    if (drop_it || ioctl(sock->our_fd, FIONREAD, &size) != 0 || size == 0)
+    if (drop_it || TEMP_FAILURE_RETRY(ioctl(sock->our_fd, FIONREAD, &size)) != 0 || size == 0)
       btsock_l2cap_free_l(sock);
   }
 }

@@ -844,7 +844,7 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
       // Make sure there's data pending in case the peer closed the socket.
       int size = 0;
       if (!(flags & SOCK_THREAD_FD_EXCEPTION) ||
-          (ioctl(slot->fd, FIONREAD, &size) == 0 && size)) {
+          (TEMP_FAILURE_RETRY(ioctl(slot->fd, FIONREAD, &size)) == 0 && size)) {
         BTA_JvRfcommWrite(slot->rfc_handle, slot->id);
       }
     } else {
@@ -870,7 +870,7 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
   if (need_close || (flags & SOCK_THREAD_FD_EXCEPTION)) {
     // Clean up if there's no data pending.
     int size = 0;
-    if (need_close || ioctl(slot->fd, FIONREAD, &size) != 0 || !size)
+    if (need_close || TEMP_FAILURE_RETRY(ioctl(slot->fd, FIONREAD, &size)) != 0 || !size)
       cleanup_rfc_slot(slot);
   }
 }
@@ -920,7 +920,7 @@ int bta_co_rfc_data_outgoing_size(uint32_t id, int* size) {
   rfc_slot_t* slot = find_rfc_slot_by_id(id);
   if (!slot) return false;
 
-  if (ioctl(slot->fd, FIONREAD, size) != 0) {
+  if (TEMP_FAILURE_RETRY(ioctl(slot->fd, FIONREAD, size)) != 0) {
     LOG_ERROR(LOG_TAG, ""
               "%s unable to determine bytes remaining to be read on fd %d: %s",
               __func__, slot->fd, strerror(errno));

@@ -44,6 +44,11 @@
 #include "btm_api.h"
 #include "osi/include/osi.h"
 
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) \
+  ({ typeof(exp) _rc; do { _rc = (exp); } while (_rc == -1 && errno == EINTR); _rc; })
+#endif
+
 /*****************************************************************************
  *  Constants and Data Types
  ****************************************************************************/
@@ -347,8 +352,8 @@ void bta_hl_co_put_rx_data(uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
       BTIF_TRACE_DEBUG("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
                        app_idx, mcl_idx, mdl_idx, data_size);
       ssize_t r;
-      OSI_NO_INTR(
-          r = send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0));
+      r = TEMP_FAILURE_RETRY(
+          send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0));
       if (r == data_size) {
         BTIF_TRACE_DEBUG("socket send success data_size=%d", data_size);
         status = BTA_HL_STATUS_OK;

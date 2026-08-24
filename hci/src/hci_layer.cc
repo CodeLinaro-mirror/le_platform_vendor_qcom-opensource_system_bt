@@ -517,7 +517,7 @@ static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
 
   if(status == HCI_TRANSMIT_DAEMON_DIED) {
     LOG_ERROR(LOG_TAG, "%s: unable to send packet to hci hal daemon ", __func__);
-    usleep(100000);
+    TEMP_FAILURE_RETRY(usleep(100000));
     LOG_ERROR(LOG_TAG, "%s: Killing bluetooth process due to TX failed ", __func__);
     kill(getpid(), SIGKILL);
   }

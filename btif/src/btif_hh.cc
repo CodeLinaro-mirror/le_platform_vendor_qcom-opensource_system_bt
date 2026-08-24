@@ -49,6 +49,11 @@
 #include "osi/include/osi.h"
 #include "hardware/bt_hh_vendor.h"
 
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) \
+  ({ typeof(exp) _rc; do { _rc = (exp); } while (_rc == -1 && errno == EINTR); _rc; })
+#endif
+
 using base::Bind;
 using base::Owned;
 
@@ -228,7 +233,7 @@ static void toggle_os_keylockstates(int fd, int changedlockstates) {
   BTIF_TRACE_DEBUG("%s:  %x %x %x", __func__, hidreport[6], hidreport[7],
                    hidreport[8]);
   bta_hh_co_write(fd, hidreport, sizeof(hidreport));
-  usleep(200000);
+  TEMP_FAILURE_RETRY(usleep(200000));
   memset(hidreport, 0, 9);
   hidreport[0] = 1;
   BTIF_TRACE_DEBUG(
@@ -317,7 +322,7 @@ static void sync_lockstate_on_connect(btif_hh_device_t* p_dev) {
         "%s: Sending hid report to kernel "
         "indicating lock key state 0x%x",
         __func__, keylockstates);
-    usleep(200000);
+    TEMP_FAILURE_RETRY(usleep(200000));
     toggle_os_keylockstates(p_dev->fd, keylockstates);
   } else {
     BTIF_TRACE_DEBUG(

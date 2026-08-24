@@ -426,7 +426,7 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id) {
 
     /* read sufficiently large buffer to ensure flush empties socket faster than
        it is getting refilled */
-    read(pfd.fd, &buf, UIPC_FLUSH_BUFFER_SIZE);
+    TEMP_FAILURE_RETRY(read(pfd.fd, &buf, UIPC_FLUSH_BUFFER_SIZE));
   }
 }
 
@@ -500,7 +500,7 @@ static void* uipc_read_task(UNUSED_ATTR void* arg) {
     uipc_main.read_set = uipc_main.active_set;
 
     result =
-        select(uipc_main.max_fd + 1, &uipc_main.read_set, NULL, NULL, NULL);
+        TEMP_FAILURE_RETRY(select(uipc_main.max_fd + 1, &uipc_main.read_set, NULL, NULL, NULL));
 
     if (result == 0) {
       BTIF_TRACE_EVENT("select timeout");
