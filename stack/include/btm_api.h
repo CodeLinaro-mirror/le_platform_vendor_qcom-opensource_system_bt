@@ -1487,6 +1487,10 @@ extern bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
  *
  * Description      Free resources associated with the device.
  *
+ * WARNING: Calling this function with the address of a tBTM_SEC_DEV_REC
+ *          field is a use-after-free. Copy the address to a local variable
+ *          before calling.
+ *
  * Returns          true if rmoved OK, false if not found
  *
  ******************************************************************************/
