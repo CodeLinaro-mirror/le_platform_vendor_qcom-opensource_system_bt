@@ -1454,7 +1454,7 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
   // send ltk to uplayer.
   tSMP_CALLBACK* p_callback = p_cb->p_callback;
   tSMP_EVT_DATA cb_data;
-  memcpy(&cb_data.enc_key, &ple_key, sizeof(tBTM_LE_PENC_KEYS));
+  memcpy(&cb_data.enc_key, &ple_key.penc_key, sizeof(tBTM_LE_PENC_KEYS));
   if (p_callback) (*p_callback)(SMP_ENCRYPTION_INFORMATION_EVT, p_cb->pairing_bda, &cb_data);
 #endif
 }
