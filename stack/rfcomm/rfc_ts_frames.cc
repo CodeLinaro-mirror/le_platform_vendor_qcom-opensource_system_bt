@@ -30,6 +30,7 @@
 #include "port_int.h"
 #include "rfc_int.h"
 #include "rfcdefs.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
  *
@@ -516,7 +517,17 @@ uint8_t rfc_parse_data(tRFC_MCB* p_mcb, MX_FRAME* p_frame, BT_HDR* p_buf) {
     return (RFC_EVENT_BAD_FRAME);
   }
   RFCOMM_PARSE_TYPE_FIELD(p_frame->type, p_frame->pf, p_data);
-  RFCOMM_PARSE_LEN_FIELD(eal, len, p_data);
+
+  eal = *(p_data) & RFCOMM_EA;
+  len = *(p_data)++ >> RFCOMM_SHIFT_LENGTH1;
+  if (eal == 0) {
+    if (p_buf->len > RFCOMM_CTRL_FRAME_LEN) {
+      len += (*(p_data)++ << RFCOMM_SHIFT_LENGTH2);
+    } else {
+      RFCOMM_TRACE_ERROR("Bad Length when EAL = 0: %d", p_buf->len);
+      return RFC_EVENT_BAD_FRAME;
+    }
+  }
 
   p_buf->len -= (3 + !ead + !eal + 1); /* Additional 1 for FCS */
   p_buf->offset += (3 + !ead + !eal);
@@ -615,6 +626,14 @@ void rfc_process_mx_message(tRFC_MCB* p_mcb, BT_HDR* p_buf) {
   uint8_t ea, cr, mx_len;
   bool is_command;
 
+  if (length < 2) {
+    RFCOMM_TRACE_ERROR(
+        "%s: Illegal MX Frame len when reading EA, C/R. len:%d < 2", __func__,
+        length);
+    android_errorWriteLog(0x534e4554, "111937065");
+    osi_free(p_buf);
+    return;
+  }
   p_rx_frame->ea = *p_data & RFCOMM_EA;
   p_rx_frame->cr = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;
   p_rx_frame->type = *p_data++ & ~(RFCOMM_CR_MASK | RFCOMM_EA_MASK);
@@ -635,6 +654,13 @@ void rfc_process_mx_message(tRFC_MCB* p_mcb, BT_HDR* p_buf) {
   length--;
 
   if (!ea) {
+    if (length < 1) {
+      RFCOMM_TRACE_ERROR("%s: Illegal MX Frame when EA = 0. len:%d < 1",
+                         __func__, length);
+      android_errorWriteLog(0x534e4554, "111937065");
+      osi_free(p_buf);
+      return;
+    }
     mx_len += *p_data++ << RFCOMM_SHIFT_LENGTH2;
     length--;
   }
@@ -703,7 +729,13 @@ void rfc_process_mx_message(tRFC_MCB* p_mcb, BT_HDR* p_buf) {
       return;
 
     case RFCOMM_MX_MSC:
-
+      if (length != RFCOMM_MX_MSC_LEN_WITH_BREAK &&
+          length != RFCOMM_MX_MSC_LEN_NO_BREAK) {
+        RFCOMM_TRACE_ERROR("%s: Illegal MX MSC Frame len:%d", __func__, length);
+        android_errorWriteLog(0x534e4554, "111937065");
+        osi_free(p_buf);
+        return;
+      }
       ea = *p_data & RFCOMM_EA;
       cr = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;
       p_rx_frame->dlci = *p_data++ >> RFCOMM_SHIFT_DLCI;

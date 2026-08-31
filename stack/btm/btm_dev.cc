@@ -234,9 +234,10 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
       btm_cb.pairing_flags = 0;
     }
 #endif
+    RawAddress bda = p_dev_rec->bd_addr;
     btm_sec_free_dev(p_dev_rec);
     /* Tell controller to get rid of the link key, if it has one stored */
-    BTM_DeleteStoredLinkKey(&p_dev_rec->bd_addr, NULL);
+    BTM_DeleteStoredLinkKey(&bda, NULL);
   }
 
   return true;

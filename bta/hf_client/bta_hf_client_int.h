@@ -37,6 +37,14 @@
 #define BTA_HF_CLIENT_ACP 0 /* accepted connection */
 #define BTA_HF_CLIENT_INT 1 /* initiating connection */
 
+/* state machine states */
+enum {
+  BTA_HF_CLIENT_INIT_ST = 0,
+  BTA_HF_CLIENT_OPENING_ST,
+  BTA_HF_CLIENT_OPEN_ST,
+  BTA_HF_CLIENT_CLOSING_ST
+};
+
 /* Time (in milliseconds) to wait for retry in case of collision */
 #ifndef BTA_HF_CLIENT_COLLISION_TIMER_MS
 #define BTA_HF_CLIENT_COLLISION_TIMER_MS 2411

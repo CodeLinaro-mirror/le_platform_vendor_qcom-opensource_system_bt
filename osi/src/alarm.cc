@@ -71,7 +71,6 @@ typedef struct {
   size_t rescheduled_count;
   size_t total_updates;
   period_ms_t last_update_ms;
-  stat_t callback_execution;
   stat_t overdue_scheduling;
   stat_t premature_scheduling;
 } alarm_stats_t;
@@ -195,9 +194,8 @@ static alarm_t* alarm_new_internal(const char* name, bool is_periodic) {
 void alarm_free(alarm_t* alarm) {
   if (alarm == NULL) return;
 
-  if (alarm_is_scheduled(alarm)) {
-    alarm_cancel(alarm);
-  }
+  alarm_cancel(alarm);
+
   osi_free((void*)alarm->stats.name);
   alarm->callback_mutex.reset();
   alarm->closure.i.Cancel();
@@ -260,7 +258,7 @@ void alarm_cancel(alarm_t* alarm) {
   CHECK(alarms != NULL);
   if (!alarm) return;
 
-  std::shared_ptr<std::recursive_mutex> local_mutex_ref;
+  std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
   {
     std::lock_guard<std::mutex> lock(alarms_mutex);
     local_mutex_ref = alarm->callback_mutex;
@@ -602,10 +600,9 @@ static void alarm_ready_generic(alarm_t* alarm,
   }
 
   // Increment the reference count of the mutex so it doesn't get freed
- // before the callback gets finished executing.
+  // before the callback gets finished executing.
   std::shared_ptr<std::recursive_mutex> local_mutex_ref = alarm->callback_mutex;
   std::lock_guard<std::recursive_mutex> cb_lock(*local_mutex_ref);
-
   lock.unlock();
 
   if (callback) {
@@ -719,12 +716,9 @@ static bool timer_create_internal(const clockid_t clock_id, timer_t* timer) {
 
 #if defined(LOG_ALARM_STAT)
 static void update_scheduling_stats(alarm_stats_t* stats, period_ms_t now_ms,
-                                    period_ms_t deadline_ms,
-                                    period_ms_t execution_delta_ms) {
+                                    period_ms_t deadline_ms) {
   stats->total_updates++;
   stats->last_update_ms = now_ms;
-
-  update_stat(&stats->callback_execution, execution_delta_ms);
 
   if (deadline_ms < now_ms) {
     // Overdue scheduling
@@ -771,9 +765,9 @@ void alarm_debug_dump(int fd) {
             (alarm->is_periodic) ? "PERIODIC" : "SINGLE");
 
     dprintf(fd, "%-51s: %zu / %zu / %zu / %zu\n",
-            "    Action counts (sched/resched/exec/cancel)",
+            "    Action counts (sched/resched/update/cancel)",
             stats->scheduled_count, stats->rescheduled_count,
-            stats->callback_execution.count, stats->canceled_count);
+            stats->total_updates, stats->canceled_count);
 
     dprintf(fd, "%-51s: %zu / %zu\n",
             "    Deviation counts (overdue/premature)",
@@ -784,9 +778,6 @@ void alarm_debug_dump(int fd) {
             (unsigned long long)(just_now - alarm->creation_time),
             (unsigned long long)alarm->period,
             (long long)(alarm->deadline - just_now));
-
-    dump_stat(fd, &stats->callback_execution,
-              "    Callback execution time in ms (total/max/avg)");
 
     dump_stat(fd, &stats->overdue_scheduling,
               "    Overdue scheduling time in ms (total/max/avg)");

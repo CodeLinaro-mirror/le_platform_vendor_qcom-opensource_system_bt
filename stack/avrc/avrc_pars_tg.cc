@@ -21,7 +21,7 @@
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "bt_common.h"
-#include "log.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************
  *  Global data
@@ -44,6 +44,12 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR* p_msg,
                                            tAVRC_COMMAND* p_result) {
   tAVRC_STS status = AVRC_STS_NO_ERROR;
 
+  if (p_msg->vendor_len < 4) {  // 4 == pdu + reserved byte + len as uint16
+    AVRC_TRACE_WARNING("%s: message length %d too short: must be at least 4",
+                       __func__, p_msg->vendor_len);
+    android_errorWriteLog(0x534e4554, "205571133");
+    return AVRC_STS_INTERNAL_ERR;
+  }
   uint8_t* p = p_msg->p_vendor_data;
   p_result->pdu = *p++;
   AVRC_TRACE_DEBUG("%s pdu:0x%x", __func__, p_result->pdu);
@@ -72,6 +78,8 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR* p_msg,
       break;
     }
     case AVRC_PDU_REGISTER_NOTIFICATION: /* 0x31 */
+      if (len < 5) return AVRC_STS_INTERNAL_ERR;
+
       BE_STREAM_TO_UINT8(p_result->reg_notif.event_id, p);
       BE_STREAM_TO_UINT32(p_result->reg_notif.param, p);
       break;
@@ -438,7 +446,7 @@ static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE* p_msg,
   tAVRC_STS status = AVRC_STS_NO_ERROR;
   uint8_t* p = p_msg->p_browse_data;
   int count, p_browse_packet_len = 0;
-  uint16_t min_len = 3;
+  uint32_t min_len = 3;
 
   p_result->pdu = *p++;
   AVRC_TRACE_DEBUG("%s: pdu:0x%x, *p:%d , buf_len: %d",

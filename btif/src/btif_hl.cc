@@ -2128,6 +2128,10 @@ static bool btif_hl_proc_sdp_query_cfm(tBTA_HL* p_data) {
       }
     }
   }
+
+  // this was allocated in bta_hl_sdp_query_results
+  osi_free_and_reset((void**)&p_data->sdp_query_cfm.p_sdp);
+
   return status;
 }
 
@@ -4545,7 +4549,7 @@ static void* btif_hl_select_thread(UNUSED_ATTR void* arg) {
     BTIF_TRACE_DEBUG("set curr_set = org_set ");
     curr_set = org_set;
     max_curr_s = max_org_s;
-    int ret = select((max_curr_s + 1), &curr_set, NULL, NULL, NULL);
+    int ret = TEMP_FAILURE_RETRY(select((max_curr_s + 1), &curr_set, NULL, NULL, NULL));
     BTIF_TRACE_DEBUG("select unblocked ret=%d", ret);
     if (ret == -1) {
       if (errno == EINTR) continue;

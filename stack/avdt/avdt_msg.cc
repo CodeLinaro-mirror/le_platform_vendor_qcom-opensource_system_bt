@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 
-#include <log.h>
 #include <string.h>
 #include "avdt_api.h"
 #include "avdt_int.h"
@@ -37,6 +36,7 @@
 #include "bt_utils.h"
 #include "btu.h"
 #include "osi/include/osi.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************
  * constants
@@ -1018,7 +1018,7 @@ static uint8_t avdt_msg_prs_rej(tAVDT_MSG* p_msg, uint8_t* p, uint16_t len,
   }
 
   return error;
- }
+}
 
 /*******************************************************************************
  *
@@ -1258,6 +1258,12 @@ BT_HDR* avdt_msg_asmbl(tAVDT_CCB* p_ccb, BT_HDR* p_buf) {
      * not aware of possible packet size after reassembly, they
      * would have allocated smaller buffer.
      */
+    if (sizeof(BT_HDR) + p_buf->offset + p_buf->len > BT_DEFAULT_BUFFER_SIZE) {
+      android_errorWriteLog(0x534e4554, "232023771");
+      osi_free(p_buf);
+      p_ret = NULL;
+      return p_ret;
+    }
     p_ccb->p_rx_msg = (BT_HDR*)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
     memcpy(p_ccb->p_rx_msg, p_buf, sizeof(BT_HDR) + p_buf->offset + p_buf->len);
 
@@ -1291,14 +1297,14 @@ BT_HDR* avdt_msg_asmbl(tAVDT_CCB* p_ccb, BT_HDR* p_buf) {
        * NOTE: The buffer is allocated above at the beginning of the
        * reassembly, and is always of size BT_DEFAULT_BUFFER_SIZE.
        */
-      uint16_t buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
+      size_t buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
 
       /* adjust offset and len of fragment for header byte */
       p_buf->offset += AVDT_LEN_TYPE_CONT;
       p_buf->len -= AVDT_LEN_TYPE_CONT;
 
       /* verify length */
-      if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len) {
+      if (((size_t) p_ccb->p_rx_msg->offset + (size_t) p_buf->len) > buf_len) {
         /* won't fit; free everything */
         AVDT_TRACE_WARNING("%s: Fragmented message too big!", __func__);
         osi_free_and_reset((void**)&p_ccb->p_rx_msg);
@@ -1587,6 +1593,14 @@ void avdt_msg_ind(tAVDT_CCB* p_ccb, BT_HDR* p_buf) {
       if (msg_type == AVDT_MSG_TYPE_CMD) {
         avdt_msg_send_grej(p_ccb, sig, &msg);
       }
+    }
+
+    /* validate reject/response against cached sig */
+    if (((msg_type == AVDT_MSG_TYPE_RSP) || (msg_type == AVDT_MSG_TYPE_REJ)) &&
+        (p_ccb->p_curr_cmd == nullptr || p_ccb->p_curr_cmd->event != sig)) {
+      AVDT_TRACE_WARNING(
+          "Dropping msg with mismatched sig; sig=%d", sig);
+      ok = false;
     }
   }
 

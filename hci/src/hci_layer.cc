@@ -517,7 +517,7 @@ static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
 
   if(status == HCI_TRANSMIT_DAEMON_DIED) {
     LOG_ERROR(LOG_TAG, "%s: unable to send packet to hci hal daemon ", __func__);
-    usleep(100000);
+    TEMP_FAILURE_RETRY(usleep(100000));
     LOG_ERROR(LOG_TAG, "%s: Killing bluetooth process due to TX failed ", __func__);
     kill(getpid(), SIGKILL);
   }
@@ -673,11 +673,12 @@ static bool filter_incoming_event(BT_HDR* packet) {
   waiting_command_t* wait_entry = NULL;
   uint8_t* stream = packet->data;
   uint8_t event_code;
+  uint8_t length;
   int credits = 0;
   command_opcode_t opcode;
 
   STREAM_TO_UINT8(event_code, stream);
-  STREAM_SKIP_UINT8(stream);  // Skip the parameter total length field
+  STREAM_TO_UINT8(length, stream);
 
   if (event_code == HCI_COMMAND_COMPLETE_EVT) {
     STREAM_TO_UINT8(credits, stream);
@@ -705,6 +706,9 @@ static bool filter_incoming_event(BT_HDR* packet) {
 
     goto intercepted;
   } else if (event_code == HCI_COMMAND_STATUS_EVT) {
+    if (length < (sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t))) {
+      goto intercepted;
+    }
     uint8_t status;
     STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT8(credits, stream);

@@ -19,6 +19,7 @@
 #include "bt_target.h"
 
 #include <string.h>
+#include "osi/include/log.h"
 #include "smp_int.h"
 
 const char* const smp_br_state_name[SMP_BR_STATE_MAX + 1] = {
@@ -300,13 +301,20 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
   tSMP_BR_STATE curr_state = p_cb->br_state;
   tSMP_BR_SM_TBL state_table;
   uint8_t action, entry;
-  tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
 
   SMP_TRACE_EVENT("main %s", __func__);
   if (curr_state >= SMP_BR_STATE_MAX) {
     SMP_TRACE_DEBUG("Invalid br_state: %d", curr_state);
     return;
   }
+
+  if (p_cb->role > HCI_ROLE_SLAVE) {
+    SMP_TRACE_ERROR("%s: invalid role %d", __func__, p_cb->role);
+    android_errorWriteLog(0x534e4554, "80145946");
+    return;
+  }
+
+  tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
 
   SMP_TRACE_DEBUG("SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",
                   (p_cb->role == HCI_ROLE_SLAVE) ? "Slave" : "Master",

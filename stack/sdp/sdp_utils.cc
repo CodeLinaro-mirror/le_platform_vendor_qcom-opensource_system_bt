@@ -186,24 +186,35 @@ void sdpu_update_ccb_cont_info (uint32_t handle) {
  *
  ******************************************************************************/
 uint8_t* sdpu_build_attrib_seq(uint8_t* p_out, uint16_t* p_attr,
-                               uint16_t num_attrs) {
-  uint16_t xx;
+                               uint16_t num_attrs, uint16_t& bytes_left) {
+  int content_len, header_len;
+
+  /* If no attributes, assume a 4-byte wildcard */
+  if (!p_attr) {
+    content_len = 5;
+  } else {
+    content_len = num_attrs * 3;
+  }
 
   /* First thing is the data element header. See if the length fits 1 byte */
-  /* If no attributes, assume a 4-byte wildcard */
-  if (!p_attr)
-    xx = 5;
-  else
-    xx = num_attrs * 3;
-
-  if (xx > 255) {
-    UINT8_TO_BE_STREAM(p_out,
-                       (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
-    UINT16_TO_BE_STREAM(p_out, xx);
+  if (content_len > 255) {
+    header_len = 3;
   } else {
-    UINT8_TO_BE_STREAM(p_out,
-                       (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
-    UINT8_TO_BE_STREAM(p_out, xx);
+    header_len = 2;
+  }
+
+  if (bytes_left < content_len + header_len) {
+    DCHECK(0) << "SDP: No space for attrib seq";
+    return p_out;
+  }
+  bytes_left -= (header_len + content_len);
+
+  if (content_len > 255) {
+    UINT8_TO_BE_STREAM(p_out, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
+    UINT16_TO_BE_STREAM(p_out, content_len);
+  } else {
+    UINT8_TO_BE_STREAM(p_out, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+    UINT8_TO_BE_STREAM(p_out, content_len);
   }
 
   /* If there are no attributes specified, assume caller wants wildcard */
@@ -213,7 +224,7 @@ uint8_t* sdpu_build_attrib_seq(uint8_t* p_out, uint16_t* p_attr,
     UINT16_TO_BE_STREAM(p_out, 0xFFFF);
   } else {
     /* Loop through and put in all the attributes(s) */
-    for (xx = 0; xx < num_attrs; xx++, p_attr++) {
+    for (uint16_t xx = 0; xx < num_attrs; xx++, p_attr++) {
       UINT8_TO_BE_STREAM(p_out, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
       UINT16_TO_BE_STREAM(p_out, *p_attr);
     }
@@ -736,8 +747,29 @@ bool sdpu_compare_uuid_arrays(uint8_t* p_uuid1, uint32_t len1, uint8_t* p_uuid2,
  ******************************************************************************/
 bool sdpu_compare_uuid_with_attr(const Uuid& uuid, tSDP_DISC_ATTR* p_attr) {
   int len = uuid.GetShortestRepresentationSize();
-  if (len == 2) return uuid.As16Bit() == p_attr->attr_value.v.u16;
-  if (len == 4) return uuid.As32Bit() == p_attr->attr_value.v.u32;
+ 
+  if (len == 2) {
+    if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == Uuid::kNumBytes16) {
+      return uuid.As16Bit() == p_attr->attr_value.v.u16;
+    } else {
+      LOG(ERROR) << "invalid length for discovery attribute";
+      return (false);
+    }
+  }
+  if (len == 4) {
+    if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == Uuid::kNumBytes32) {
+      return uuid.As32Bit() == p_attr->attr_value.v.u32;
+    } else {
+      LOG(ERROR) << "invalid length for discovery attribute";
+      return (false);
+    }
+  }
+
+  if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) != Uuid::kNumBytes128) {
+    LOG(ERROR) << "invalid length for discovery attribute";
+    return (false);
+  }
+  
   if (memcmp(uuid.To128BitBE().data(), (void*)p_attr->attr_value.v.array,
              Uuid::kNumBytes128) == 0)
     return (true);

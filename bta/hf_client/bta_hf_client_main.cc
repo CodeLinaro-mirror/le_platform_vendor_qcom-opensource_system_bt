@@ -35,13 +35,7 @@ static const char* bta_hf_client_evt_str(uint16_t event);
 static const char* bta_hf_client_state_str(uint8_t state);
 void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle);
 
-/* state machine states */
-enum {
-  BTA_HF_CLIENT_INIT_ST,
-  BTA_HF_CLIENT_OPENING_ST,
-  BTA_HF_CLIENT_OPEN_ST,
-  BTA_HF_CLIENT_CLOSING_ST
-};
+/* state machine states are now defined in bta_hf_client_int.h */
 
 /* state machine action enumeration list */
 enum {
