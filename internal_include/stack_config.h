@@ -51,6 +51,7 @@ typedef struct {
   bool (*get_pts_service_chg_indication_disable)(void);
   bool (*get_pts_configure_svc_chg_indication)(void);
   bool (*get_pts_save_db_hash)(void);
+  bool (*get_pts_use_public_addr)(void);
   config_t* (*get_all)(void);
 } stack_config_t;
 
