@@ -2018,8 +2018,13 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
         BTA_DmSetDeviceName(btif_get_default_local_name());
       }
 
-      /* Enable local privacy */
-      BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
+      /* Enable local privacy. PTS can force a public address by setting
+       * PTS_UsePublicAddress in bt_stack.conf (default off -> no prod impact). */
+      bool ble_local_privacy = BLE_LOCAL_PRIVACY_ENABLED;
+      if (stack_config_get_interface()->get_pts_use_public_addr()) {
+        ble_local_privacy = false;
+      }
+      BTA_DmBleConfigLocalPrivacy(ble_local_privacy);
       /* for each of the enabled services in the mask, trigger the profile
        * enable */
       service_mask = btif_get_enabled_services_mask();

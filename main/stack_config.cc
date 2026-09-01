@@ -50,6 +50,7 @@ const char* PTS_TRACE_INFO_ENABLE = "PTS_TraceInfoEnable";
 const char* PTS_DISABLE_SERVICE_CHG_INDICATION = "PTS_DisableServiceChangeIndication";
 const char* PTS_CONFIGURE_SERVICE_CHG_INDICATION = "PTS_ConfigureServiceChangeIndication";
 const char* PTS_SAVE_DB_HASH = "PTS_SaveDbHash";
+const char* PTS_USE_PUBLIC_ADDR = "PTS_UsePublicAddress";
 
 static config_t* config;
 bool trace_pts_info = false; // use for certification test
@@ -198,6 +199,11 @@ static bool get_pts_save_db_hash(void) {
                          PTS_SAVE_DB_HASH, false);
 }
 
+static bool get_pts_use_public_addr(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION,
+                         PTS_USE_PUBLIC_ADDR, false);
+}
+
 static config_t* get_all(void) { return config; }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -221,6 +227,7 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_service_chg_indication_disable,
                                   get_pts_configure_svc_chg_indication,
                                   get_pts_save_db_hash,
+                                  get_pts_use_public_addr,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }
