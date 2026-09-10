@@ -2690,9 +2690,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
 
   /* Check if connection is allowed for only paired devices */
   if (btm_cb.connect_only_paired) {
-      if (!p_dev_rec ||
-              (!(p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED) && (btm_cb.devcb.loc_io_caps != BTM_IO_CAP_NONE)) ||
-              (btm_cb.devcb.loc_io_caps == BTM_IO_CAP_NONE && !(p_dev_rec->sec_flags & BTM_SEC_FLAG_LKEY_KNOWN))) {
+      if (!p_dev_rec || !(p_dev_rec->sec_flags & BTM_SEC_FLAG_LKEY_KNOWN)) {
           BTM_TRACE_EVENT(
                   "Security Manager: connect request from non-paired device");
           btsnd_hcic_reject_conn(bda, HCI_ERR_HOST_REJECT_DEVICE);
