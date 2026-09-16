@@ -244,7 +244,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
   }
   BE_STREAM_TO_UINT8(pdu, p);
   uint16_t pkt_len;
-  int min_len = 0;
+  uint32_t min_len = 0;
   /* read the entire packet len */
   BE_STREAM_TO_UINT16(pkt_len, p);
 
@@ -286,7 +286,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
           get_item_rsp->uid_counter, get_item_rsp->item_count);
 
       /* get each of the items */
-      get_item_rsp->p_item_list = (tAVRC_ITEM*)osi_malloc(
+      get_item_rsp->p_item_list = (tAVRC_ITEM*)osi_calloc(
           get_item_rsp->item_count * (sizeof(tAVRC_ITEM)));
       tAVRC_ITEM* curr_item = get_item_rsp->p_item_list;
       for (int i = 0; i < get_item_rsp->item_count; i++) {
@@ -376,7 +376,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
                              __func__, media->type, media->name.charset_id,
                              media->name.str_len, media->attr_count);
 
-            media->p_attr_list = (tAVRC_ATTR_ENTRY*)osi_malloc(
+            media->p_attr_list = (tAVRC_ATTR_ENTRY*)osi_calloc(
                 media->attr_count * sizeof(tAVRC_ATTR_ENTRY));
             for (int jk = 0; jk < media->attr_count; jk++) {
               tAVRC_ATTR_ENTRY* attr_entry = &(media->p_attr_list[jk]);
@@ -464,7 +464,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
 
         if(get_attrs_rsp->num_attrs > 0)
         {
-            get_attrs_rsp->p_attrs = (tAVRC_ATTR_ENTRY*)osi_malloc(
+            get_attrs_rsp->p_attrs = (tAVRC_ATTR_ENTRY*)osi_calloc(
                 get_attrs_rsp->num_attrs * sizeof(tAVRC_ATTR_ENTRY));
 
             /* Read each of the attr */
@@ -529,8 +529,8 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
           __func__, set_br_pl_rsp->status, set_br_pl_rsp->num_items,
           set_br_pl_rsp->charset_id, set_br_pl_rsp->folder_depth);
 
-      set_br_pl_rsp->p_folders = (tAVRC_NAME*)osi_malloc(
-          set_br_pl_rsp->num_items * sizeof(tAVRC_NAME));
+      set_br_pl_rsp->p_folders = (tAVRC_NAME*)osi_calloc(
+          set_br_pl_rsp->folder_depth * sizeof(tAVRC_NAME));
 
       /* Read each of the folder in the depth */
       for (uint32_t i = 0; i < set_br_pl_rsp->folder_depth; i++) {
@@ -867,12 +867,8 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
           BE_STREAM_TO_UINT32(p_attrs[i].attr_id, p);
           BE_STREAM_TO_UINT16(p_attrs[i].name.charset_id, p);
           BE_STREAM_TO_UINT16(p_attrs[i].name.str_len, p);
-          if (static_cast<uint16_t>(min_len + p_attrs[i].name.str_len) <
-              min_len) {
-            // Check for overflow
-            android_errorWriteLog(0x534e4554, "205570663");
-          }
-          if (len - min_len < p_attrs[i].name.str_len) {
+          min_len += p_attrs[i].name.str_len;
+          if (len < min_len) {
             for (int j = 0; j < i; j++) {
               osi_free(p_attrs[j].name.p_str);
             }
@@ -880,7 +876,6 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
             p_result->get_attrs.num_attrs = 0;
             goto length_error;
           }
-          min_len += p_attrs[i].name.str_len;
           if (p_attrs[i].name.str_len > 0) {
             p_attrs[i].name.p_str =
                 (uint8_t*)osi_calloc(p_attrs[i].name.str_len);

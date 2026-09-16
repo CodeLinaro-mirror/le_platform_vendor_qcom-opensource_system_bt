@@ -545,7 +545,7 @@ static int skt_write(int fd, const void *p, size_t len)
                 return -1;
             }
             if (ms_timeout >= WRITE_POLL_MS) {
-                usleep(WRITE_POLL_MS * 1000);
+                TEMP_FAILURE_RETRY(usleep(WRITE_POLL_MS * 1000));
                 ms_timeout -= WRITE_POLL_MS;
                 continue;
             }
@@ -699,7 +699,7 @@ int a2dp_read_codec_config(struct a2dp_stream_common *common,uint8_t idx)
     memset(p_codec_cfg,0,MAX_CODEC_CFG_SIZE);
     INFO("%s",__func__);
 
-    if (send(common->ctrl_fd, cmd, 2,  MSG_NOSIGNAL) == -1)
+    if (TEMP_FAILURE_RETRY(send(common->ctrl_fd, cmd, 2,  MSG_NOSIGNAL)) == -1)
     {
         ERROR("cmd failed (%s)", strerror(errno));
         skt_disconnect(common->ctrl_fd);
@@ -763,13 +763,13 @@ void a2dp_open_ctrl_path(struct a2dp_stream_common *common)
                 break;
 
             ERROR("error : a2dp not ready, wait 250 ms and retry");
-            usleep(250000);
+            TEMP_FAILURE_RETRY(usleep(250000));
             skt_disconnect(common->ctrl_fd);
             common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
         }
 
         /* ctrl channel not ready, wait a bit */
-        usleep(250000);
+        TEMP_FAILURE_RETRY(usleep(250000));
     }
 }
 
@@ -990,7 +990,7 @@ int audio_start_stream()
             break;
         }
         INFO("%s: a2dp stream not started,wait 100mse & retry", __func__);
-        usleep(100000);
+        TEMP_FAILURE_RETRY(usleep(100000));
     }
     if (audio_stream.state != AUDIO_A2DP_STATE_STARTED)
     {
@@ -1011,7 +1011,7 @@ int audio_stream_open()
         INFO("control path open successful");
         /*Delay to ensure Headset is in proper state when START is initiated
         from DUT immediately after the connection due to ongoing music playback. */
-        usleep(1000000);
+        TEMP_FAILURE_RETRY(usleep(1000000));
         a2dp_command(&audio_stream,A2DP_CTRL_CMD_OFFLOAD_SUPPORTED);
         return 0;
     }
